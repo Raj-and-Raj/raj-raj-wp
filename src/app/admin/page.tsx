@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   AppProvider,
@@ -29,7 +29,7 @@ export default function AdminPage() {
               <div className="mt-4 grid gap-3 md:grid-cols-3">
                 <Card padding="400">
                   <Text as="p" variant="bodySm" tone="subdued">
-                    Today�s sales
+                    Today’s sales
                   </Text>
                   <Text as="p" variant="headingLg">
                     ?1,02,500
