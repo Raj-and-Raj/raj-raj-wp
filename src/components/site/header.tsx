@@ -19,15 +19,9 @@ const topLinks = [
   { label: "Inspiration", href: "/inspiration" },
 ];
 
-const categoryLinks = [
+const baseLinks = [
   { label: "Home", href: "/" },
-  { label: "Wardrobes", href: "/category/wardrobes" },
-  { label: "Dressing Tables", href: "/category/dressing-tables" },
-  { label: "File Cabinets", href: "/category/file-cabinets" },
-  { label: "Lockers", href: "/category/lockers" },
-  { label: "First Aid Box", href: "/category/first-aid-box" },
-  { label: "Shoe Racks", href: "/category/shoe-racks" },
-  { label: "All Products", href: "/products" },
+  { label: "Shop", href: "/products" },
 ];
 
 export function SiteHeader() {
@@ -35,6 +29,8 @@ export function SiteHeader() {
   const [cartCount, setCartCount] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [categoryLinks, setCategoryLinks] =
+    useState<Array<{ label: string; href: string }>>(baseLinks);
 
   const loadCartCount = async () => {
     const res = await fetch("/api/cart");
@@ -42,7 +38,7 @@ export function SiteHeader() {
     const data: CartSummary = await res.json();
     const count = data?.items?.reduce(
       (sum, item) => sum + (item.quantity ?? 0),
-      0
+      0,
     );
     setCartCount(count || 0);
   };
@@ -60,8 +56,27 @@ export function SiteHeader() {
       }
     };
     window.addEventListener("cart:updated", handler as EventListener);
-    return () => window.removeEventListener("cart:updated", handler as EventListener);
+    return () =>
+      window.removeEventListener("cart:updated", handler as EventListener);
   }, [router]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await fetch("/api/categories/parents");
+        if (!res.ok) return;
+        const data: Array<{ name: string; slug: string }> = await res.json();
+        const mapped = data.map((item) => ({
+          label: item.name,
+          href: `/category/${item.slug}`,
+        }));
+        setCategoryLinks([...baseLinks, ...mapped]);
+      } catch {
+        setCategoryLinks(baseLinks);
+      }
+    };
+    loadCategories();
+  }, []);
 
   return (
     <>
@@ -73,7 +88,11 @@ export function SiteHeader() {
           <div className="flex items-center justify-between h-20">
             <div className="hidden md:flex items-center space-x-6 text-xs text-[color:var(--muted)] font-medium tracking-wide uppercase">
               {topLinks.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:text-black">
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="hover:text-black"
+                >
                   {item.label}
                 </Link>
               ))}
@@ -86,11 +105,19 @@ export function SiteHeader() {
             >
               {menuOpen ? (
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.5" />
+                  <path
+                    d="M18 6L6 18M6 6l12 12"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
                 </svg>
               ) : (
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="1.5" />
+                  <path
+                    d="M4 6h16M4 12h16M4 18h16"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
                 </svg>
               )}
             </button>
@@ -99,11 +126,19 @@ export function SiteHeader() {
               href="/"
               className="text-2xl md:text-3xl font-bold tracking-tighter text-[color:var(--brand)] italic"
             >
-              RAJ<span className="text-black not-italic">RAJ</span>
+              <img
+                src="https://dev.rajandraj.co/wp-content/uploads/2026/01/cropped-Logo3.png"
+                alt="Raj and Raj logo featuring a red bull head icon with white horns, accompanied by bold red text reading RAJ AND RAJ and a tagline stating Your trusted choice, representing a trusted brand choice"
+                width="220"
+                height="60"
+              />
             </Link>
 
             <div className="flex items-center space-x-4 md:space-x-6">
-              <Link href="/login" className="text-[color:var(--muted)] hover:text-black">
+              <Link
+                href="/login"
+                className="text-[color:var(--muted)] hover:text-black"
+              >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
@@ -118,7 +153,10 @@ export function SiteHeader() {
                 </svg>
               </Link>
 
-              <Link href="/wishlist" className="hidden md:block text-[color:var(--muted)] hover:text-black">
+              <Link
+                href="/wishlist"
+                className="hidden md:block text-[color:var(--muted)] hover:text-black"
+              >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M20.8 4.6C20.3 4.1 19.7 3.7 19.1 3.4C18.4 3.1 17.7 3 17 3C16.2 3 15.5 3.1 14.8 3.4C14.2 3.7 13.6 4.1 13.1 4.6L12 5.7L10.9 4.6C9.9 3.6 8.5 3 7.1 3C5.6 3 4.2 3.6 3.2 4.6C2.1 5.6 1.5 7 1.5 8.5C1.5 10 2.1 11.4 3.2 12.4L4.2 13.4L12 21.2L19.8 13.4L20.8 12.4C21.8 11.4 22.5 10 22.5 8.5C22.5 7 21.8 5.6 20.8 4.6Z"
@@ -156,7 +194,6 @@ export function SiteHeader() {
                   </span>
                 ) : null}
               </button>
-
             </div>
           </div>
 

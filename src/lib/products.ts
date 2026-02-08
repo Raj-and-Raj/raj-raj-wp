@@ -1,4 +1,9 @@
-import { fetchCategories, fetchProductBySlug, fetchProducts } from "./woocommerce";
+import {
+  fetchCategories,
+  fetchCategoryBySlug,
+  fetchProductBySlug,
+  fetchProducts,
+} from "./woocommerce";
 
 export type Product = {
   id: string;
@@ -126,7 +131,13 @@ export async function getProducts(category?: string) {
       ? fallbackProducts.filter((item) => item.categorySlug === category)
       : fallbackProducts;
   }
-  const items = await fetchProducts({ category });
+  let categoryId: string | undefined;
+  if (category) {
+    const found = await fetchCategoryBySlug(category);
+    if (!found) return [];
+    categoryId = String(found.id);
+  }
+  const items = await fetchProducts({ category: categoryId });
   return items.map(mapWooProduct);
 }
 
@@ -139,6 +150,12 @@ export async function getProduct(slug: string) {
 export async function getCategories() {
   if (!hasWoo) return fallbackCategories;
   const items = await fetchCategories();
+  return items.map((item) => ({ name: item.name, slug: item.slug }));
+}
+
+export async function getParentCategories() {
+  if (!hasWoo) return fallbackCategories;
+  const items = await fetchCategories({ parent: 0 });
   return items.map((item) => ({ name: item.name, slug: item.slug }));
 }
 

@@ -1,23 +1,29 @@
-import { CategoryFilters } from "@/components/site/category-filters";
-import { SectionHeading } from "@/components/site/section-heading";
-import { getProducts } from "@/lib/products";
+import { notFound } from "next/navigation";
+import { CategoryPageClient } from "@/components/site/category-page-client";
+import { getParentCategories, getProducts } from "@/lib/products";
 
-export default async function CategoryPage({
-  params,
-}: {
+type CategoryPageProps = {
   params: Promise<{ slug: string }>;
-}) {
+};
+
+export default async function CategoryPage({ params }: CategoryPageProps) {
   const resolvedParams = await params;
-  const products = await getProducts(resolvedParams.slug);
+  const slug = resolvedParams?.slug;
+  if (!slug) {
+    notFound();
+  }
+  const [products, categories] = await Promise.all([
+    getProducts(slug),
+    getParentCategories(),
+  ]);
+  const displayName = slug.replace(/-/g, " ");
 
   return (
-    <div className="space-y-12">
-      <SectionHeading
-        eyebrow="Category"
-        title={`Explore ${resolvedParams.slug.replace(/-/g, " ")}`}
-        description="Layer textures, contrast materials, and build your modern room palette."
-      />
-      <CategoryFilters products={products} />
-    </div>
+    <CategoryPageClient
+      displayName={displayName}
+      products={products}
+      categories={categories}
+      currentCategorySlug={slug}
+    />
   );
 }
