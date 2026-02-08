@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from "next";
 import { Geist, Inter } from "next/font/google";
 import "./globals.css";
+import { ToastRoot } from "@/components/ui/toast-provider";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -31,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geist.variable} ${inter.variable} antialiased`}>
-        {children}
+        <ToastRoot>{children}</ToastRoot>
       </body>
     </html>
   );
