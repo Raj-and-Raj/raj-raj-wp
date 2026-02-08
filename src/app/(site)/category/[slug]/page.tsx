@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { CategoryPageClient } from "@/components/site/category-page-client";
-import { getProducts } from "@/lib/products";
+import { getParentCategories, getProducts } from "@/lib/products";
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;
@@ -12,8 +12,18 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   if (!slug) {
     notFound();
   }
-  const products = await getProducts(slug);
+  const [products, categories] = await Promise.all([
+    getProducts(slug),
+    getParentCategories(),
+  ]);
   const displayName = slug.replace(/-/g, " ");
 
-  return <CategoryPageClient displayName={displayName} products={products} />;
+  return (
+    <CategoryPageClient
+      displayName={displayName}
+      products={products}
+      categories={categories}
+      currentCategorySlug={slug}
+    />
+  );
 }

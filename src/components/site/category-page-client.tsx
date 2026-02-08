@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Heart, SlidersHorizontal } from "lucide-react";
 import { Product } from "@/lib/products";
 import { formatPrice } from "@/lib/format";
@@ -9,14 +9,62 @@ import { formatPrice } from "@/lib/format";
 type CategoryPageClientProps = {
   displayName: string;
   products: Product[];
+  categories: Array<{ name: string; slug: string }>;
+  currentCategorySlug?: string;
 };
 
 export function CategoryPageClient({
   displayName,
   products,
+  categories,
+  currentCategorySlug,
 }: CategoryPageClientProps) {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  const [priceRange] = useState<[number, number]>([12490, 31290]);
+  const prices = useMemo(
+    () => products.map((product) => product.price).filter((price) => price > 0),
+    [products]
+  );
+  const minPrice = prices.length ? Math.min(...prices) : 0;
+  const maxPrice = prices.length ? Math.max(...prices) : 0;
+  const [priceCap, setPriceCap] = useState(maxPrice || 0);
+  const [sort, setSort] = useState("default");
+  const [visibleCount, setVisibleCount] = useState(10);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setPriceCap(maxPrice || 0);
+  }, [maxPrice]);
+
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [priceCap, sort, products]);
+
+  useEffect(() => {
+    const target = loaderRef.current;
+    if (!target) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((prev) => prev + 10);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    let next = products.filter((product) => product.price <= priceCap);
+    if (sort === "price-asc") {
+      next = [...next].sort((a, b) => a.price - b.price);
+    } else if (sort === "price-desc") {
+      next = [...next].sort((a, b) => b.price - a.price);
+    }
+    return next;
+  }, [products, priceCap, sort]);
+
+  const visibleProducts = filteredProducts.slice(0, visibleCount);
 
   return (
     <div className="min-h-screen bg-white pb-20 pt-24">
@@ -48,31 +96,26 @@ export function CategoryPageClient({
               Categories <ChevronDown className="h-4 w-4" />
             </h3>
             <div className="space-y-3 pl-2">
-              <label className="group flex cursor-pointer items-center gap-3">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-gray-300 text-[#DA3234] focus:ring-[#DA3234]"
-                  checked
-                  readOnly
-                />
-                <span className="text-gray-700 transition-colors group-hover:text-[#DA3234]">
-                  Wardrobes
-                </span>
-              </label>
-              <div className="space-y-2 pl-6 text-sm text-gray-500">
-                <label className="flex cursor-pointer items-center gap-2 hover:text-[#DA3234]">
-                  <span className="h-2 w-2 rounded-full border border-gray-400" />
-                  1-Door Wardrobes
-                </label>
-                <label className="flex cursor-pointer items-center gap-2 hover:text-[#DA3234]">
-                  <span className="h-2 w-2 rounded-full border border-gray-400" />
-                  2-Door Wardrobes
-                </label>
-                <label className="flex cursor-pointer items-center gap-2 hover:text-[#DA3234]">
-                  <span className="h-2 w-2 rounded-full border border-gray-400" />
-                  3-Door Wardrobes
-                </label>
-              </div>
+              {categories.map((category) => {
+                const active = currentCategorySlug === category.slug;
+                return (
+                  <Link
+                    key={category.slug}
+                    href={`/category/${category.slug}`}
+                    className="group flex items-center gap-3"
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-[#DA3234] focus:ring-[#DA3234]"
+                      checked={active}
+                      readOnly
+                    />
+                    <span className="text-gray-700 transition-colors group-hover:text-[#DA3234]">
+                      {category.name}
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
 
@@ -81,14 +124,16 @@ export function CategoryPageClient({
             <div className="px-2">
               <input
                 type="range"
-                min="0"
-                max="50000"
+                min={minPrice}
+                max={maxPrice}
+                value={priceCap}
+                onChange={(event) => setPriceCap(Number(event.target.value))}
                 className="h-1 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-[#DA3234]"
               />
               <div className="mt-4 flex justify-between text-xs font-medium text-gray-600">
-                <span>{formatPrice(priceRange[0])}</span>
+                <span>{formatPrice(minPrice)}</span>
                 <span>-</span>
-                <span>{formatPrice(priceRange[1])}</span>
+                <span>{formatPrice(priceCap || maxPrice)}</span>
               </div>
             </div>
           </div>
@@ -106,21 +151,25 @@ export function CategoryPageClient({
         <div className="flex-1">
           <div className="mb-8 flex flex-col items-center justify-between border-b border-gray-100 pb-4 md:flex-row">
             <p className="mb-4 text-sm text-gray-500 md:mb-0">
-              Showing 1-{products.length} of {products.length} results
+              Showing 1-{Math.min(visibleProducts.length, filteredProducts.length)} of{" "}
+              {filteredProducts.length} results
             </p>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Sort by:</span>
-              <select className="cursor-pointer border-none bg-transparent text-sm font-bold text-gray-900 focus:ring-0">
-                <option>Default</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Newest</option>
+              <select
+                value={sort}
+                onChange={(event) => setSort(event.target.value)}
+                className="cursor-pointer border-none bg-transparent text-sm font-bold text-gray-900 focus:ring-0"
+              >
+                <option value="default">Default</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
               </select>
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-x-6 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
+            {visibleProducts.map((product) => (
               <Link
                 key={product.id}
                 href={`/products/${product.slug}`}
@@ -169,6 +218,13 @@ export function CategoryPageClient({
               </Link>
             ))}
           </div>
+          {visibleProducts.length < filteredProducts.length ? (
+            <div ref={loaderRef} className="py-10 text-center text-sm text-gray-500">
+              Loading more products...
+            </div>
+          ) : (
+            <div ref={loaderRef} />
+          )}
         </div>
       </div>
 
@@ -189,15 +245,27 @@ export function CategoryPageClient({
                 <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-700">
                   Categories
                 </h4>
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-[#DA3234] focus:ring-[#DA3234]"
-                    checked
-                    readOnly
-                  />
-                  <span className="text-gray-700">Wardrobes</span>
-                </label>
+                <div className="space-y-3">
+                  {categories.map((category) => {
+                    const active = currentCategorySlug === category.slug;
+                    return (
+                      <Link
+                        key={category.slug}
+                        href={`/category/${category.slug}`}
+                        className="flex items-center gap-3"
+                        onClick={() => setIsMobileFilterOpen(false)}
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300 text-[#DA3234] focus:ring-[#DA3234]"
+                          checked={active}
+                          readOnly
+                        />
+                        <span className="text-gray-700">{category.name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
               <div>
                 <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-700">
@@ -205,8 +273,10 @@ export function CategoryPageClient({
                 </h4>
                 <input
                   type="range"
-                  min="0"
-                  max="50000"
+                  min={minPrice}
+                  max={maxPrice}
+                  value={priceCap}
+                  onChange={(event) => setPriceCap(Number(event.target.value))}
                   className="h-1 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-[#DA3234]"
                 />
               </div>
