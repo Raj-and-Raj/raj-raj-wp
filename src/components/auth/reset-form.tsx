@@ -2,10 +2,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
 
 export function ResetPasswordForm() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -14,7 +18,18 @@ export function ResetPasswordForm() {
 
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const payload = { email: formData.get("email") };
+    const email = String(formData.get("email") ?? "").trim();
+    if (!email || !email.includes("@")) {
+      setLoading(false);
+      toast({
+        variant: "destructive",
+        title: "Invalid email",
+        description: "Enter a valid email address.",
+      });
+      return;
+    }
+
+    const payload = { email };
 
     const res = await fetch("/api/auth/reset", {
       method: "POST",
@@ -24,20 +39,27 @@ export function ResetPasswordForm() {
 
     setLoading(false);
     setStatus(res.ok ? "success" : "error");
+    toast({
+      variant: res.ok ? "success" : "destructive",
+      title: res.ok ? "Reset link sent" : "Reset failed",
+      description: res.ok
+        ? "Check your email for the reset link."
+        : "Could not send reset link.",
+    });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <label className="block text-sm text-[color:var(--muted)]">
-        Email
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="reset-email">Email</Label>
+        <Input
+          id="reset-email"
           name="email"
           type="email"
-          className="mt-2 w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm"
           placeholder="you@email.com"
           required
         />
-      </label>
+      </div>
       {status === "success" ? (
         <p className="text-sm text-emerald-600">Reset link sent.</p>
       ) : null}
