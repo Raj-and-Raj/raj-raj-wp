@@ -341,9 +341,9 @@ export function ProductDetailClient({
         <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
           <h3 className="text-base font-semibold">Specifications</h3>
           <ul className="mt-4 space-y-2 text-sm text-[color:var(--muted)]">
-            <li>Overall: 64.5" w x 38.5" d x 35" h</li>
-            <li>Arm: 7" w x 38.5" d x 22.5" h</li>
-            <li>Legs: 5.5" w x 2" d x 2" h</li>
+            <li>Overall: 64.5&quot; w x 38.5&quot; d x 35&quot; h</li>
+            <li>Arm: 7&quot; w x 38.5&quot; d x 22.5&quot; h</li>
+            <li>Legs: 5.5&quot; w x 2&quot; d x 2&quot; h</li>
             <li>Weight: 48 kg</li>
           </ul>
         </div>
@@ -405,8 +405,8 @@ export function ProductDetailClient({
                   Dimensions & weights
                 </h4>
                 <ul className="mt-3 space-y-2">
-                  <li>Overall: 64.5" w x 38.5" d x 35" h</li>
-                  <li>Arm: 7" w x 38.5" d x 22.5" h</li>
+                  <li>Overall: 64.5&quot; w x 38.5&quot; d x 35&quot; h</li>
+                  <li>Arm: 7&quot; w x 38.5&quot; d x 22.5&quot; h</li>
                 </ul>
               </div>
             </div>

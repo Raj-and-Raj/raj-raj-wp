@@ -1,4 +1,4 @@
-import { SectionHeading } from "@/components/site/section-heading";
+ï»¿import { SectionHeading } from "@/components/site/section-heading";
 import { Button } from "@/components/ui/button";
 
 export default function ContactPage() {
@@ -6,8 +6,8 @@ export default function ContactPage() {
     <div className="space-y-12">
       <SectionHeading
         eyebrow="Contact"
-        title="Let’s shape your next space"
-        description="Tell us about your project, timeline, and scale. We’ll reply within 48 hours."
+        title="Letâ€™s shape your next space"
+        description="Tell us about your project, timeline, and scale. Weâ€™ll reply within 48 hours."
       />
       <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <form className="rounded-[32px] border border-black/5 bg-white/90 p-8">

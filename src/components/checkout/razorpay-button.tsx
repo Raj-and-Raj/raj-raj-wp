@@ -11,9 +11,22 @@ type RazorpayButtonProps = {
 
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay?: new (options: RazorpayOptions) => RazorpayInstance;
   }
 }
+
+type RazorpayOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  theme: { color: string };
+};
+
+type RazorpayInstance = {
+  open: () => void;
+};
 
 export function RazorpayButton({ title, price }: RazorpayButtonProps) {
   useEffect(() => {

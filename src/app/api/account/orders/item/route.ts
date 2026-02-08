@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing order id" }, { status: 400 });
   }
 
-  const token = cookies().get("wp_token")?.value;
+  const token = (await cookies()).get("wp_token")?.value;
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

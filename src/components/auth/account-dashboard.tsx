@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/format";
 
 type Address = {
   first_name?: string;
@@ -36,7 +35,11 @@ export function AccountDashboard() {
   const [billingDraft, setBillingDraft] = useState<Address>({});
   const [shippingDraft, setShippingDraft] = useState<Address>({});
   const [trackId, setTrackId] = useState("");
-  const [tracked, setTracked] = useState<any>(null);
+  const [tracked, setTracked] = useState<null | {
+    id: number;
+    status: string;
+    total: string;
+  }>(null);
 
   const loadAll = async () => {
     const res = await fetch("/api/auth/me");

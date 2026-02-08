@@ -5,15 +5,16 @@ import { getProducts } from "@/lib/products";
 export default async function CategoryPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const products = await getProducts(params.slug);
+  const resolvedParams = await params;
+  const products = await getProducts(resolvedParams.slug);
 
   return (
     <div className="space-y-12">
       <SectionHeading
         eyebrow="Category"
-        title={`Explore ${params.slug.replace(/-/g, " ")}`}
+        title={`Explore ${resolvedParams.slug.replace(/-/g, " ")}`}
         description="Layer textures, contrast materials, and build your modern room palette."
       />
       <CategoryFilters products={products} />

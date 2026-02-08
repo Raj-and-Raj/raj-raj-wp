@@ -11,10 +11,11 @@ import {
 
 export async function POST(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   const body = await request.json();
-  const res = await fetch(getStoreApiUrl(`checkout/${params.orderId}`), {
+  const resolvedParams = await params;
+  const res = await fetch(getStoreApiUrl(`checkout/${resolvedParams.orderId}`), {
     method: "POST",
     headers: getStoreApiRequestHeaders(request, {
       "Content-Type": "application/json",
