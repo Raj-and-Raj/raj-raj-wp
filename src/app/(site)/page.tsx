@@ -11,7 +11,7 @@ import { Newsletter } from "@/components/site/home/newsletter";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       <HeroSlider />
       <FeaturedBrands />
       <PopularCategories />
@@ -21,7 +21,7 @@ export default function Home() {
       <StoreLocatorBanner />
       <BusinessSolutionsBanner />
       <GoogleReviews />
-      <Newsletter />
+      {/* <Newsletter /> */}
     </div>
   );
 }

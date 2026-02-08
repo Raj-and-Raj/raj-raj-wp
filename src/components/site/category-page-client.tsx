@@ -121,7 +121,11 @@ export function CategoryPageClient({
 
           <div className="grid grid-cols-1 gap-x-6 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (
-              <div key={product.id} className="group cursor-pointer">
+              <Link
+                key={product.id}
+                href={`/products/${product.slug}`}
+                className="group block"
+              >
                 <div className="relative mb-4 aspect-[3/4] overflow-hidden bg-gray-100">
                   {product.image ? (
                     <img
@@ -135,7 +139,11 @@ export function CategoryPageClient({
                     </div>
                   )}
 
-                  <button className="absolute right-4 top-4 rounded-full bg-white p-2 shadow-sm opacity-0 transition-opacity hover:bg-[#DA3234] hover:text-white group-hover:opacity-100">
+                  <button
+                    type="button"
+                    className="absolute right-4 top-4 rounded-full bg-white p-2 shadow-sm opacity-0 transition-opacity hover:bg-[#DA3234] hover:text-white group-hover:opacity-100"
+                    onClick={(event) => event.preventDefault()}
+                  >
                     <Heart className="h-4 w-4" />
                   </button>
                 </div>
@@ -158,7 +166,7 @@ export function CategoryPageClient({
                     <div className="h-3 w-3 rounded-full border border-gray-200 bg-gray-800" />
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

@@ -9,8 +9,7 @@ const reviews = [
     name: "Prabha Shenoy",
     date: "1 month ago",
     rating: 4,
-    text:
-      "Congratulations on great work. Helpful staff and responsive service throughout the process.",
+    text: "Congratulations on great work. Helpful staff and responsive service throughout the process.",
     initial: "P",
     bg: "bg-slate-500",
   },
@@ -19,8 +18,7 @@ const reviews = [
     name: "Anitha Rajagopal",
     date: "1 month ago",
     rating: 5,
-    text:
-      "Very good service and on-time delivery. Great support from the team.",
+    text: "Very good service and on-time delivery. Great support from the team.",
     initial: "A",
     bg: "bg-red-800",
   },
@@ -38,8 +36,7 @@ const reviews = [
     name: "Sneha Gupta",
     date: "1 week ago",
     rating: 5,
-    text:
-      "The best furniture store in town. Innovative designs and durable builds.",
+    text: "The best furniture store in town. Innovative designs and durable builds.",
     initial: "S",
     bg: "bg-green-600",
   },
@@ -48,8 +45,7 @@ const reviews = [
     name: "Rahul Verma",
     rating: 5,
     date: "1 month ago",
-    text:
-      "Great experience shopping with Raj & Raj. Premium quality and sturdy finishing.",
+    text: "Great experience shopping with Raj & Raj. Premium quality and sturdy finishing.",
     initial: "R",
     bg: "bg-orange-500",
   },
@@ -68,7 +64,7 @@ export function GoogleReviews() {
   };
 
   return (
-    <div className="mb-20 bg-white py-16">
+    <div className="mb-20 py-16">
       <div className="container mx-auto px-4 md:px-8">
         <div className="mb-12 text-center">
           <h2 className="mb-2 text-2xl font-bold uppercase tracking-widest text-gray-900">
@@ -105,7 +101,7 @@ export function GoogleReviews() {
             {reviews.map((review) => (
               <div
                 key={review.id}
-                className="relative min-w-[85vw] flex-shrink-0 snap-center rounded-xl border border-gray-100 bg-white p-6 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-lg md:min-w-[calc(33.333%-16px)]"
+                className="relative min-w-[25vw] flex-shrink-0 snap-center rounded-xl border border-gray-100 bg-white p-6 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-lg md:min-w-[calc(33.333%-16px)]"
               >
                 <div className="absolute right-6 top-6 opacity-80">
                   <svg

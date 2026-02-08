@@ -72,18 +72,30 @@ async function wooFetch<T>(path: string, params?: URLSearchParams): Promise<T> {
   }
 
   const query = params ? `?${withAuth(params).toString()}` : "";
-  const res = await fetch(`${baseUrl}/wp-json/wc/v3/${path}${query}`, {
+  const primaryUrl = `${baseUrl}/wp-json/wc/v3/${path}${query}`;
+  const legacyUrl = `${baseUrl}/wc-api/v3/${path}${query}`;
+
+  const res = await fetch(primaryUrl, {
     next: { revalidate: 60 },
-    headers: {
-      ...authHeaders(),
-    },
+    headers: { ...authHeaders() },
   });
 
-  if (!res.ok) {
-    throw new Error(`WooCommerce request failed: ${res.status}`);
+  if (res.ok) {
+    return res.json() as Promise<T>;
   }
 
-  return res.json() as Promise<T>;
+  if (res.status === 404) {
+    const legacyRes = await fetch(legacyUrl, {
+      next: { revalidate: 60 },
+      headers: { ...authHeaders() },
+    });
+    if (legacyRes.ok) {
+      return legacyRes.json() as Promise<T>;
+    }
+    throw new Error(`WooCommerce request failed: ${legacyRes.status}`);
+  }
+
+  throw new Error(`WooCommerce request failed: ${res.status}`);
 }
 
 async function wooPost<T>(path: string, body: unknown): Promise<T> {
@@ -128,10 +140,27 @@ export async function fetchProductById(id: number) {
   return wooFetch<WooProduct>(`products/${id}`);
 }
 
-export async function fetchCategories() {
-  return wooFetch<Array<{ id: number; name: string; slug: string }>>(
-    "products/categories"
-  );
+export async function fetchCategories(params?: {
+  parent?: number;
+  perPage?: number;
+  slug?: string;
+}) {
+  const query = new URLSearchParams();
+  query.set("per_page", String(params?.perPage ?? 100));
+  if (typeof params?.parent === "number") {
+    query.set("parent", String(params.parent));
+  }
+  if (params?.slug) {
+    query.set("slug", params.slug);
+  }
+  return wooFetch<
+    Array<{ id: number; name: string; slug: string; parent: number }>
+  >("products/categories", query);
+}
+
+export async function fetchCategoryBySlug(slug: string) {
+  const items = await fetchCategories({ slug, perPage: 100 });
+  return items[0];
 }
 
 export async function fetchCustomerByEmail(email: string) {
