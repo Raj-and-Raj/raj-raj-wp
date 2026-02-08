@@ -151,6 +151,8 @@ function mapWooProduct(item: {
   price: string;
   images: Array<{ src: string }>;
   categories: Array<{ name: string; slug: string }>;
+  type?: string;
+  attributes?: Array<{ name: string; variation: boolean; options: string[] }>;
 }) {
   const category = item.categories?.[0];
   return {

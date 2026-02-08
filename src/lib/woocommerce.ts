@@ -58,7 +58,7 @@ function withAuth(params: URLSearchParams) {
   return params;
 }
 
-function authHeaders() {
+function authHeaders(): Record<string, string> {
   if (!consumerKey || !consumerSecret) return {};
   const token = Buffer.from(`${consumerKey}:${consumerSecret}`).toString(
     "base64"

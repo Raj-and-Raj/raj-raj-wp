@@ -6,6 +6,14 @@ import { useRouter } from "next/navigation";
 import { ButtonLink } from "@/components/ui/button";
 import { MiniCartDrawer } from "@/components/cart/mini-cart-drawer";
 
+type CartItem = {
+  quantity?: number;
+};
+
+type CartSummary = {
+  items?: CartItem[];
+};
+
 const navItems = [
   { label: "Products", href: "/products" },
   { label: "Categories", href: "/category/seating" },
@@ -22,9 +30,9 @@ export function SiteHeader() {
   const loadCartCount = async () => {
     const res = await fetch("/api/cart");
     if (!res.ok) return;
-    const data = await res.json();
+    const data: CartSummary = await res.json();
     const count = data?.items?.reduce(
-      (sum: number, item: any) => sum + (item.quantity ?? 0),
+      (sum, item) => sum + (item.quantity ?? 0),
       0
     );
     setCartCount(count || 0);

@@ -4,8 +4,24 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 
+type CartItem = {
+  key: string;
+  name: string;
+  quantity: number;
+  prices?: { price?: number | string };
+};
+
+type CartTotals = {
+  total?: number | string;
+};
+
+type Cart = {
+  items?: CartItem[];
+  totals?: CartTotals;
+};
+
 export default function CheckoutPage() {
-  const [cart, setCart] = useState<any>(null);
+  const [cart, setCart] = useState<Cart | null>(null);
   const [billing, setBilling] = useState({
     first_name: "",
     last_name: "",
@@ -61,8 +77,8 @@ export default function CheckoutPage() {
         return;
       }
       window.location.href = "/account";
-    } catch (err: any) {
-      setError(err?.message || "Checkout failed.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Checkout failed.");
     } finally {
       setIsPlacing(false);
     }
@@ -170,15 +186,15 @@ export default function CheckoutPage() {
           <h2 className="text-lg font-semibold">Order summary</h2>
           {cart ? (
             <div className="mt-4 space-y-2 text-sm">
-              {cart.items?.map((item: any) => (
+              {cart.items?.map((item) => (
                 <div key={item.key} className="flex justify-between">
                   <span>{item.name}</span>
-                  <span>{formatPrice(item.prices?.price / 100)}</span>
+                  <span>{formatPrice(Number(item.prices?.price ?? 0) / 100)}</span>
                 </div>
               ))}
               <div className="flex justify-between border-t border-black/10 pt-3 font-semibold">
                 <span>Total</span>
-                <span>{formatPrice(cart.totals?.total / 100)}</span>
+                <span>{formatPrice(Number(cart.totals?.total ?? 0) / 100)}</span>
               </div>
             </div>
           ) : (

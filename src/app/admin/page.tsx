@@ -11,9 +11,30 @@ import {
 } from "@shopify/polaris";
 
 const orders = [
-  ["RR-1084", "Santorini Lounge Chair", "?28,500", <Badge tone="success">Paid</Badge>],
-  ["RR-1085", "Verve Dining Table", "?52,000", <Badge tone="attention">Pending</Badge>],
-  ["RR-1086", "Halo Pendant Light", "?18,500", <Badge tone="success">Paid</Badge>],
+  [
+    "RR-1084",
+    "Santorini Lounge Chair",
+    "?28,500",
+    <Badge key="status-rr-1084" tone="success">
+      Paid
+    </Badge>,
+  ],
+  [
+    "RR-1085",
+    "Verve Dining Table",
+    "?52,000",
+    <Badge key="status-rr-1085" tone="attention">
+      Pending
+    </Badge>,
+  ],
+  [
+    "RR-1086",
+    "Halo Pendant Light",
+    "?18,500",
+    <Badge key="status-rr-1086" tone="success">
+      Paid
+    </Badge>,
+  ],
 ];
 
 export default function AdminPage() {

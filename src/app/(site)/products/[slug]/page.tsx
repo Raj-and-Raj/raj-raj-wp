@@ -5,9 +5,10 @@ import { ProductDetailClient } from "@/components/site/product-detail-client";
 export default async function ProductPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const product = await getProduct(params.slug);
+  const resolvedParams = await params;
+  const product = await getProduct(resolvedParams.slug);
 
   if (!product) {
     notFound();

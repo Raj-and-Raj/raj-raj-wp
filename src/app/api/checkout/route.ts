@@ -14,12 +14,15 @@ async function proxyCheckout(
   init?: RequestInit,
   urlOverride?: string
 ) {
+  const extraHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (init?.headers && !(init.headers instanceof Headers)) {
+    Object.assign(extraHeaders, init.headers as Record<string, string>);
+  }
   const res = await fetch(urlOverride ?? getStoreApiUrl("checkout"), {
     ...init,
-    headers: getStoreApiRequestHeaders(request, {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    }),
+    headers: getStoreApiRequestHeaders(request, extraHeaders),
   });
 
   const data = await res.json();

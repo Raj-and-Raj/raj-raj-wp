@@ -4,8 +4,28 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 
+type CartItem = {
+  key: string;
+  name: string;
+  quantity: number;
+  prices?: { price?: number | string };
+};
+
+type CartTotals = {
+  total_items?: number | string;
+  subtotal?: number | string;
+  total?: number | string;
+  total_tax?: number | string;
+  total_price?: number | string;
+};
+
+type Cart = {
+  items?: CartItem[];
+  totals?: CartTotals;
+};
+
 export function CartClient() {
-  const [cart, setCart] = useState<any>(null);
+  const [cart, setCart] = useState<Cart | null>(null);
   const [coupon, setCoupon] = useState("");
 
   const toCents = (value: unknown) => {
@@ -60,7 +80,7 @@ export function CartClient() {
 
   const itemsCount =
     cart.items?.reduce(
-      (sum: number, item: any) => sum + (item.quantity ?? 0),
+      (sum, item) => sum + (item.quantity ?? 0),
       0
     ) ?? 0;
   const subtotalCents = toCents(
@@ -77,7 +97,7 @@ export function CartClient() {
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-4">
           {cart.items?.length ? (
-            cart.items.map((item: any) => (
+            cart.items.map((item) => (
               <div
                 key={item.key}
                 className="flex items-center justify-between rounded-[12px] border border-black/5 bg-white/95 p-4"
@@ -85,7 +105,7 @@ export function CartClient() {
                 <div>
                   <p className="font-semibold">{item.name}</p>
                   <p className="text-sm text-[color:var(--muted)]">
-                    {formatPrice(item.prices?.price / 100)}
+                    {formatPrice(Number(item.prices?.price ?? 0) / 100)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
