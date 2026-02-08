@@ -1,23 +1,14 @@
-import { CategoryFilters } from "@/components/site/category-filters";
-import { SectionHeading } from "@/components/site/section-heading";
+import { CategoryPageClient } from "@/components/site/category-page-client";
 import { getProducts } from "@/lib/products";
 
-export default async function CategoryPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const resolvedParams = await params;
-  const products = await getProducts(resolvedParams.slug);
+type CategoryPageProps = {
+  params: { slug: string };
+};
 
-  return (
-    <div className="space-y-12">
-      <SectionHeading
-        eyebrow="Category"
-        title={`Explore ${resolvedParams.slug.replace(/-/g, " ")}`}
-        description="Layer textures, contrast materials, and build your modern room palette."
-      />
-      <CategoryFilters products={products} />
-    </div>
-  );
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const slug = params.slug;
+  const products = await getProducts(slug);
+  const displayName = slug.replace(/-/g, " ");
+
+  return <CategoryPageClient displayName={displayName} products={products} />;
 }
