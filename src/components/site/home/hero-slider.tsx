@@ -3,38 +3,35 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { uploadsUrl } from "@/lib/uploads";
 
 const slides = [
   {
     id: 1,
     title: "Designed to Last",
     subtitle: "High-quality steel furniture with a professional finish.",
-    image:
-      "https://dev.rajandraj.co/wp-content/uploads/2026/02/Main-banner-3.jpg.jpeg",
+    image: uploadsUrl("2026/02/Main-banner-3.jpg.jpeg"),
     link: "/products",
   },
   {
     id: 2,
     title: "Built in Steel",
     subtitle: "Strong, reliable furniture for everyday use.",
-    image:
-      "https://dev.rajandraj.co/wp-content/uploads/2026/02/Main-banner-2.jpg.jpeg",
+    image: uploadsUrl("2026/02/Main-banner-2.jpg.jpeg"),
     link: "/products",
   },
   {
     id: 3,
     title: "Premium Steel Furniture",
     subtitle: "Crafted for durability and modern spaces.",
-    image:
-      "https://dev.rajandraj.co/wp-content/uploads/2026/02/Main-banner.jpg-1.jpeg",
+    image: uploadsUrl("2026/02/Main-banner.jpg-1.jpeg"),
     link: "/products",
   },
   {
     id: 4,
     title: "Industrial. Minimal. Strong.",
     subtitle: "Premium steel furniture for homes and offices.",
-    image:
-      "https://dev.rajandraj.co/wp-content/uploads/2026/02/Main-banner-4.jpg.jpeg",
+    image: uploadsUrl("2026/02/Main-banner-4.jpg.jpeg"),
     link: "/products",
   },
 ];

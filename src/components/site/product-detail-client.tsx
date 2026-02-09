@@ -175,7 +175,7 @@ export function ProductDetailClient({
   };
 
   return (
-    <div className="space-y-4 pt-4">
+    <div className="space-y-4 pt-32">
       <div className="text-xs text-[color:var(--muted)]">
         <Link href="/" className="hover:text-[color:var(--brand)]">
           Home
@@ -514,76 +514,76 @@ export function ProductDetailClient({
               const disableForSelection = !isSelectionComplete;
               return (
                 <div className="mt-6 grid grid-cols-1 gap-3 items-center sm:grid-cols-3">
-              <div className="flex items-center justify-between rounded-[12px] border border-black/10 px-3 py-2">
-                <button
-                  onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="h-8 w-8 rounded-[10px] border border-black/10 text-sm"
-                >
-                  -
-                </button>
-                <span className="px-3 text-sm font-semibold">{qty}</span>
-                <button
-                  onClick={() => setQty(qty + 1)}
-                  className="h-8 w-8 rounded-[10px] border border-black/10 text-sm"
-                >
-                  +
-                </button>
-              </div>
-              <Button
-                className="bg-[color:var(--brand)] rounded-[10px] text-white hover:brightness-110"
-                disabled={isInCart || disableForSelection}
-                onClick={async () => {
-                  if (disableForSelection) return;
-                  if (isInCart) {
-                    toast({
-                      title: "Already in cart",
-                      description: "This item is already in your cart.",
-                    });
-                    return;
-                  }
-                  await fetch("/api/cart/add", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      id: Number(product.id),
-                      quantity: qty,
-                      variation: variationPayload,
-                    }),
-                  });
-                  window.dispatchEvent(new Event("cart:updated"));
-                  toast({
-                    title: "Added to cart",
-                    description: "Item has been added to your cart.",
-                    variant: "success",
-                  });
-                }}
-              >
-                {isInCart ? "Already in cart" : "Add to cart"}
-              </Button>
-              <Button
-                variant="outline"
-                className="rounded-[10px] bg-black border-black/10 text-white hover:border-[color:var(--brand)] hover:bg-[color:var(--brand)] hover:text-white"
-                disabled={disableForSelection}
-                onClick={async () => {
-                  if (disableForSelection) return;
-                  if (!isInCart) {
-                  await fetch("/api/cart/add", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      id: Number(product.id),
-                      quantity: qty,
-                      variation: variationPayload,
-                    }),
-                  });
-                  window.dispatchEvent(new Event("cart:updated"));
-                  }
-                  window.location.href = "/checkout";
-                }}
-              >
-                Buy now
-              </Button>
-            </div>
+                  <div className="flex items-center justify-between rounded-[12px] border border-black/10 px-3 py-2">
+                    <button
+                      onClick={() => setQty(Math.max(1, qty - 1))}
+                      className="h-8 w-8 rounded-[10px] border border-black/10 text-sm"
+                    >
+                      -
+                    </button>
+                    <span className="px-3 text-sm font-semibold">{qty}</span>
+                    <button
+                      onClick={() => setQty(qty + 1)}
+                      className="h-8 w-8 rounded-[10px] border border-black/10 text-sm"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <Button
+                    className="bg-[color:var(--brand)] rounded-[10px] text-white hover:brightness-110"
+                    disabled={isInCart || disableForSelection}
+                    onClick={async () => {
+                      if (disableForSelection) return;
+                      if (isInCart) {
+                        toast({
+                          title: "Already in cart",
+                          description: "This item is already in your cart.",
+                        });
+                        return;
+                      }
+                      await fetch("/api/cart/add", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          id: Number(product.id),
+                          quantity: qty,
+                          variation: variationPayload,
+                        }),
+                      });
+                      window.dispatchEvent(new Event("cart:updated"));
+                      toast({
+                        title: "Added to cart",
+                        description: "Item has been added to your cart.",
+                        variant: "success",
+                      });
+                    }}
+                  >
+                    {isInCart ? "Already in cart" : "Add to cart"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="rounded-[10px] bg-black border-black/10 text-white hover:border-[color:var(--brand)] hover:bg-[color:var(--brand)] hover:text-white"
+                    disabled={disableForSelection}
+                    onClick={async () => {
+                      if (disableForSelection) return;
+                      if (!isInCart) {
+                        await fetch("/api/cart/add", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            id: Number(product.id),
+                            quantity: qty,
+                            variation: variationPayload,
+                          }),
+                        });
+                        window.dispatchEvent(new Event("cart:updated"));
+                      }
+                      window.location.href = "/checkout";
+                    }}
+                  >
+                    Buy now
+                  </Button>
+                </div>
               );
             })()}
 

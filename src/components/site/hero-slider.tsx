@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ButtonLink } from "@/components/ui/button";
+import { uploadsUrl } from "@/lib/uploads";
 
 const heroSlides = [
   {
@@ -12,8 +13,7 @@ const heroSlides = [
     subtitle: "Signature collection",
     description:
       "Tailored furniture, artisanal textures, and warm neutrals curated for premium living.",
-    image:
-      "https://dev.rajandraj.co/wp-content/uploads/2026/02/Popular-categories.jpg.jpeg",
+    image: uploadsUrl("2026/02/Popular-categories.jpg.jpeg"),
   },
   {
     id: "atelier",
@@ -21,8 +21,7 @@ const heroSlides = [
     subtitle: "Craft & detail",
     description:
       "Minimal silhouettes, elevated materials, and a calm palette that feels timeless.",
-    image:
-      "https://dev.rajandraj.co/wp-content/uploads/2026/02/Popular-categories.jpg.jpeg",
+    image: uploadsUrl("2026/02/Popular-categories.jpg.jpeg"),
   },
   {
     id: "bespoke",
@@ -30,8 +29,7 @@ const heroSlides = [
     subtitle: "Bespoke living",
     description:
       "Made-to-order finishes, white-glove delivery, and a seamless, premium experience.",
-    image:
-      "https://dev.rajandraj.co/wp-content/uploads/2026/02/Popular-categories.jpg.jpeg",
+    image: uploadsUrl("2026/02/Popular-categories.jpg.jpeg"),
   },
 ];
 

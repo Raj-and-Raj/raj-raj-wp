@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { uploadsUrl } from "@/lib/uploads";
 import { Facebook, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
 
 export function SiteFooter() {
@@ -10,7 +11,7 @@ export function SiteFooter() {
             <Link href="/" className="mb-6 inline-block">
               <div className="text-3xl font-bold italic tracking-tighter text-[#c4302b]">
                 <img
-                  src="https://dev.rajandraj.co/wp-content/uploads/2026/01/cropped-Logo3.png"
+                  src={uploadsUrl("2026/01/cropped-Logo3.png")}
                   alt="Raj and Raj logo featuring a red bull head icon with white horns, accompanied by bold red text reading RAJ AND RAJ and a tagline stating Your trusted choice, representing a trusted brand choice"
                   width="220"
                   height="60"

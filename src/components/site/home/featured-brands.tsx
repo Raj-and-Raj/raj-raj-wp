@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { uploadsUrl } from "@/lib/uploads";
 
 const container = {
   hidden: { opacity: 0, y: 16 },
@@ -49,7 +50,7 @@ export function FeaturedBrands() {
           </div>
           <div className="absolute bottom-0 left-0 right-0 flex h-[300px] items-end justify-center">
             <img
-              src="https://dev.rajandraj.co/wp-content/uploads/2026/02/Featured-Brands_3.jpg.jpeg"
+              src={uploadsUrl("2026/02/Featured-Brands_3.jpg.jpeg")}
               alt="Raj Multi-storage Locker"
               className="h-full object-cover w-full transition-transform duration-500 group-hover:scale-105"
             />
@@ -72,7 +73,7 @@ export function FeaturedBrands() {
             </div>
             <div className="flex h-full w-1/2 items-end justify-end">
               <img
-                src="https://dev.rajandraj.co/wp-content/uploads/2026/02/png-almirah.png"
+                src={uploadsUrl("2026/02/png-almirah.png")}
                 alt="3 Door Wardrobe"
                 className="w-full object-contain transition-transform duration-500 group-hover:rotate-6"
               />
@@ -94,7 +95,7 @@ export function FeaturedBrands() {
           </div>
           <div className="absolute bottom-0 left-0 right-0 flex h-[300px] items-end justify-center">
             <img
-              src="https://dev.rajandraj.co/wp-content/uploads/2026/02/Featured-Brands_1.jpg.jpeg"
+              src={uploadsUrl("2026/02/Featured-Brands_1.jpg.jpeg")}
               alt="Raj Office Work Table"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />

@@ -177,8 +177,8 @@ export function CategoryPageClient({
   }, [visibleProducts, variationSwatches]);
 
   return (
-    <div className="min-h-screen  pb-4 pt-4">
-      <div className="container mx-auto mb-8 px-4 md:px-8">
+    <div className="min-h-screen  pb-2 pt-32">
+      <div className="container mx-auto mb-2 px-4 md:px-8">
         <div className="mb-4 flex items-center gap-1 text-xs text-gray-500">
           <Link href="/" className="hover:text-[#DA3234]">
             Home

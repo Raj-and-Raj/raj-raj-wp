@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { uploadsUrl } from "@/lib/uploads";
 
 type CartItem = {
   quantity?: number;
@@ -19,9 +20,12 @@ const baseLinks = [
 
 export function SiteHeader() {
   const router = useRouter();
+  const pathname = usePathname();
+  const isHome = pathname === "/";
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [categoryLinks, setCategoryLinks] =
     useState<Array<{ label: string; href: string }>>(baseLinks);
 
@@ -72,6 +76,17 @@ export function SiteHeader() {
   }, [router]);
 
   useEffect(() => {
+    if (!isHome) {
+      setScrolled(false);
+      return;
+    }
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isHome]);
+
+  useEffect(() => {
     const loadCategories = async () => {
       try {
         const res = await fetch("/api/categories/parents");
@@ -94,12 +109,19 @@ export function SiteHeader() {
       <div className="w-full bg-[color:var(--brand)] text-white text-center text-xs py-2 font-medium">
         Mix, match, and save up to Rs. 40000 off on Spring-ready styles!
       </div>
-      <header className="sticky top-0 z-30 border-b border-black/5 bg-transparent backdrop-blur-2xl">
+      <header
+        data-home={isHome && !scrolled}
+        className={`sticky top-0 z-30 backdrop-blur-2xl transition-colors duration-300 ${
+          isHome && !scrolled
+            ? "border-transparent bg-transparent text-white"
+            : "border-b border-black/5 bg-white/85 text-[color:var(--ink)]"
+        }`}
+      >
         <div className="mx-auto w-full px-4 md:px-12">
           <div className="grid h-15 grid-cols-[auto_1fr_auto] items-center gap-4">
             <div className="flex items-center gap-3">
               <button
-                className="md:hidden p-2"
+                className={`md:hidden p-2 ${isHome && !scrolled ? "text-white" : ""}`}
                 onClick={() => setMenuOpen((prev) => !prev)}
                 aria-label="Toggle menu"
               >
@@ -124,20 +146,35 @@ export function SiteHeader() {
 
               <Link
                 href="/"
-                className="text-2xl md:text-3xl font-bold tracking-tighter text-[color:var(--brand)] italic"
+                className={`text-2xl md:text-3xl font-bold tracking-tighter italic ${
+                  isHome && !scrolled ? "text-white" : "text-[color:var(--brand)]"
+                }`}
               >
                 <img
-                  src="https://dev.rajandraj.co/wp-content/uploads/2026/01/cropped-Logo3.png"
+                  src={uploadsUrl("2026/01/cropped-Logo3.png")}
                   alt="Raj and Raj logo featuring a red bull head icon with white horns, accompanied by bold red text reading RAJ AND RAJ and a tagline stating Your trusted choice, representing a trusted brand choice"
                   width="180"
                   height="50"
+                  className={isHome && !scrolled ? "brightness-0 invert" : ""}
                 />
               </Link>
             </div>
 
-            <nav className="hidden md:flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[15px] capitalize text-[color:var(--ink)]">
+            <nav
+              className={`hidden md:flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[15px] capitalize ${
+                isHome && !scrolled ? "text-white/90" : "text-[color:var(--ink)]"
+              }`}
+            >
               {categoryLinks.map((item) => (
-                <Link key={item.href} href={item.href} className="nav-pill">
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`nav-pill ${
+                    isHome && !scrolled
+                      ? "text-white/90 hover:text-white hover:bg-white/10"
+                      : ""
+                  }`}
+                >
                   {item.label}
                 </Link>
               ))}
@@ -146,7 +183,11 @@ export function SiteHeader() {
             <div className="flex items-center space-x-4 md:space-x-6">
               <Link
                 href="/login"
-                className="text-[color:var(--muted)] hover:text-black"
+                className={`hover:text-black ${
+                  isHome && !scrolled
+                    ? "text-white/80 hover:text-white"
+                    : "text-[color:var(--muted)]"
+                }`}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path
@@ -164,7 +205,11 @@ export function SiteHeader() {
 
               <Link
                 href="/wishlist"
-                className="hidden md:block text-[color:var(--muted)] hover:text-black"
+                className={`hidden md:block hover:text-black ${
+                  isHome && !scrolled
+                    ? "text-white/80 hover:text-white"
+                    : "text-[color:var(--muted)]"
+                }`}
               >
                 <span className="relative inline-flex">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -184,7 +229,11 @@ export function SiteHeader() {
 
               <Link
                 href="/cart"
-                className="relative text-[color:var(--muted)] hover:text-black"
+                className={`relative hover:text-black ${
+                  isHome && !scrolled
+                    ? "text-white/80 hover:text-white"
+                    : "text-[color:var(--muted)]"
+                }`}
                 aria-label="Open cart"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">

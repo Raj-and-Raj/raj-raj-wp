@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { uploadsUrl } from "@/lib/uploads";
 
 type CategoryCardProps = {
   subtitle: string;
@@ -104,7 +105,7 @@ export function PopularCategories() {
             subtitle="STORAGE SOLUTIONS"
             title="Wardrobes"
             body="Curated steel wardrobes designed for clean lines, spacious storage, and long-lasting durability."
-            image="https://dev.rajandraj.co/wp-content/uploads/2026/02/Product-Category-4.png"
+            image={uploadsUrl("2026/02/Product-Category-4.png")}
             bgColor="bg-[linear-gradient(135deg,#ffd7d2,#7B3F00)]"
             textColor="text-white"
             subTitleColor="text-[#7B3F00]"
@@ -124,7 +125,7 @@ export function PopularCategories() {
             subtitle="HOME & LIVING"
             title="Dressing Tables"
             body="Curated steel wardrobes designed for clean lines, spacious storage, and long-lasting durability."
-            image="https://dev.rajandraj.co/wp-content/uploads/2026/02/Product-Category-3.png"
+            image={uploadsUrl("2026/02/Product-Category-3.png")}
             bgColor="bg-[linear-gradient(135deg,#ffd7d2,#4B2E2A)]"
             textColor="text-[#fff]"
             subTitleColor="text-[#4B2E2A]"
@@ -143,7 +144,7 @@ export function PopularCategories() {
             subtitle="HOME ORGANIZATION"
             title="Shoe Racks"
             body="Curated steel wardrobes designed for clean lines, spacious storage, and long-lasting durability."
-            image="https://dev.rajandraj.co/wp-content/uploads/2026/02/Product-Category-4-1.png"
+            image={uploadsUrl("2026/02/Product-Category-4-1.png")}
             bgColor="bg-[linear-gradient(135deg,#ffd7d2,#4B0082)]"
             textColor="text-[#fff]"
             subTitleColor="text-[#4B0082]"
@@ -162,7 +163,7 @@ export function PopularCategories() {
             subtitle="OFFICE & STUDY"
             title="Office Work Tables"
             body="Curated steel wardrobes designed for clean lines, spacious storage, and long-lasting durability."
-            image="https://dev.rajandraj.co/wp-content/uploads/2026/02/Product-category-2.png"
+            image={uploadsUrl("2026/02/Table.png")}
             bgColor="bg-[linear-gradient(135deg,#007FD520,#007FD5)]"
             textColor="text-[#fff]"
             subTitleColor="text-[#007FD5]"
@@ -181,7 +182,7 @@ export function PopularCategories() {
             subtitle="SAFETY & UTILITY"
             title="First Aid Box"
             body="Curated steel wardrobes designed for clean lines, spacious storage, and long-lasting durability."
-            image="https://dev.rajandraj.co/wp-content/uploads/2026/02/Product-Category-4-2.png"
+            image={uploadsUrl("2026/02/Product-Category-4-2.png")}
             bgColor="bg-[linear-gradient(135deg,#ffd7d2,#9b214e)]"
             textColor="text-[#fff]"
             subTitleColor="text-[#9b214e]"
@@ -200,7 +201,7 @@ export function PopularCategories() {
             subtitle="INDUSTRIAL STORAGE"
             title="Lockers"
             body="Curated steel wardrobes designed for clean lines, spacious storage, and long-lasting durability."
-            image="https://dev.rajandraj.co/wp-content/uploads/2026/02/Product-Category-4-3.png"
+            image={uploadsUrl("2026/02/Product-Category-4-3.png")}
             bgColor="bg-[linear-gradient(135deg,#ffd7d2,#da4a7f)]"
             textColor="text-[#fff]"
             subTitleColor="text-[#da4a7f]"
@@ -219,7 +220,7 @@ export function PopularCategories() {
             subtitle="OFFICE & STUDY"
             title="File Cabinets"
             body="Curated steel wardrobes designed for clean lines, spacious storage, and long-lasting durability."
-            image="https://dev.rajandraj.co/wp-content/uploads/2026/02/Product-Category-4-4.png"
+            image={uploadsUrl("2026/02/Product-Category-4-4.png")}
             bgColor="bg-[linear-gradient(135deg,#ffd7d2,#686A6C)]"
             textColor="text-[#fff]"
             subTitleColor="text-[#686A6C]"

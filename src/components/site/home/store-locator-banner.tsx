@@ -2,13 +2,14 @@
 
 import { MapPin } from "lucide-react";
 import { motion } from "framer-motion";
+import { uploadsUrl } from "@/lib/uploads";
 
 export function StoreLocatorBanner() {
   return (
-    <div className="relative left-1/2 mb-20 h-[500px] w-screen -translate-x-1/2">
+    <div className="relative left-1/2 mb-20 py-20 h-[500px] w-screen -translate-x-1/2">
       <div className="absolute inset-0">
         <img
-          src="https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?q=80&w=2670&auto=format&fit=crop"
+          src={uploadsUrl("2026/02/3d-rendering-loft-luxury-living-room-with-bookshelf-with-pouf-scaled.jpg")}
           alt="Store interior"
           className="h-full w-full object-cover"
         />
@@ -26,11 +27,11 @@ export function StoreLocatorBanner() {
             Find a store near you
           </h2>
           <p className="mb-8 text-base leading-relaxed opacity-90 md:text-lg">
-            Our stores give you the chance to experience our collection up
-            close, as well as interact with our expert team. Come visit us
-            soon.
+            Experience it in person Visit our stores to explore Raj & Raj's
+            steel furniture up close and experience the quality firsthand. Our
+            team is ready to help you choose the right solution for your space.
           </p>
-          <button className="inline-flex items-center gap-2 rounded bg-[#e46b5d] px-8 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#d15b4d]">
+          <button className="inline-flex items-center gap-2  rounded bg-[#DD3333] px-8 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#d15b4d]">
             Find a store near you <MapPin className="h-4 w-4" />
           </button>
         </motion.div>
