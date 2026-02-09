@@ -13,20 +13,15 @@ type CartSummary = {
   items?: CartItem[];
 };
 
-const topLinks = [
-  { label: "Showroom", href: "/showroom" },
-  { label: "Services", href: "/services" },
-  { label: "Inspiration", href: "/inspiration" },
-];
-
 const baseLinks = [
   { label: "Home", href: "/" },
-  { label: "Shop", href: "/products" },
+  // { label: "Shop", href: "/products" },
 ];
 
 export function SiteHeader() {
   const router = useRouter();
   const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoryLinks, setCategoryLinks] =
@@ -43,11 +38,27 @@ export function SiteHeader() {
     setCartCount(count || 0);
   };
 
+  const loadWishlistCount = () => {
+    const stored = localStorage.getItem("wishlist");
+    if (!stored) {
+      setWishlistCount(0);
+      return;
+    }
+    try {
+      const ids = JSON.parse(stored) as string[];
+      setWishlistCount(ids.length);
+    } catch {
+      setWishlistCount(0);
+    }
+  };
+
   useEffect(() => {
     loadCartCount();
+    loadWishlistCount();
     const handler = (event: Event) => {
       const detail = (event as CustomEvent).detail || {};
       loadCartCount();
+      loadWishlistCount();
       if (detail.open) {
         setDrawerOpen(true);
       }
@@ -56,8 +67,13 @@ export function SiteHeader() {
       }
     };
     window.addEventListener("cart:updated", handler as EventListener);
-    return () =>
+    window.addEventListener("wishlist:updated", loadWishlistCount);
+    window.addEventListener("storage", loadWishlistCount);
+    return () => {
       window.removeEventListener("cart:updated", handler as EventListener);
+      window.removeEventListener("wishlist:updated", loadWishlistCount);
+      window.removeEventListener("storage", loadWishlistCount);
+    };
   }, [router]);
 
   useEffect(() => {
@@ -79,60 +95,58 @@ export function SiteHeader() {
   }, []);
 
   return (
-    <>
-      <div className="w-full bg-[color:var(--brand)] text-white text-center text-xs py-2 font-medium tracking-wide">
+    <div className="sticky">
+      <div className="w-full bg-[color:var(--brand)] text-white text-center text-xs py-2 font-medium">
         Mix, match, and save up to Rs. 40000 off on Spring-ready styles!
       </div>
-      <header className="sticky top-0 z-30 border-b border-black/5 bg-white/70 backdrop-blur-xl">
-        <div className="mx-auto w-full max-w-[96rem] px-4 md:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="hidden md:flex items-center space-x-6 text-xs text-[color:var(--muted)] font-medium tracking-wide uppercase">
-              {topLinks.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="hover:text-black"
-                >
+      <header className="sticky top-0 z-30 border-b border-black/5 bg-white/85 backdrop-blur-xl">
+        <div className="mx-auto w-full px-4 md:px-8">
+          <div className="grid h-20 grid-cols-[auto_1fr_auto] items-center gap-4">
+            <div className="flex items-center gap-3">
+              <button
+                className="md:hidden p-2"
+                onClick={() => setMenuOpen((prev) => !prev)}
+                aria-label="Toggle menu"
+              >
+                {menuOpen ? (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M18 6L6 18M6 6l12 12"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                ) : (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M4 6h16M4 12h16M4 18h16"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                )}
+              </button>
+
+              <Link
+                href="/"
+                className="text-2xl md:text-3xl font-bold tracking-tighter text-[color:var(--brand)] italic"
+              >
+                <img
+                  src="https://dev.rajandraj.co/wp-content/uploads/2026/01/cropped-Logo3.png"
+                  alt="Raj and Raj logo featuring a red bull head icon with white horns, accompanied by bold red text reading RAJ AND RAJ and a tagline stating Your trusted choice, representing a trusted brand choice"
+                  width="220"
+                  height="60"
+                />
+              </Link>
+            </div>
+
+            <nav className="hidden md:flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[15px] capitalize text-[color:var(--ink)]">
+              {categoryLinks.map((item) => (
+                <Link key={item.href} href={item.href} className="nav-pill">
                   {item.label}
                 </Link>
               ))}
-            </div>
-
-            <button
-              className="md:hidden p-2"
-              onClick={() => setMenuOpen((prev) => !prev)}
-              aria-label="Toggle menu"
-            >
-              {menuOpen ? (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M18 6L6 18M6 6l12 12"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              ) : (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M4 6h16M4 12h16M4 18h16"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              )}
-            </button>
-
-            <Link
-              href="/"
-              className="text-2xl md:text-3xl font-bold tracking-tighter text-[color:var(--brand)] italic"
-            >
-              <img
-                src="https://dev.rajandraj.co/wp-content/uploads/2026/01/cropped-Logo3.png"
-                alt="Raj and Raj logo featuring a red bull head icon with white horns, accompanied by bold red text reading RAJ AND RAJ and a tagline stating Your trusted choice, representing a trusted brand choice"
-                width="220"
-                height="60"
-              />
-            </Link>
+            </nav>
 
             <div className="flex items-center space-x-4 md:space-x-6">
               <Link
@@ -157,13 +171,20 @@ export function SiteHeader() {
                 href="/wishlist"
                 className="hidden md:block text-[color:var(--muted)] hover:text-black"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M20.8 4.6C20.3 4.1 19.7 3.7 19.1 3.4C18.4 3.1 17.7 3 17 3C16.2 3 15.5 3.1 14.8 3.4C14.2 3.7 13.6 4.1 13.1 4.6L12 5.7L10.9 4.6C9.9 3.6 8.5 3 7.1 3C5.6 3 4.2 3.6 3.2 4.6C2.1 5.6 1.5 7 1.5 8.5C1.5 10 2.1 11.4 3.2 12.4L4.2 13.4L12 21.2L19.8 13.4L20.8 12.4C21.8 11.4 22.5 10 22.5 8.5C22.5 7 21.8 5.6 20.8 4.6Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                </svg>
+                <span className="relative inline-flex">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M20.8 4.6C20.3 4.1 19.7 3.7 19.1 3.4C18.4 3.1 17.7 3 17 3C16.2 3 15.5 3.1 14.8 3.4C14.2 3.7 13.6 4.1 13.1 4.6L12 5.7L10.9 4.6C9.9 3.6 8.5 3 7.1 3C5.6 3 4.2 3.6 3.2 4.6C2.1 5.6 1.5 7 1.5 8.5C1.5 10 2.1 11.4 3.2 12.4L4.2 13.4L12 21.2L19.8 13.4L20.8 12.4C21.8 11.4 22.5 10 22.5 8.5C22.5 7 21.8 5.6 20.8 4.6Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                  {wishlistCount > 0 ? (
+                    <span className="absolute -top-1 -right-1 bg-[color:var(--brand)] text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                      {wishlistCount}
+                    </span>
+                  ) : null}
+                </span>
               </Link>
 
               <button
@@ -196,18 +217,6 @@ export function SiteHeader() {
               </button>
             </div>
           </div>
-
-          <div className="hidden md:flex items-center justify-center space-x-8 pb-4 text-xs font-medium text-[color:var(--ink)] uppercase tracking-wider">
-            {categoryLinks.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="hover:text-[color:var(--brand)] hover:underline transition-all"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
         </div>
 
         {menuOpen ? (
@@ -226,6 +235,6 @@ export function SiteHeader() {
         ) : null}
       </header>
       <MiniCartDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-    </>
+    </div>
   );
 }

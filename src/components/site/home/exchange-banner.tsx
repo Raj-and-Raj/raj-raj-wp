@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 export function ExchangeBanner() {
   return (
@@ -13,11 +16,17 @@ export function ExchangeBanner() {
         </div>
 
         <div className="flex w-full flex-col items-start justify-center p-8 md:w-1/2 md:p-16">
-          <h2 className="mb-4 text-3xl font-bold leading-tight text-gray-800 md:text-4xl">
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="mb-4 text-3xl font-bold leading-tight text-gray-800 md:text-4xl"
+          >
             Upgrade your space,
             <br />
             enjoy hassle free exchange.
-          </h2>
+          </motion.h2>
           <p className="mb-8 font-medium text-gray-600">
             Exchange your old furniture and save up to{" "}
             <span className="font-bold text-black">INR 5000</span>
@@ -25,7 +34,7 @@ export function ExchangeBanner() {
 
           <Link
             href="/products"
-            className="rounded border border-gray-300 bg-white px-8 py-3 text-sm font-bold uppercase tracking-wide text-gray-800 shadow-sm transition-all hover:border-transparent hover:bg-gray-800 hover:text-white"
+            className="brand-cta"
           >
             Explore Now
           </Link>

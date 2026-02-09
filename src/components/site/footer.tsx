@@ -1,11 +1,5 @@
 import Link from "next/link";
-import {
-  Facebook,
-  Instagram,
-  Linkedin,
-  Twitter,
-  Youtube,
-} from "lucide-react";
+import { Facebook, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
 
 export function SiteFooter() {
   return (
@@ -15,25 +9,19 @@ export function SiteFooter() {
           <div className="lg:w-1/3">
             <Link href="/" className="mb-6 inline-block">
               <div className="text-3xl font-bold italic tracking-tighter text-[#c4302b]">
-                RAJ<span className="not-italic text-black">RAJ</span>
-                <span className="mt-1 block text-[10px] font-normal not-italic tracking-wider text-[#c4302b]">
-                  Your trusted choice
-                </span>
+                <img
+                  src="https://dev.rajandraj.co/wp-content/uploads/2026/01/cropped-Logo3.png"
+                  alt="Raj and Raj logo featuring a red bull head icon with white horns, accompanied by bold red text reading RAJ AND RAJ and a tagline stating Your trusted choice, representing a trusted brand choice"
+                  width="220"
+                  height="60"
+                />
               </div>
             </Link>
             <p className="mb-8 max-w-sm text-sm leading-relaxed text-gray-500">
-              At <strong className="text-gray-700">Raj & Raj</strong>, we
-              manufacture high-quality{" "}
-              <strong className="text-gray-700">
-                steel storage furniture
-              </strong>{" "}
-              for commercial and residential use. Headquartered in{" "}
-              <strong className="text-gray-700">Kolkata, West Bengal</strong>,
-              we serve customers through a wide dealer network across{" "}
-              <strong className="text-gray-700">
-                West Bengal and Jharkhand
-              </strong>
-              .
+              At Raj & Raj, we manufacture high-quality steel storage furniture{" "}
+              for commercial and residential use. Headquartered in Kolkata, West
+              Bengal, we serve customers through a wide dealer network across
+              West Bengal and Jharkhand.
             </p>
 
             <div className="flex flex-col gap-4">

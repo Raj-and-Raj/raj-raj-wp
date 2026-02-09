@@ -17,6 +17,12 @@ export type WooProduct = {
   categories: Array<{ id: number; name: string; slug: string }>;
 };
 
+export type WooVariation = {
+  id: number;
+  image?: { src?: string };
+  attributes: Array<{ name: string; option: string }>;
+};
+
 export type WooCustomer = {
   id: number;
   email: string;
@@ -44,6 +50,16 @@ export type WooCustomer = {
     country?: string;
     phone?: string;
   };
+};
+
+export type WooShippingZone = {
+  id: number;
+  name: string;
+};
+
+export type WooShippingZoneLocation = {
+  code: string;
+  type: "postcode" | "country" | "state" | "continent";
 };
 
 const baseUrl = process.env.WOOCOMMERCE_URL;
@@ -140,6 +156,12 @@ export async function fetchProductById(id: number) {
   return wooFetch<WooProduct>(`products/${id}`);
 }
 
+export async function fetchProductVariations(productId: number) {
+  const query = new URLSearchParams();
+  query.set("per_page", "100");
+  return wooFetch<WooVariation[]>(`products/${productId}/variations`, query);
+}
+
 export async function fetchCategories(params?: {
   parent?: number;
   perPage?: number;
@@ -167,6 +189,14 @@ export async function fetchCustomerByEmail(email: string) {
   const query = new URLSearchParams({ email });
   const items = await wooFetch<WooCustomer[]>("customers", query);
   return items[0];
+}
+
+export async function fetchShippingZones() {
+  return wooFetch<WooShippingZone[]>("shipping/zones");
+}
+
+export async function fetchShippingZoneLocations(zoneId: number) {
+  return wooFetch<WooShippingZoneLocation[]>(`shipping/zones/${zoneId}/locations`);
 }
 
 export async function fetchOrdersByCustomer(customerId: number) {

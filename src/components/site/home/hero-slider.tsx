@@ -74,6 +74,12 @@ export function HeroSlider() {
             <p className="text-sm font-medium uppercase tracking-wider opacity-90 md:text-base">
               / {slides[current].subtitle}
             </p>
+            <a
+              href={slides[current].link}
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/90 px-5 py-2 text-xs font-bold uppercase tracking-wider text-[color:var(--ink)] transition hover:bg-white"
+            >
+              Explore collection <span aria-hidden>→</span>
+            </a>
           </div>
         </motion.div>
       </AnimatePresence>

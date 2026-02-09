@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
+import { Link as LinkIcon, Share2 } from "lucide-react";
 
-export function ShareRow() {
+export const ShareRow: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
@@ -11,7 +12,9 @@ export function ShareRow() {
         title: document.title,
         url: window.location.href,
       });
+      return;
     }
+    await handleCopy();
   };
 
   const handleCopy = async () => {
@@ -24,19 +27,18 @@ export function ShareRow() {
     <div className="flex flex-wrap gap-3 text-sm">
       <button
         onClick={handleShare}
-        className="rounded-full border border-black/10 px-4 py-2 text-[color:var(--muted)] hover:border-[color:var(--brand)] hover:text-[color:var(--brand)]"
+        className="inline-flex items-center gap-2 rounded-full border border-black/10 px-4 py-2 text-[color:var(--muted)] transition hover:border-[color:var(--brand)] hover:text-[color:var(--brand)]"
       >
+        <Share2 className="h-4 w-4" />
         Share
       </button>
       <button
         onClick={handleCopy}
-        className="rounded-full border border-black/10 px-4 py-2 text-[color:var(--muted)] hover:border-[color:var(--brand)] hover:text-[color:var(--brand)]"
+        className="inline-flex items-center gap-2 rounded-full border border-black/10 px-4 py-2 text-[color:var(--muted)] transition hover:border-[color:var(--brand)] hover:text-[color:var(--brand)]"
       >
+        <LinkIcon className="h-4 w-4" />
         {copied ? "Copied" : "Copy link"}
       </button>
-      <div className="rounded-full border border-black/10 px-4 py-2 text-[color:var(--muted)]">
-        Wishlist
-      </div>
     </div>
   );
-}
+};

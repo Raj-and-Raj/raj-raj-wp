@@ -1,4 +1,7 @@
+"use client";
+
 import { MapPin } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function StoreLocatorBanner() {
   return (
@@ -12,7 +15,13 @@ export function StoreLocatorBanner() {
       </div>
 
       <div className="absolute inset-0 flex items-center justify-center bg-black/30 p-4">
-        <div className="max-w-2xl rounded-lg border border-white/10 bg-black/60 p-8 text-center text-white backdrop-blur-sm md:p-12">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          className="max-w-2xl rounded-lg border border-white/10 bg-black/60 p-8 text-center text-white backdrop-blur-sm md:p-12"
+        >
           <h2 className="mb-4 text-3xl font-bold md:text-4xl">
             Find a store near you
           </h2>
@@ -24,7 +33,7 @@ export function StoreLocatorBanner() {
           <button className="inline-flex items-center gap-2 rounded bg-[#e46b5d] px-8 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#d15b4d]">
             Find a store near you <MapPin className="h-4 w-4" />
           </button>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
