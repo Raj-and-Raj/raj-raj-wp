@@ -1,7 +1,11 @@
 ﻿import { SiteHeader } from "@/components/site/header";
 import { SiteFooter } from "@/components/site/footer";
 
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
+export default function SiteLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div
@@ -13,9 +17,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         className="pointer-events-none absolute right-0 top-0 h-96 w-96 translate-x-1/3 rounded-full bg-[#fff] opacity-[0.7] blur-3xl"
       />
       <SiteHeader />
-      <main className="mx-auto w-full max-w-[96rem] px-6 pb-24 pt-14">
-        {children}
-      </main>
+      <main className="mx-auto w-full px-4 pb-24 md:px-6">{children}</main>
       <SiteFooter />
     </div>
   );

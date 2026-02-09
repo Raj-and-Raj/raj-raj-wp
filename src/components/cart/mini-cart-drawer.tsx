@@ -10,10 +10,14 @@ type CartItem = {
   name: string;
   quantity: number;
   prices?: { price?: number | string };
+  images?: Array<{ id?: number; src?: string; thumbnail?: string }>;
 };
 
 type CartTotals = {
+  total_items?: number | string;
+  subtotal?: number | string;
   total?: number | string;
+  total_price?: number | string;
 };
 
 type Cart = {
@@ -30,15 +34,40 @@ export function MiniCartDrawer({ open, onClose }: MiniCartDrawerProps) {
   const router = useRouter();
   const [cart, setCart] = useState<Cart | null>(null);
 
+  const toCents = (value: unknown) => {
+    if (typeof value === "number") return value;
+    if (typeof value === "string") return Number(value) || 0;
+    return 0;
+  };
+
+  const loadCart = async () => {
+    const res = await fetch("/api/cart");
+    if (res.ok) {
+      setCart(await res.json());
+    }
+  };
+
+  const updateItem = async (key: string, quantity: number) => {
+    await fetch("/api/cart/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, quantity }),
+    });
+    loadCart();
+  };
+
+  const removeItem = async (key: string) => {
+    await fetch("/api/cart/remove", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key }),
+    });
+    loadCart();
+  };
+
   useEffect(() => {
     if (!open) return;
-    const load = async () => {
-      const res = await fetch("/api/cart");
-      if (res.ok) {
-        setCart(await res.json());
-      }
-    };
-    load();
+    loadCart();
   }, [open]);
 
   useEffect(() => {
@@ -53,6 +82,10 @@ export function MiniCartDrawer({ open, onClose }: MiniCartDrawerProps) {
     window.addEventListener("cart:updated", handler);
     return () => window.removeEventListener("cart:updated", handler);
   }, [open]);
+
+  const subtotalCents = toCents(
+    cart?.totals?.total_items ?? cart?.totals?.subtotal ?? cart?.totals?.total
+  );
 
   if (!open) return null;
 
@@ -84,17 +117,45 @@ export function MiniCartDrawer({ open, onClose }: MiniCartDrawerProps) {
                 {cart.items.map((item) => (
                   <div
                     key={item.key}
-                    className="flex items-center justify-between rounded-[12px] border border-black/5 bg-white/95 p-3 text-sm"
+                    className="flex items-center gap-4 rounded-[12px] border border-black/5 bg-white/95 p-3 text-sm"
                   >
-                    <div>
-                      <p className="font-semibold">{item.name}</p>
-                      <p className="text-xs text-[color:var(--muted)]">
-                        Qty {item.quantity}
+                    <div className="h-14 w-14 overflow-hidden rounded-[12px] bg-[#f1ece4]">
+                      {item.images?.[0]?.thumbnail || item.images?.[0]?.src ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.images?.[0]?.thumbnail || item.images?.[0]?.src}
+                          alt={item.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="flex flex-1 items-center justify-between gap-4">
+                      <div>
+                        <p className="font-semibold">{item.name}</p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <button
+                            className="h-7 w-7 rounded-[10px] border border-black/10"
+                            onClick={() =>
+                              item.quantity > 1
+                                ? updateItem(item.key, item.quantity - 1)
+                                : removeItem(item.key)
+                            }
+                          >
+                            -
+                          </button>
+                          <span className="text-xs">{item.quantity}</span>
+                          <button
+                            className="h-7 w-7 rounded-[10px] border border-black/10"
+                            onClick={() => updateItem(item.key, item.quantity + 1)}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-sm font-semibold">
+                        {formatPrice(Number(item.prices?.price ?? 0) / 100)}
                       </p>
                     </div>
-                    <p className="text-sm">
-                      {formatPrice(Number(item.prices?.price ?? 0) / 100)}
-                    </p>
                   </div>
                 ))}
               </div>
@@ -103,7 +164,7 @@ export function MiniCartDrawer({ open, onClose }: MiniCartDrawerProps) {
           <div className="border-t border-black/5 px-6 py-4">
             <div className="flex items-center justify-between text-sm">
               <span>Subtotal</span>
-              <span>{formatPrice(Number(cart?.totals?.total ?? 0) / 100)}</span>
+              <span>{formatPrice(subtotalCents / 100)}</span>
             </div>
             <Button
               className="mt-4 w-full"

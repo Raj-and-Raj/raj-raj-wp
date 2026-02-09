@@ -2,7 +2,9 @@ import {
   fetchCategories,
   fetchCategoryBySlug,
   fetchProductBySlug,
+  fetchProductById,
   fetchProducts,
+  fetchProductVariations,
 } from "./woocommerce";
 
 export type Product = {
@@ -10,11 +12,22 @@ export type Product = {
   slug: string;
   name: string;
   description: string;
+  shortDescription?: string;
   category: string;
   categorySlug: string;
   price: number;
+  regularPrice?: number;
+  salePrice?: number;
+  sku?: string;
+  stockStatus?: string;
+  stockQuantity?: number | null;
+  backorders?: string;
+  dimensions?: { length?: string; width?: string; height?: string };
+  weight?: string;
+  categories?: Array<{ name: string; slug: string }>;
+  tagItems?: Array<{ name: string; slug: string }>;
   material: string;
-  tags: string[];
+  tagLabels: string[];
   isFeatured?: boolean;
   image?: string;
   images?: string[];
@@ -23,6 +36,11 @@ export type Product = {
     name: string;
     variation: boolean;
     options: string[];
+  }>;
+  variations?: Array<{
+    id: number;
+    image?: string;
+    attributes: Array<{ name: string; option: string }>;
   }>;
 };
 
@@ -37,7 +55,7 @@ const fallbackProducts: Product[] = [
     categorySlug: "seating",
     price: 28500,
     material: "Oak + Linen",
-    tags: ["signature", "soft"],
+    tagLabels: ["signature", "soft"],
     isFeatured: true,
     images: [],
   },
@@ -50,7 +68,7 @@ const fallbackProducts: Product[] = [
     categorySlug: "dining",
     price: 52000,
     material: "Teak + Resin",
-    tags: ["bold", "best-seller"],
+    tagLabels: ["bold", "best-seller"],
     isFeatured: true,
     images: [],
   },
@@ -63,7 +81,7 @@ const fallbackProducts: Product[] = [
     categorySlug: "lighting",
     price: 18500,
     material: "Brass",
-    tags: ["ambient"],
+    tagLabels: ["ambient"],
     isFeatured: true,
     images: [],
   },
@@ -76,7 +94,7 @@ const fallbackProducts: Product[] = [
     categorySlug: "storage",
     price: 64000,
     material: "Walnut",
-    tags: ["storage"],
+    tagLabels: ["storage"],
     images: [],
   },
   {
@@ -88,7 +106,7 @@ const fallbackProducts: Product[] = [
     categorySlug: "textiles",
     price: 22000,
     material: "Wool",
-    tags: ["soft"],
+    tagLabels: ["soft"],
     images: [],
   },
   {
@@ -100,7 +118,7 @@ const fallbackProducts: Product[] = [
     categorySlug: "entry",
     price: 29500,
     material: "Stone + Ash",
-    tags: ["entry"],
+    tagLabels: ["entry"],
     images: [],
   },
 ];
@@ -144,7 +162,20 @@ export async function getProducts(category?: string) {
 export async function getProduct(slug: string) {
   if (!hasWoo) return fallbackProducts.find((item) => item.slug === slug);
   const item = await fetchProductBySlug(slug);
-  return item ? mapWooProduct(item) : undefined;
+  if (!item) return undefined;
+  const mapped = mapWooProduct(item);
+  if (item.type === "variable") {
+    const variations = await fetchProductVariations(item.id);
+    mapped.variations = variations.map((variation) => ({
+      id: variation.id,
+      image: variation.image?.src,
+      attributes: variation.attributes.map((attr) => ({
+        name: attr.name,
+        option: attr.option,
+      })),
+    }));
+  }
+  return mapped;
 }
 
 export async function getCategories() {
@@ -159,6 +190,27 @@ export async function getParentCategories() {
   return items.map((item) => ({ name: item.name, slug: item.slug }));
 }
 
+export async function getProductsByIds(ids: string[]) {
+  if (!ids.length) return [];
+  if (!hasWoo) {
+    return fallbackProducts.filter((item) => ids.includes(item.id));
+  }
+  const numericIds = ids
+    .map((id) => Number(id))
+    .filter((id) => Number.isFinite(id));
+  if (!numericIds.length) return [];
+  const items = await Promise.all(
+    numericIds.map(async (id) => {
+      try {
+        return await fetchProductById(id);
+      } catch {
+        return null;
+      }
+    })
+  );
+  return items.filter(Boolean).map(mapWooProduct);
+}
+
 function mapWooProduct(item: {
   id: number;
   name: string;
@@ -166,8 +218,17 @@ function mapWooProduct(item: {
   description: string;
   short_description: string;
   price: string;
+  regular_price?: string;
+  sale_price?: string;
+  sku?: string;
+  stock_status?: string;
+  stock_quantity?: number | null;
+  backorders?: string;
+  dimensions?: { length?: string; width?: string; height?: string };
+  weight?: string;
   images: Array<{ src: string }>;
   categories: Array<{ name: string; slug: string }>;
+  tags?: Array<{ name: string; slug: string }>;
   type?: string;
   attributes?: Array<{ name: string; variation: boolean; options: string[] }>;
 }) {
@@ -176,12 +237,26 @@ function mapWooProduct(item: {
     id: String(item.id),
     slug: item.slug,
     name: item.name,
-    description: item.short_description || item.description,
+    description: item.description,
+    shortDescription: item.short_description,
     category: category?.name || "Collection",
     categorySlug: category?.slug || "collection",
-    price: Number(item.price || 0),
+    price: Number(item.price || item.sale_price || item.regular_price || 0),
+    regularPrice: Number(item.regular_price || item.price || 0),
+    salePrice: Number(item.sale_price || 0),
+    sku: item.sku,
+    stockStatus: item.stock_status,
+    stockQuantity: item.stock_quantity ?? null,
+    backorders: item.backorders,
+    dimensions: item.dimensions,
+    weight: item.weight,
+    categories: item.categories?.map((cat) => ({
+      name: cat.name,
+      slug: cat.slug,
+    })),
+    tagItems: item.tags?.map((tag) => ({ name: tag.name, slug: tag.slug })),
     material: "Wood + Textile",
-    tags: [],
+    tagLabels: [],
     image: item.images?.[0]?.src,
     images: item.images?.map((image) => image.src) ?? [],
     type: item.type,
