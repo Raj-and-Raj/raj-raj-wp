@@ -85,6 +85,7 @@ export default function WishlistPage() {
     }
     const nextIds = ids.filter((id) => id !== productId);
     localStorage.setItem("wishlist", JSON.stringify(nextIds));
+    window.dispatchEvent(new Event("wishlist:updated"));
     setProducts((prev) => prev.filter((product) => product.id !== productId));
     setRowState((prev) => {
       const next = { ...prev };

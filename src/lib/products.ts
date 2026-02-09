@@ -163,7 +163,7 @@ export async function getProduct(slug: string) {
   if (!hasWoo) return fallbackProducts.find((item) => item.slug === slug);
   const item = await fetchProductBySlug(slug);
   if (!item) return undefined;
-  const mapped = mapWooProduct(item);
+  const mapped: Product = mapWooProduct(item);
   if (item.type === "variable") {
     const variations = await fetchProductVariations(item.id);
     mapped.variations = variations.map((variation) => ({
@@ -208,7 +208,10 @@ export async function getProductsByIds(ids: string[]) {
       }
     })
   );
-  return items.filter(Boolean).map(mapWooProduct);
+  const filtered = items.filter(
+    (item): item is NonNullable<typeof item> => item !== null
+  );
+  return filtered.map(mapWooProduct);
 }
 
 function mapWooProduct(item: {
@@ -231,7 +234,7 @@ function mapWooProduct(item: {
   tags?: Array<{ name: string; slug: string }>;
   type?: string;
   attributes?: Array<{ name: string; variation: boolean; options: string[] }>;
-}) {
+}): Product {
   const category = item.categories?.[0];
   return {
     id: String(item.id),
@@ -265,5 +268,5 @@ function mapWooProduct(item: {
       variation: attr.variation,
       options: attr.options,
     })),
-  } satisfies Product;
+  };
 }

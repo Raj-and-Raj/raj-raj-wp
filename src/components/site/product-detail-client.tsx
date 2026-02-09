@@ -168,6 +168,7 @@ export function ProductDetailClient({
       setIsWishlisted(true);
     }
     localStorage.setItem("wishlist", JSON.stringify(ids));
+    window.dispatchEvent(new Event("wishlist:updated"));
   };
 
   return (
