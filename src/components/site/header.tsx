@@ -140,7 +140,7 @@ export function SiteHeader() {
               </Link>
             </div>
 
-            <nav className="hidden md:flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[15px] font-semibold capitalize text-[color:var(--ink)]">
+            <nav className="hidden md:flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[15px] capitalize text-[color:var(--ink)]">
               {categoryLinks.map((item) => (
                 <Link key={item.href} href={item.href} className="nav-pill">
                   {item.label}

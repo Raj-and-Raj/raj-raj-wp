@@ -7,7 +7,7 @@ import { StatsBanner } from "@/components/site/home/stats-banner";
 import { StoreLocatorBanner } from "@/components/site/home/store-locator-banner";
 import { BusinessSolutionsBanner } from "@/components/site/home/business-solutions-banner";
 import { GoogleReviews } from "@/components/site/home/google-reviews";
-import { Newsletter } from "@/components/site/home/newsletter";
+import { InstagramFeed } from "@/components/site/home/instagram-feed";
 
 export default function Home() {
   return (
@@ -21,7 +21,7 @@ export default function Home() {
       <StoreLocatorBanner />
       <BusinessSolutionsBanner />
       <GoogleReviews />
-      {/* <Newsletter /> */}
+      <InstagramFeed />
     </div>
   );
 }

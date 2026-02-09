@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Phone } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function BusinessSolutionsBanner() {
   return (
@@ -9,13 +12,19 @@ export function BusinessSolutionsBanner() {
           <span className="mb-2 block text-sm font-bold uppercase tracking-wide text-[#e46b5d]">
             Shop for your business
           </span>
-          <h2 className="mb-6 text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="mb-6 text-3xl font-bold leading-tight text-gray-900 md:text-4xl"
+          >
             We enhance modern
             <br />
             businesses and working
             <br />
             environments
-          </h2>
+          </motion.h2>
           <p className="mb-8 leading-relaxed text-gray-600">
             Your workspace needs to foster collaboration and productivity. We
             design products and workspaces that do both.
@@ -24,7 +33,7 @@ export function BusinessSolutionsBanner() {
           <div className="flex flex-col gap-4 sm:flex-row">
             <Link
               href="/business"
-              className="inline-flex items-center justify-center gap-2 rounded bg-[#e46b5d] px-8 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#d15b4d]"
+              className="brand-cta"
             >
               Go to business <ArrowRight className="h-4 w-4" />
             </Link>

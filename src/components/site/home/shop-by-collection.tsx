@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 const collections = [
   {
@@ -66,7 +67,7 @@ export function ShopByCollection() {
   };
 
   return (
-    <div className="container mx-auto relative mb-20 bg-white px-4 md:px-8">
+    <div className="container mx-auto relative mb-20 px-4 md:px-8">
       <div className="mb-8 flex items-center justify-between">
         <h2 className="text-3xl font-bold text-gray-900">Shop by collection</h2>
         <div className="flex gap-2">
@@ -87,13 +88,24 @@ export function ShopByCollection() {
         </div>
       </div>
 
-      <div
+      <motion.div
         ref={scrollRef}
-        className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto pb-8"
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true }}
+        variants={{
+          hidden: { opacity: 0, y: 16 },
+          show: { opacity: 1, y: 0, transition: { staggerChildren: 0.12 } },
+        }}
+        className="scrollbar-hide flex snap-x snap-mandatory gap-2 overflow-x-auto pb-8"
       >
         {collections.map((collection) => (
-          <div
+          <motion.div
             key={collection.id}
+            variants={{
+              hidden: { opacity: 0, y: 16 },
+              show: { opacity: 1, y: 0 },
+            }}
             className="group relative h-[500px] min-w-[85vw] flex-shrink-0 snap-start overflow-hidden rounded-lg md:min-w-[45vw] lg:min-w-[400px]"
           >
             <img
@@ -122,9 +134,9 @@ export function ShopByCollection() {
                   <Hotspot key={index} top={spot.top} left={spot.left} />
                 ))
               : null}
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -1,17 +1,41 @@
+"use client";
+
+import { motion } from "framer-motion";
+
+const container = {
+  hidden: { opacity: 0, y: 16 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { staggerChildren: 0.12 },
+  },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
+
 export function FeaturedBrands() {
   return (
     <div className="container mx-auto mb-20 px-4 md:px-8">
-      <div className="mb-10 text-center md:text-left">
+      <motion.div
+        variants={container}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true }}
+        className="mb-10 text-center md:text-left"
+      >
         <h2 className="mb-2 text-2xl font-bold text-gray-900">
           Featured Brands
         </h2>
         <p className="text-sm text-gray-500">
           Working with the most recognized brands and manufacturers.
         </p>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="group relative h-[400px] overflow-hidden bg-gray-50">
+        <motion.div variants={item} className="group relative h-[400px] overflow-hidden bg-gray-50">
           <div className="absolute left-6 top-6 z-10">
             <h3 className="mb-1 text-sm font-bold uppercase tracking-wider">
               ARHAUSE
@@ -25,9 +49,9 @@ export function FeaturedBrands() {
               className="h-full object-contain transition-transform duration-500 group-hover:scale-105"
             />
           </div>
-        </div>
+        </motion.div>
 
-        <div className="group relative flex h-[400px] flex-col justify-between overflow-hidden bg-[#f8f8f6] p-6">
+        <motion.div variants={item} className="group relative flex h-[400px] flex-col justify-between overflow-hidden bg-[#f8f8f6] p-6">
           <div>
             <h3 className="text-lg text-gray-900">Josepe Casa</h3>
           </div>
@@ -49,9 +73,9 @@ export function FeaturedBrands() {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="group relative h-[400px] overflow-hidden bg-gray-50">
+        <motion.div variants={item} className="group relative h-[400px] overflow-hidden bg-gray-50">
           <div className="absolute left-6 top-6 z-10">
             <h3 className="mb-1 text-sm font-bold uppercase tracking-wider">
               LA CASA MIA
@@ -65,9 +89,9 @@ export function FeaturedBrands() {
               src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=2670&auto=format&fit=crop"
               alt="La Casa Mia"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          </div>
-        </div>
+              />
+            </div>
+        </motion.div>
       </div>
     </div>
   );

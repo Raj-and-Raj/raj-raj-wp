@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { CheckCircle, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { motion } from "framer-motion";
 
 const reviews = [
   {
@@ -66,7 +67,13 @@ export function GoogleReviews() {
   return (
     <div className="mb-20 py-16">
       <div className="container mx-auto px-4 md:px-8">
-        <div className="mb-12 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          className="mb-12 text-center"
+        >
           <h2 className="mb-2 text-2xl font-bold uppercase tracking-widest text-gray-900">
             Excellent
           </h2>
@@ -91,7 +98,7 @@ export function GoogleReviews() {
             <span className="text-2xl font-bold text-[#34A853]">l</span>
             <span className="text-2xl font-bold text-[#EA4335]">e</span>
           </div>
-        </div>
+        </motion.div>
 
         <div className="relative mx-auto max-w-7xl">
           <div
@@ -99,8 +106,12 @@ export function GoogleReviews() {
             className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto pb-8 px-4"
           >
             {reviews.map((review) => (
-              <div
+              <motion.div
                 key={review.id}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                viewport={{ once: true }}
                 className="relative min-w-[25vw] flex-shrink-0 snap-center rounded-xl border border-gray-100 bg-white p-6 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-lg md:min-w-[calc(33.333%-16px)]"
               >
                 <div className="absolute right-6 top-6 opacity-80">
@@ -161,7 +172,7 @@ export function GoogleReviews() {
                 <p className="text-sm leading-relaxed text-gray-600">
                   {review.text}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
 
