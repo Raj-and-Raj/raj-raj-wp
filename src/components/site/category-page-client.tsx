@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { Product } from "@/lib/products";
 import { formatPrice } from "@/lib/format";
+import { useToast } from "@/components/ui/use-toast";
+import { useCartIds } from "@/lib/cart-client";
 
 type CategoryPageClientProps = {
   displayName: string;
@@ -40,6 +42,8 @@ export function CategoryPageClient({
     Record<string, Array<{ label: string; image?: string }>>
   >({});
   const [hoverImage, setHoverImage] = useState<Record<string, string>>({});
+  const { toast } = useToast();
+  const cartIds = useCartIds();
 
   useEffect(() => {
     setPriceCap(maxPrice || 0);
@@ -129,14 +133,24 @@ export function CategoryPageClient({
   };
 
   const addToCart = async (id: string) => {
+    if (cartIds.includes(id)) {
+      toast({
+        title: "Already in cart",
+        description: "This item is already in your cart.",
+      });
+      return;
+    }
     await fetch("/api/cart/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: Number(id), quantity: 1 }),
     });
-    window.dispatchEvent(
-      new CustomEvent("cart:updated", { detail: { open: true } }),
-    );
+    window.dispatchEvent(new Event("cart:updated"));
+    toast({
+      title: "Added to cart",
+      description: "Item has been added to your cart.",
+      variant: "success",
+    });
   };
 
   useEffect(() => {
@@ -163,8 +177,8 @@ export function CategoryPageClient({
   }, [visibleProducts, variationSwatches]);
 
   return (
-    <div className="min-h-screen  pb-4 pt-4">
-      <div className="container mx-auto mb-8 px-4 md:px-8">
+    <div className="min-h-screen  pb-2 pt-32">
+      <div className="container mx-auto mb-2 px-4 md:px-8">
         <div className="mb-4 flex items-center gap-1 text-xs text-gray-500">
           <Link href="/" className="hover:text-[#DA3234]">
             Home
@@ -269,14 +283,14 @@ export function CategoryPageClient({
               <Link
                 key={product.id}
                 href={`/products/${product.slug}`}
-                className="group block rounded-3xl border border-black/5 bg-white/95 p-4 transition hover:-translate-y-1 hover:shadow-lg"
+                className="group block rounded-xl border border-black/5 bg-white/95 p-4 transition hover:-translate-y-1 hover:shadow-lg"
               >
-                <div className="relative mb-4 aspect-[4/5] overflow-hidden rounded-2xl bg-[#f3eee8]">
+                <div className="relative mb-4 aspect-[5/5] overflow-hidden rounded-xl bg-[#f3eee8]">
                   {hoverImage[product.id] || product.image ? (
                     <img
                       src={hoverImage[product.id] || product.image}
                       alt={product.name}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-gray-400">
@@ -369,10 +383,18 @@ export function CategoryPageClient({
                         event.preventDefault();
                         addToCart(product.id);
                       }}
-                      className="inline-flex items-center gap-2 rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-[color:var(--muted)] transition hover:border-[color:var(--brand)] hover:text-[color:var(--brand)]"
+                      disabled={
+                        cartIds.includes(product.id) ||
+                        product.type === "variable"
+                      }
+                      className="inline-flex items-center gap-2 rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-[color:var(--muted)] transition hover:border-[color:var(--brand)] hover:text-[color:var(--brand)] disabled:cursor-not-allowed disabled:border-black/5 disabled:text-gray-400 disabled:hover:text-gray-400"
                     >
                       <ShoppingBag className="h-3.5 w-3.5" />
-                      Add
+                      {cartIds.includes(product.id)
+                        ? "Already in cart"
+                        : product.type === "variable"
+                          ? "Select options"
+                          : "Add"}
                     </button>
                   </div>
                 </div>

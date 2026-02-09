@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProduct, getProducts } from "@/lib/products";
+import { uploadsUrl } from "@/lib/uploads";
 import { ProductDetailClient } from "@/components/site/product-detail-client";
 
 export async function generateMetadata({
@@ -69,11 +70,11 @@ export default async function ProductPage({
   const heroImage =
     images[0] ||
     product.image ||
-    "https://dev.rajandraj.co/wp-content/uploads/2026/02/Popular-categories.jpg.jpeg";
+    uploadsUrl("2026/02/Popular-categories.jpg.jpeg");
   const secondImage =
     images[1] ||
     product.image ||
-    "https://dev.rajandraj.co/wp-content/uploads/2026/02/Popular-categories.jpg.jpeg";
+    uploadsUrl("2026/02/Popular-categories.jpg.jpeg");
 
   return (
     <div className="mx-auto w-full ">

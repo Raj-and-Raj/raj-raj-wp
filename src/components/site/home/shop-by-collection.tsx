@@ -4,21 +4,20 @@ import { useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { uploadsUrl } from "@/lib/uploads";
 
 const collections = [
   {
     id: 1,
-    title: "Dining Collection",
-    image:
-      "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=2532&auto=format&fit=crop",
+    title: "Dressing Table Collection",
+    image: uploadsUrl("2026/02/shop-by-collection_1.jpeg"),
     link: "/products",
     buttonText: "View Collection",
   },
   {
     id: 2,
-    title: "Tycoon Sofa Set",
-    image:
-      "https://images.unsplash.com/photo-1550226891-ef816aed4a98?q=80&w=2670&auto=format&fit=crop",
+    title: "Shoe Rack Collection",
+    image: uploadsUrl("2026/02/Shop-by-collection_2.jpeg"),
     link: "/products",
     hotspots: [
       { top: 40, left: 30 },
@@ -27,17 +26,8 @@ const collections = [
   },
   {
     id: 3,
-    title: "Modern Workspace",
-    image:
-      "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2301&auto=format&fit=crop",
-    link: "/products",
-    buttonText: "Shop Office",
-  },
-  {
-    id: 4,
-    title: "Minimalist Bedroom",
-    image:
-      "https://images.unsplash.com/photo-1595515106968-30c1e457f722?q=80&w=2670&auto=format&fit=crop",
+    title: "Wordrobe Collection",
+    image: uploadsUrl("2026/02/Featured-Brands_2.jpg.jpeg"),
     link: "/products",
     buttonText: "Shop Bedroom",
   },
@@ -69,7 +59,15 @@ export function ShopByCollection() {
   return (
     <div className="container mx-auto relative mb-20 px-4 md:px-8">
       <div className="mb-8 flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-gray-900">Shop by collection</h2>
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900">
+            Shop by collection
+          </h2>
+          <p className="text-sm mt-2 text-gray-500">
+            Discover premium steel furniture collections built for everyday use.
+          </p>
+        </div>
+
         <div className="flex gap-2">
           <button
             onClick={() => scroll("left")}
@@ -117,12 +115,10 @@ export function ShopByCollection() {
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
 
             <div className="absolute bottom-8 left-8 z-20 text-white">
-              <h3 className="mb-4 text-2xl font-bold tracking-wide">
-                {collection.title}
-              </h3>
+              <h3 className="mb-4 text-2xl font-medium">{collection.title}</h3>
               <Link
                 href={collection.link}
-                className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider hover:underline"
+                className="inline-flex items-center gap-2 text-sm font-medium uppercase hover:underline"
               >
                 {collection.buttonText || "View Collection"}{" "}
                 <ArrowRight className="h-4 w-4" />

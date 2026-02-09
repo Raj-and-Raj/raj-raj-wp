@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { uploadsUrl } from "@/lib/uploads";
 
 export function ExchangeBanner() {
   return (
@@ -9,7 +10,7 @@ export function ExchangeBanner() {
       <div className="flex flex-col bg-[#fdf8f5] md:flex-row">
         <div className="relative h-[400px] w-full overflow-hidden md:h-auto md:w-1/2">
           <img
-            src="https://images.unsplash.com/photo-1505693416388-b0346efee539?q=80&w=2670&auto=format&fit=crop"
+            src={uploadsUrl("2026/02/realistic-interior-design-with-furniture-scaled.jpg")}
             alt="Bedroom furniture"
             className="h-full w-full object-cover"
           />
@@ -25,17 +26,14 @@ export function ExchangeBanner() {
           >
             Upgrade your space,
             <br />
-            enjoy hassle free exchange.
+            Built in steel.
           </motion.h2>
           <p className="mb-8 font-medium text-gray-600">
-            Exchange your old furniture and save up to{" "}
-            <span className="font-bold text-black">INR 5000</span>
+            Discover durable, modern furniture designed for everyday
+            performance.
           </p>
 
-          <Link
-            href="/products"
-            className="brand-cta"
-          >
+          <Link href="/products" className="brand-cta">
             Explore Now
           </Link>
         </div>

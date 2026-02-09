@@ -24,9 +24,10 @@ body {
   margin: 0;
   color: var(--ink);
   font-family: var(--font-inter), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  background: radial-gradient(circle at top left, #ffffff, transparent 42%),
+  /* background: radial-gradient(circle at top left, #ffffff, transparent 42%),
     radial-gradient(circle at 20% 20%, rgba(221, 51, 51, 0.12), transparent 45%),
-    linear-gradient(135deg, #f6f1ea 0%, #f1ece4 60%, #ebe4da 100%);
+    linear-gradient(135deg, #f6f1ea 0%, #f1ece4 60%, #ebe4da 100%); */
+    background: #efefef;
   min-height: 100vh;
 }
 
@@ -39,12 +40,11 @@ html {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 999px;
-  padding: 12px 28px;
+  border-radius: 8px;
+  padding: 8px 18px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  background: linear-gradient(120deg, #c92a2a, #dd3333, #f05745);
+  letter-spacing: 0.01em;
+  background: linear-gradient(110deg, #f45d5d, #dd3333, #f05745);
   color: #fff;
   transition: transform 200ms ease, filter 200ms ease;
 }
@@ -178,7 +178,7 @@ a {
   position: relative;
   border-radius: 999px;
   padding: 6px 10px;
-  color: var(--ink);
+  color: inherit;
   transition: color 200ms ease, background 200ms ease, transform 200ms ease;
 }
 
@@ -206,20 +206,29 @@ a {
   opacity: 1;
 }
 
+[data-home="true"] .nav-pill {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+[data-home="true"] .nav-pill:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
 .bento-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 10px;
 }
 
 @media (min-width: 768px) {
   .bento-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: repeat(3, 240px);
+    grid-template-rows: repeat(3, 280px);
     grid-template-areas:
       "a b c"
-      "d e e"
-      "f f g";
+      "d d e"
+      "f g g";
   }
 
   .bento-a { grid-area: a; }

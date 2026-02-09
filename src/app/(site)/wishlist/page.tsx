@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Product } from "@/lib/products";
 import { formatPrice } from "@/lib/format";
+import { useToast } from "@/components/ui/use-toast";
+import { useCartIds } from "@/lib/cart-client";
 
 type RowState = {
   checked: boolean;
@@ -16,6 +18,8 @@ export default function WishlistPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [rowState, setRowState] = useState<Record<string, RowState>>({});
+  const { toast } = useToast();
+  const cartIds = useCartIds();
 
   const selectedIds = useMemo(
     () =>
@@ -100,6 +104,9 @@ export default function WishlistPage() {
     );
     if (!selected.length) return;
     for (const product of selected) {
+      if (cartIds.includes(product.id)) {
+        continue;
+      }
       const qty = rowState[product.id]?.quantity ?? 1;
       await fetch("/api/cart/add", {
         method: "POST",
@@ -110,9 +117,12 @@ export default function WishlistPage() {
         }),
       });
     }
-    window.dispatchEvent(
-      new CustomEvent("cart:updated", { detail: { open: true } })
-    );
+    window.dispatchEvent(new Event("cart:updated"));
+    toast({
+      title: "Added to cart",
+      description: "Selected items have been added to your cart.",
+      variant: "success",
+    });
   };
 
   const buyNowSelected = async () => {
@@ -253,6 +263,13 @@ export default function WishlistPage() {
                   <div className="flex flex-col gap-2">
                     <button
                       onClick={async () => {
+                        if (cartIds.includes(product.id)) {
+                          toast({
+                            title: "Already in cart",
+                            description: "This item is already in your cart.",
+                          });
+                          return;
+                        }
                         await fetch("/api/cart/add", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
@@ -261,15 +278,19 @@ export default function WishlistPage() {
                             quantity: state.quantity,
                           }),
                         });
-                        window.dispatchEvent(
-                          new CustomEvent("cart:updated", {
-                            detail: { open: true },
-                          })
-                        );
+                        window.dispatchEvent(new Event("cart:updated"));
+                        toast({
+                          title: "Added to cart",
+                          description: "Item has been added to your cart.",
+                          variant: "success",
+                        });
                       }}
-                      className="rounded-full border border-black/10 px-3 py-2 text-xs font-semibold text-[color:var(--muted)] hover:border-[color:var(--brand)] hover:text-[color:var(--brand)]"
+                      disabled={cartIds.includes(product.id)}
+                      className="rounded-full border border-black/10 px-3 py-2 text-xs font-semibold text-[color:var(--muted)] hover:border-[color:var(--brand)] hover:text-[color:var(--brand)] disabled:cursor-not-allowed disabled:border-black/5 disabled:text-gray-400 disabled:hover:text-gray-400"
                     >
-                      Add to cart
+                      {cartIds.includes(product.id)
+                        ? "Already in cart"
+                        : "Add to cart"}
                     </button>
                     <button
                       onClick={() => removeFromWishlist(product.id)}
