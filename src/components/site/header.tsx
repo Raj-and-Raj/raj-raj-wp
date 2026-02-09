@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MiniCartDrawer } from "@/components/cart/mini-cart-drawer";
 
 type CartItem = {
   quantity?: number;
@@ -22,7 +21,6 @@ export function SiteHeader() {
   const router = useRouter();
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoryLinks, setCategoryLinks] =
     useState<Array<{ label: string; href: string }>>(baseLinks);
@@ -59,9 +57,6 @@ export function SiteHeader() {
       const detail = (event as CustomEvent).detail || {};
       loadCartCount();
       loadWishlistCount();
-      if (detail.open) {
-        setDrawerOpen(true);
-      }
       if (detail.redirect) {
         setTimeout(() => router.push("/cart"), 900);
       }
@@ -95,13 +90,13 @@ export function SiteHeader() {
   }, []);
 
   return (
-    <div className="sticky">
+    <div className="fixed w-full bg-transparent z-[99999999999]">
       <div className="w-full bg-[color:var(--brand)] text-white text-center text-xs py-2 font-medium">
         Mix, match, and save up to Rs. 40000 off on Spring-ready styles!
       </div>
-      <header className="sticky top-0 z-30 border-b border-black/5 bg-white/85 backdrop-blur-xl">
-        <div className="mx-auto w-full px-4 md:px-8">
-          <div className="grid h-20 grid-cols-[auto_1fr_auto] items-center gap-4">
+      <header className="sticky top-0 z-30 border-b border-black/5 bg-transparent backdrop-blur-2xl">
+        <div className="mx-auto w-full px-4 md:px-12">
+          <div className="grid h-15 grid-cols-[auto_1fr_auto] items-center gap-4">
             <div className="flex items-center gap-3">
               <button
                 className="md:hidden p-2"
@@ -134,8 +129,8 @@ export function SiteHeader() {
                 <img
                   src="https://dev.rajandraj.co/wp-content/uploads/2026/01/cropped-Logo3.png"
                   alt="Raj and Raj logo featuring a red bull head icon with white horns, accompanied by bold red text reading RAJ AND RAJ and a tagline stating Your trusted choice, representing a trusted brand choice"
-                  width="220"
-                  height="60"
+                  width="180"
+                  height="50"
                 />
               </Link>
             </div>
@@ -187,9 +182,9 @@ export function SiteHeader() {
                 </span>
               </Link>
 
-              <button
+              <Link
+                href="/cart"
                 className="relative text-[color:var(--muted)] hover:text-black"
-                onClick={() => setDrawerOpen(true)}
                 aria-label="Open cart"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -214,7 +209,7 @@ export function SiteHeader() {
                     {cartCount}
                   </span>
                 ) : null}
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -234,7 +229,6 @@ export function SiteHeader() {
           </div>
         ) : null}
       </header>
-      <MiniCartDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </div>
   );
 }

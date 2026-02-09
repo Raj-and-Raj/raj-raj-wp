@@ -209,17 +209,17 @@ a {
 .bento-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 10px;
 }
 
 @media (min-width: 768px) {
   .bento-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: repeat(3, 240px);
+    grid-template-rows: repeat(3, 280px);
     grid-template-areas:
       "a b c"
-      "d e e"
-      "f f g";
+      "d d e"
+      "f g g";
   }
 
   .bento-a { grid-area: a; }

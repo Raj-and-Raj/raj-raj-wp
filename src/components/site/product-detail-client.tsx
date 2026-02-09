@@ -5,11 +5,12 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RazorpayButton } from "@/components/checkout/razorpay-button";
 import { formatPrice } from "@/lib/format";
 import { ShareRow } from "@/components/site/share-row";
 import { Heart } from "lucide-react";
 import type { Product } from "@/lib/products";
+import { useToast } from "@/components/ui/use-toast";
+import { useCartIds } from "@/lib/cart-client";
 
 const tabs = [
   { id: "overview", label: "Overview" },
@@ -55,6 +56,8 @@ export function ProductDetailClient({
     | { state: "error"; message: string }
   >({ state: "idle" });
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const { toast } = useToast();
+  const cartIds = useCartIds();
 
   const variationPayload = useMemo(() => {
     if (!Object.keys(variantSelections).length) return undefined;
@@ -500,7 +503,17 @@ export function ProductDetailClient({
               </div>
             ) : null}
 
-            <div className="mt-6 grid grid-cols-1 gap-3 items-center sm:grid-cols-3">
+            {(() => {
+              const requiresSelection = variationAttributes.length > 0;
+              const isSelectionComplete = requiresSelection
+                ? variationAttributes.every(
+                    (attr) => variantSelections[attr.name],
+                  )
+                : true;
+              const isInCart = cartIds.includes(product.id);
+              const disableForSelection = !isSelectionComplete;
+              return (
+                <div className="mt-6 grid grid-cols-1 gap-3 items-center sm:grid-cols-3">
               <div className="flex items-center justify-between rounded-[12px] border border-black/10 px-3 py-2">
                 <button
                   onClick={() => setQty(Math.max(1, qty - 1))}
@@ -518,7 +531,16 @@ export function ProductDetailClient({
               </div>
               <Button
                 className="bg-[color:var(--brand)] rounded-[10px] text-white hover:brightness-110"
+                disabled={isInCart || disableForSelection}
                 onClick={async () => {
+                  if (disableForSelection) return;
+                  if (isInCart) {
+                    toast({
+                      title: "Already in cart",
+                      description: "This item is already in your cart.",
+                    });
+                    return;
+                  }
                   await fetch("/api/cart/add", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -528,19 +550,23 @@ export function ProductDetailClient({
                       variation: variationPayload,
                     }),
                   });
-                  window.dispatchEvent(
-                    new CustomEvent("cart:updated", {
-                      detail: { open: true, redirect: true },
-                    }),
-                  );
+                  window.dispatchEvent(new Event("cart:updated"));
+                  toast({
+                    title: "Added to cart",
+                    description: "Item has been added to your cart.",
+                    variant: "success",
+                  });
                 }}
               >
-                Add to cart
+                {isInCart ? "Already in cart" : "Add to cart"}
               </Button>
               <Button
                 variant="outline"
                 className="rounded-[10px] bg-black border-black/10 text-white hover:border-[color:var(--brand)] hover:bg-[color:var(--brand)] hover:text-white"
+                disabled={disableForSelection}
                 onClick={async () => {
+                  if (disableForSelection) return;
+                  if (!isInCart) {
                   await fetch("/api/cart/add", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -550,12 +576,16 @@ export function ProductDetailClient({
                       variation: variationPayload,
                     }),
                   });
+                  window.dispatchEvent(new Event("cart:updated"));
+                  }
                   window.location.href = "/checkout";
                 }}
               >
                 Buy now
               </Button>
             </div>
+              );
+            })()}
 
             <div className="mt-4">
               <ShareRow />

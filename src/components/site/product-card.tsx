@@ -6,8 +6,15 @@ import { motion } from "framer-motion";
 import { Product } from "@/lib/products";
 import { formatPrice } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { useCartIds } from "@/lib/cart-client";
 
 export function ProductCard({ product }: { product: Product }) {
+  const { toast } = useToast();
+  const cartIds = useCartIds();
+  const isInCart = cartIds.includes(product.id);
+  const isVariable = product.type === "variable";
+
   return (
     <motion.div
       whileHover={{ y: -6 }}
@@ -48,7 +55,15 @@ export function ProductCard({ product }: { product: Product }) {
         </Link>
         <Button
           size="sm"
+          disabled={isInCart || isVariable}
           onClick={async () => {
+            if (isInCart) {
+              toast({
+                title: "Already in cart",
+                description: "This item is already in your cart.",
+              });
+              return;
+            }
             await fetch("/api/cart/add", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -57,14 +72,19 @@ export function ProductCard({ product }: { product: Product }) {
                 quantity: 1,
               }),
             });
-            window.dispatchEvent(
-              new CustomEvent("cart:updated", {
-                detail: { open: true, redirect: true },
-              })
-            );
+            window.dispatchEvent(new Event("cart:updated"));
+            toast({
+              title: "Added to cart",
+              description: "Item has been added to your cart.",
+              variant: "success",
+            });
           }}
         >
-          Add to cart
+          {isInCart
+            ? "Already in cart"
+            : isVariable
+              ? "Select options"
+              : "Add to cart"}
         </Button>
       </div>
     </motion.div>
