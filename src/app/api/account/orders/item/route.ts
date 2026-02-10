@@ -46,7 +46,12 @@ export async function GET(request: Request) {
   }
 
   const customer = await fetchCustomerByEmail(email);
-  let orders = [];
+  let orders: Array<{
+    id: number;
+    status: string;
+    total: string;
+    date_created: string;
+  }> = [];
   if (customer) {
     orders = await fetchOrdersByCustomer(customer.id);
   }
