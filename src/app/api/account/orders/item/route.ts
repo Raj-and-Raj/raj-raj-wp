@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { fetchCustomerByEmail, fetchOrdersByCustomer } from "@/lib/woocommerce";
+import {
+  fetchCustomerByEmail,
+  fetchOrdersByCustomer,
+  fetchOrdersByEmail,
+} from "@/lib/woocommerce";
 
 const wordpressUrl = process.env.WORDPRESS_URL;
 
@@ -33,18 +37,22 @@ export async function GET(request: Request) {
   }
 
   const user = await userRes.json();
-  const email = user?.email as string | undefined;
+  const email =
+    (user?.email as string | undefined) ||
+    (await cookies()).get("wp_email")?.value;
 
   if (!email) {
     return NextResponse.json({ error: "Email not available" }, { status: 400 });
   }
 
   const customer = await fetchCustomerByEmail(email);
-  if (!customer) {
-    return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+  let orders = [];
+  if (customer) {
+    orders = await fetchOrdersByCustomer(customer.id);
   }
-
-  const orders = await fetchOrdersByCustomer(customer.id);
+  if (!orders.length) {
+    orders = await fetchOrdersByEmail(email);
+  }
   const order = orders.find((item) => String(item.id) === orderId);
 
   if (!order) {

@@ -9,6 +9,9 @@ type CartItem = {
   name: string;
   quantity: number;
   prices?: { price?: number | string };
+  images?: Array<{ id?: number; src?: string; thumbnail?: string }>;
+  variation?: Array<{ attribute: string; value: string }>;
+  sku?: string;
 };
 
 type CartTotals = {
@@ -22,11 +25,13 @@ type CartTotals = {
 type Cart = {
   items?: CartItem[];
   totals?: CartTotals;
+  coupons?: Array<{ code?: string; discount?: string | number }>;
 };
 
 export function CartClient() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [coupon, setCoupon] = useState("");
+  const [couponError, setCouponError] = useState("");
 
   const toCents = (value: unknown) => {
     if (typeof value === "number") return value;
@@ -65,12 +70,27 @@ export function CartClient() {
 
   const applyCoupon = async () => {
     if (!coupon) return;
-    await fetch("/api/cart/apply-coupon", {
+    setCouponError("");
+    const res = await fetch("/api/cart/apply-coupon", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code: coupon }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setCouponError(data?.message || "Unable to apply coupon.");
+    }
     setCoupon("");
+    loadCart();
+  };
+
+  const removeCoupon = async (code?: string) => {
+    if (!code) return;
+    await fetch("/api/cart/remove-coupon", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
     loadCart();
   };
 
@@ -83,13 +103,23 @@ export function CartClient() {
       (sum, item) => sum + (item.quantity ?? 0),
       0
     ) ?? 0;
-  const subtotalCents = toCents(
-    cart.totals?.total_items ?? cart.totals?.subtotal ?? cart.totals?.total
+  const itemsSubtotalCents =
+    cart.items?.reduce((sum, item) => {
+      const price = toCents(item.prices?.price);
+      return sum + price * (item.quantity ?? 0);
+    }, 0) ?? 0;
+
+  const subtotalCentsRaw = toCents(
+    cart.totals?.subtotal ?? cart.totals?.total ?? cart.totals?.total_price
   );
   const taxCents = toCents(cart.totals?.total_tax);
-  const totalCents = toCents(
-    cart.totals?.total_price ?? cart.totals?.total ?? subtotalCents + taxCents
+  const totalCentsRaw = toCents(
+    cart.totals?.total_price ?? cart.totals?.total
   );
+
+  const subtotalCents = subtotalCentsRaw > 0 ? subtotalCentsRaw : itemsSubtotalCents;
+  const totalCents =
+    totalCentsRaw > 0 ? totalCentsRaw : subtotalCents + taxCents;
 
   return (
     <div className="space-y-6">
@@ -100,30 +130,53 @@ export function CartClient() {
             cart.items.map((item) => (
               <div
                 key={item.key}
-                className="flex items-center justify-between rounded-[12px] border border-black/5 bg-white/95 p-4"
+                className="flex flex-col gap-4 rounded-[16px] border border-black/5 bg-white/95 p-4 md:flex-row md:items-center md:justify-between"
               >
-                <div>
-                  <p className="font-semibold">{item.name}</p>
-                  <p className="text-sm text-[color:var(--muted)]">
-                    {formatPrice(Number(item.prices?.price ?? 0) / 100)}
-                  </p>
+                <div className="flex items-center gap-4">
+                  <div className="h-20 w-20 overflow-hidden rounded-[14px] bg-[#f1ece4]">
+                    {item.images?.[0]?.thumbnail || item.images?.[0]?.src ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.images?.[0]?.thumbnail || item.images?.[0]?.src}
+                        alt={item.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : null}
+                  </div>
+                  <div>
+                    <p className="font-semibold">{item.name}</p>
+                    {item.variation?.length ? (
+                      <div className="mt-1 text-xs text-[color:var(--muted)]">
+                        {item.variation.map((variant) => (
+                          <span key={variant.attribute} className="mr-2">
+                            {variant.attribute}: {variant.value}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                    <p className="mt-2 text-sm text-[color:var(--muted)]">
+                      {formatPrice(Number(item.prices?.price ?? 0) / 100)}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 rounded-full border border-black/10 px-2 py-1">
+                    <button
+                      className="h-8 w-8 rounded-full border border-black/10"
+                      onClick={() => updateItem(item.key, item.quantity - 1)}
+                    >
+                      -
+                    </button>
+                    <span className="min-w-[24px] text-center">{item.quantity}</span>
+                    <button
+                      className="h-8 w-8 rounded-full border border-black/10"
+                      onClick={() => updateItem(item.key, item.quantity + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
                   <button
-                    className="h-8 w-8 rounded-[12px] border border-black/10"
-                    onClick={() => updateItem(item.key, item.quantity - 1)}
-                  >
-                    -
-                  </button>
-                  <span>{item.quantity}</span>
-                  <button
-                    className="h-8 w-8 rounded-[12px] border border-black/10"
-                    onClick={() => updateItem(item.key, item.quantity + 1)}
-                  >
-                    +
-                  </button>
-                  <button
-                    className="text-xs text-red-500"
+                    className="text-xs font-semibold text-red-500"
                     onClick={() => removeItem(item.key)}
                   >
                     Remove
@@ -138,6 +191,24 @@ export function CartClient() {
         <div className="rounded-[12px] border border-black/5 bg-white/95 p-4">
           <p className="text-sm font-semibold">Summary</p>
           <div className="mt-4 space-y-2 text-sm">
+            {cart.coupons?.length ? (
+              <div className="rounded-[12px] border border-black/5 bg-white/80 p-3 text-xs">
+                <p className="mb-2 font-semibold">Applied coupons</p>
+                <div className="space-y-1">
+                  {cart.coupons.map((entry) => (
+                    <div key={entry.code} className="flex items-center justify-between">
+                      <span className="uppercase">{entry.code}</span>
+                      <button
+                        className="text-[color:var(--brand)]"
+                        onClick={() => removeCoupon(entry.code)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="flex items-center justify-between">
               <span>Items</span>
               <span>{itemsCount}</span>
@@ -166,6 +237,9 @@ export function CartClient() {
               Apply
             </Button>
           </div>
+          {couponError ? (
+            <p className="mt-2 text-xs text-red-500">{couponError}</p>
+          ) : null}
           <Button className="mt-6 w-full" onClick={() => (window.location.href = "/checkout")}>
             Checkout
           </Button>

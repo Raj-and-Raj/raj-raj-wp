@@ -56,6 +56,7 @@ export function ProductDetailClient({
     | { state: "error"; message: string }
   >({ state: "idle" });
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [enquiryOpen, setEnquiryOpen] = useState(false);
   const { toast } = useToast();
   const cartIds = useCartIds();
 
@@ -81,6 +82,7 @@ export function ProductDetailClient({
       : product.stockStatus === "outofstock"
         ? "Out of stock"
         : "Available";
+  const isOutOfStock = product.stockStatus === "outofstock";
 
   const colorAttribute = useMemo(() => {
     return variationAttributes.find((attr) => {
@@ -512,6 +514,20 @@ export function ProductDetailClient({
                 : true;
               const isInCart = cartIds.includes(product.id);
               const disableForSelection = !isSelectionComplete;
+
+              if (isOutOfStock) {
+                return (
+                  <div className="mt-6">
+                    <Button
+                      className="w-full rounded-[10px] bg-[color:var(--brand)] text-white hover:brightness-110"
+                      onClick={() => setEnquiryOpen(true)}
+                    >
+                      Enquiry now
+                    </Button>
+                  </div>
+                );
+              }
+
               return (
                 <div className="mt-6 grid grid-cols-1 gap-3 items-center sm:grid-cols-3">
                   <div className="flex items-center justify-between rounded-[12px] border border-black/10 px-3 py-2">
@@ -753,6 +769,59 @@ export function ProductDetailClient({
           </div>
         </div>
       </section>
+
+      {enquiryOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-lg rounded-[16px] bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Enquiry now</h3>
+              <button
+                onClick={() => setEnquiryOpen(false)}
+                className="text-sm text-[color:var(--muted)]"
+              >
+                Close
+              </button>
+            </div>
+            <p className="mt-2 text-sm text-[color:var(--muted)]">
+              This item is currently out of stock. Leave your details and we’ll
+              contact you when it’s available.
+            </p>
+            <div className="mt-4 grid gap-3">
+              <input
+                placeholder="Full name"
+                className="rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+              />
+              <input
+                placeholder="Phone number"
+                className="rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+              />
+              <input
+                placeholder="Email address"
+                className="rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+              />
+              <textarea
+                placeholder="Message"
+                rows={4}
+                className="rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setEnquiryOpen(false)}
+                className="w-full rounded-[12px] border border-black/10 px-4 py-2 text-sm font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                className="w-full rounded-[12px] bg-[color:var(--brand)] px-4 py-2 text-sm font-semibold text-white"
+                onClick={() => setEnquiryOpen(false)}
+              >
+                Submit enquiry
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* <div className="sticky bottom-6 z-30">
         <div className="mx-auto flex max-w-5xl items-center justify-between rounded-[12px] border border-black/10 bg-white/95 px-6 py-3">

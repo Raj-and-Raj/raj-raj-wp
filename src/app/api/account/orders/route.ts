@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { fetchCustomerByEmail, fetchOrdersByCustomer } from "@/lib/woocommerce";
+import {
+  fetchCustomerByEmail,
+  fetchOrdersByCustomer,
+  fetchOrdersByEmail,
+} from "@/lib/woocommerce";
 
 const wordpressUrl = process.env.WORDPRESS_URL;
 
@@ -27,7 +31,9 @@ export async function GET() {
   }
 
   const user = await userRes.json();
-  const email = user?.email as string | undefined;
+  const email =
+    (user?.email as string | undefined) ||
+    (await cookies()).get("wp_email")?.value;
 
   if (!email) {
     return NextResponse.json({ error: "Email not available" }, { status: 400 });
@@ -35,9 +41,14 @@ export async function GET() {
 
   const customer = await fetchCustomerByEmail(email);
   if (!customer) {
-    return NextResponse.json({ orders: [] });
+    const ordersByEmail = await fetchOrdersByEmail(email);
+    return NextResponse.json({ orders: ordersByEmail });
   }
 
   const orders = await fetchOrdersByCustomer(customer.id);
+  if (orders.length === 0) {
+    const ordersByEmail = await fetchOrdersByEmail(email);
+    return NextResponse.json({ orders: ordersByEmail });
+  }
   return NextResponse.json({ orders });
 }
