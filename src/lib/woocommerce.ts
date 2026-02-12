@@ -211,6 +211,45 @@ export async function fetchOrdersByCustomer(customerId: number) {
   >("orders", query);
 }
 
+export async function fetchOrdersByEmail(email: string) {
+  const query = new URLSearchParams();
+  query.set("search", email);
+  query.set("per_page", "20");
+  // Some Woo setups accept email as a filter; harmless if ignored.
+  query.set("email", email);
+  return wooFetch<
+    Array<{
+      id: number;
+      status: string;
+      total: string;
+      date_created: string;
+    }>
+  >("orders", query);
+}
+
+export async function fetchOrderById(orderId: number) {
+  return wooFetch<{
+    id: number;
+    status: string;
+    total: string;
+    currency: string;
+    date_created: string;
+    billing: WooCustomer["billing"];
+    shipping: WooCustomer["shipping"];
+    line_items: Array<{
+      id: number;
+      name: string;
+      quantity: number;
+      total: string;
+      price: number;
+      sku?: string;
+      variation_id?: number;
+      image?: { src?: string };
+      meta_data?: Array<{ key: string; value: string }>;
+    }>;
+  }>(`orders/${orderId}`);
+}
+
 export async function updateCustomer(
   customerId: number,
   input: {

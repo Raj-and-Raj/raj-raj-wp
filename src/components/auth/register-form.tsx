@@ -82,7 +82,7 @@ export function RegisterForm() {
       title: "Account created",
       description: "You can sign in now.",
     });
-    router.push("/login");
+    router.push("/account");
   };
 
   return (

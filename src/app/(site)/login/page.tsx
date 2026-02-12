@@ -1,9 +1,25 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
 import { RegisterForm } from "@/components/auth/register-form";
 import { ResetPasswordForm } from "@/components/auth/reset-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const check = async () => {
+      const res = await fetch("/api/auth/me");
+      if (res.ok) {
+        router.replace("/account");
+      }
+    };
+    check();
+  }, [router]);
+
   return (
     <div className="mx-auto max-w-lg space-y-6 rounded-[16px] border border-black/5 bg-white/95 p-8">
       <div>

@@ -26,8 +26,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  const data = (await res.json()) as { token: string };
-  const response = NextResponse.json({ ok: true });
+  const data = (await res.json()) as {
+    token: string;
+    user_email?: string;
+    user_display_name?: string;
+  };
+  const response = NextResponse.json({
+    ok: true,
+    email: data.user_email,
+    name: data.user_display_name,
+  });
   response.cookies.set({
     name: "wp_token",
     value: data.token,
@@ -35,5 +43,14 @@ export async function POST(request: Request) {
     sameSite: "lax",
     path: "/",
   });
+  if (data.user_email) {
+    response.cookies.set({
+      name: "wp_email",
+      value: data.user_email,
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+    });
+  }
   return response;
 }

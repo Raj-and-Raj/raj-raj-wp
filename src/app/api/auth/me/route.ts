@@ -26,9 +26,10 @@ export async function GET() {
   }
 
   const data = await res.json();
+  const fallbackEmail = (await cookies()).get("wp_email")?.value;
   return NextResponse.json({
     id: data.id,
     name: data.name,
-    email: data.email,
+    email: data.email || fallbackEmail,
   });
 }
