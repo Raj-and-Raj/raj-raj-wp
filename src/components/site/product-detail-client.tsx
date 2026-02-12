@@ -87,7 +87,12 @@ export function ProductDetailClient({
   const colorAttribute = useMemo(() => {
     return variationAttributes.find((attr) => {
       const name = attr.name.toLowerCase();
-      return name.includes("color") || name.includes("colour");
+      return (
+        name.includes("color") ||
+        name.includes("colour") ||
+        name.includes("attribute_colour") ||
+        name.includes("attribute_color")
+      );
     });
   }, [variationAttributes]);
 
@@ -506,9 +511,12 @@ export function ProductDetailClient({
             ) : null}
 
             {(() => {
-              const requiresSelection = variationAttributes.length > 0;
+              const requiredAttributes = colorAttribute
+                ? [colorAttribute]
+                : variationAttributes;
+              const requiresSelection = requiredAttributes.length > 0;
               const isSelectionComplete = requiresSelection
-                ? variationAttributes.every(
+                ? requiredAttributes.every(
                     (attr) => variantSelections[attr.name],
                   )
                 : true;
@@ -529,18 +537,30 @@ export function ProductDetailClient({
               }
 
               return (
-                <div className="mt-6 grid grid-cols-1 gap-3 items-center sm:grid-cols-3">
-                  <div className="flex items-center justify-between rounded-[12px] border border-black/10 px-3 py-2">
+                <div className="mt-6 space-y-2">
+                  {disableForSelection && colorAttribute ? (
+                    <p className="text-xs text-[color:var(--muted)]">
+                      Select a color to continue.
+                    </p>
+                  ) : null}
+                  <div className="grid grid-cols-1 gap-3 items-center sm:grid-cols-3">
+                  <div
+                    className={`flex items-center justify-between rounded-[12px] border border-black/10 px-3 py-2 ${
+                      disableForSelection ? "opacity-50" : ""
+                    }`}
+                  >
                     <button
                       onClick={() => setQty(Math.max(1, qty - 1))}
-                      className="h-8 w-8 rounded-[10px] border border-black/10 text-sm"
+                      disabled={disableForSelection}
+                      className="h-8 w-8 rounded-[10px] border border-black/10 text-sm disabled:cursor-not-allowed"
                     >
                       -
                     </button>
                     <span className="px-3 text-sm font-semibold">{qty}</span>
                     <button
                       onClick={() => setQty(qty + 1)}
-                      className="h-8 w-8 rounded-[10px] border border-black/10 text-sm"
+                      disabled={disableForSelection}
+                      className="h-8 w-8 rounded-[10px] border border-black/10 text-sm disabled:cursor-not-allowed"
                     >
                       +
                     </button>
@@ -600,6 +620,7 @@ export function ProductDetailClient({
                     Buy now
                   </Button>
                 </div>
+              </div>
               );
             })()}
 

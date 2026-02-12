@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
+import { useRouter } from "next/navigation";
 
 type CartItem = {
   key: string;
@@ -48,6 +49,7 @@ type AddressBookEntry = {
 };
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const [cart, setCart] = useState<Cart | null>(null);
   const [billing, setBilling] = useState({
     first_name: "",
@@ -69,9 +71,16 @@ export default function CheckoutPage() {
   const [orderNotes, setOrderNotes] = useState("");
   const [savedAddresses, setSavedAddresses] = useState<AddressBookEntry[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
+  const [isAuthed, setIsAuthed] = useState(false);
 
   useEffect(() => {
     const load = async () => {
+      const authRes = await fetch("/api/auth/me");
+      if (!authRes.ok) {
+        router.replace("/login?redirect=/checkout");
+        return;
+      }
+      setIsAuthed(true);
       const res = await fetch("/api/cart");
       if (res.ok) {
         const data = await res.json();
@@ -100,7 +109,7 @@ export default function CheckoutPage() {
       }
     };
     load();
-  }, [shippingMethod]);
+  }, [shippingMethod, router]);
 
   useEffect(() => {
     const stored = localStorage.getItem("addressBook");
@@ -123,6 +132,10 @@ export default function CheckoutPage() {
   }, []);
 
   const placeOrder = async () => {
+    if (!isAuthed) {
+      router.replace("/login?redirect=/checkout");
+      return;
+    }
     setIsPlacing(true);
     setError("");
     try {
