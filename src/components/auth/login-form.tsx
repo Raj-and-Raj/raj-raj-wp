@@ -65,6 +65,7 @@ export function LoginForm() {
       title: "Signed in",
       description: "Welcome back.",
     });
+    window.dispatchEvent(new Event("auth:updated"));
     router.push("/account");
   };
 

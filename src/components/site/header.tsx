@@ -18,25 +18,102 @@ const baseLinks = [
   // { label: "Shop", href: "/products" },
 ];
 
+let cartCountCache: { value: number; ts: number } | null = null;
+let cartCountInflight: Promise<number> | null = null;
+const CART_COUNT_TTL_MS = 1500;
+
+let authCache: { value: boolean; ts: number } | null = null;
+let authInflight: Promise<boolean> | null = null;
+const AUTH_TTL_MS = 5000;
+
+let categoriesCache:
+  | { value: Array<{ label: string; href: string }>; ts: number }
+  | null = null;
+let categoriesInflight: Promise<Array<{ label: string; href: string }>> | null =
+  null;
+const CATEGORIES_TTL_MS = 5 * 60 * 1000;
+
+const fetchCartCount = async (force = false) => {
+  const now = Date.now();
+  if (!force && cartCountCache && now - cartCountCache.ts < CART_COUNT_TTL_MS) {
+    return cartCountCache.value;
+  }
+  if (cartCountInflight) return cartCountInflight;
+  cartCountInflight = fetch("/api/cart")
+    .then(async (res) => {
+      if (!res.ok) return 0;
+      const data: CartSummary = await res.json();
+      const count =
+        data?.items?.reduce((sum, item) => sum + (item.quantity ?? 0), 0) ?? 0;
+      return count;
+    })
+    .catch(() => 0)
+    .finally(() => {
+      cartCountInflight = null;
+    });
+  const value = await cartCountInflight;
+  cartCountCache = { value, ts: now };
+  return value;
+};
+
+const fetchAuthStatus = async (force = false) => {
+  const now = Date.now();
+  if (!force && authCache && now - authCache.ts < AUTH_TTL_MS) {
+    return authCache.value;
+  }
+  if (authInflight) return authInflight;
+  authInflight = fetch("/api/auth/me")
+    .then((res) => res.ok)
+    .catch(() => false)
+    .finally(() => {
+      authInflight = null;
+    });
+  const value = await authInflight;
+  authCache = { value, ts: now };
+  return value;
+};
+
+const fetchCategories = async (force = false) => {
+  const now = Date.now();
+  if (!force && categoriesCache && now - categoriesCache.ts < CATEGORIES_TTL_MS) {
+    return categoriesCache.value;
+  }
+  if (categoriesInflight) return categoriesInflight;
+  categoriesInflight = fetch("/api/categories/parents")
+    .then(async (res) => {
+      if (!res.ok) return baseLinks;
+      const data: Array<{ name: string; slug: string }> = await res.json();
+      return [
+        ...baseLinks,
+        ...data.map((item) => ({
+          label: item.name,
+          href: `/category/${item.slug}`,
+        })),
+      ];
+    })
+    .catch(() => baseLinks)
+    .finally(() => {
+      categoriesInflight = null;
+    });
+  const value = await categoriesInflight;
+  categoriesCache = { value, ts: now };
+  return value;
+};
+
 export function SiteHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
+  const [isAuthed, setIsAuthed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [categoryLinks, setCategoryLinks] =
     useState<Array<{ label: string; href: string }>>(baseLinks);
 
   const loadCartCount = async () => {
-    const res = await fetch("/api/cart");
-    if (!res.ok) return;
-    const data: CartSummary = await res.json();
-    const count = data?.items?.reduce(
-      (sum, item) => sum + (item.quantity ?? 0),
-      0,
-    );
+    const count = await fetchCartCount();
     setCartCount(count || 0);
   };
 
@@ -54,23 +131,34 @@ export function SiteHeader() {
     }
   };
 
+  const loadAuthStatus = async () => {
+    const authed = await fetchAuthStatus();
+    setIsAuthed(authed);
+  };
+
   useEffect(() => {
     loadCartCount();
     loadWishlistCount();
+    loadAuthStatus();
     const handler = (event: Event) => {
       const detail = (event as CustomEvent).detail || {};
-      loadCartCount();
+      fetchCartCount(true).then((count) => setCartCount(count || 0));
       loadWishlistCount();
       if (detail.redirect) {
         setTimeout(() => router.push("/cart"), 900);
       }
     };
+    const authHandler = () => {
+      fetchAuthStatus(true).then((authed) => setIsAuthed(authed));
+    };
     window.addEventListener("cart:updated", handler as EventListener);
     window.addEventListener("wishlist:updated", loadWishlistCount);
+    window.addEventListener("auth:updated", authHandler as EventListener);
     window.addEventListener("storage", loadWishlistCount);
     return () => {
       window.removeEventListener("cart:updated", handler as EventListener);
       window.removeEventListener("wishlist:updated", loadWishlistCount);
+      window.removeEventListener("auth:updated", authHandler as EventListener);
       window.removeEventListener("storage", loadWishlistCount);
     };
   }, [router]);
@@ -88,18 +176,8 @@ export function SiteHeader() {
 
   useEffect(() => {
     const loadCategories = async () => {
-      try {
-        const res = await fetch("/api/categories/parents");
-        if (!res.ok) return;
-        const data: Array<{ name: string; slug: string }> = await res.json();
-        const mapped = data.map((item) => ({
-          label: item.name,
-          href: `/category/${item.slug}`,
-        }));
-        setCategoryLinks([...baseLinks, ...mapped]);
-      } catch {
-        setCategoryLinks(baseLinks);
-      }
+      const mapped = await fetchCategories();
+      setCategoryLinks(mapped);
     };
     loadCategories();
   }, []);
@@ -182,12 +260,13 @@ export function SiteHeader() {
 
             <div className="flex items-center space-x-4 md:space-x-6">
               <Link
-                href="/login"
+                href={isAuthed ? "/account" : "/login"}
                 className={`hover:text-black ${
                   isHome && !scrolled
                     ? "text-white/80 hover:text-white"
                     : "text-[color:var(--muted)]"
                 }`}
+                aria-label={isAuthed ? "Account" : "Login"}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path

@@ -53,6 +53,7 @@ export function MiniCartDrawer({ open, onClose }: MiniCartDrawerProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key, quantity }),
     });
+    window.dispatchEvent(new Event("cart:updated"));
     loadCart();
   };
 
@@ -62,6 +63,7 @@ export function MiniCartDrawer({ open, onClose }: MiniCartDrawerProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key }),
     });
+    window.dispatchEvent(new Event("cart:updated"));
     loadCart();
   };
 

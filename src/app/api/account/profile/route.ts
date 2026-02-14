@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   if (body.email) update.email = body.email;
   if (body.password) update.password = body.password;
 
-  const res = await fetch(`${wordpressUrl}/wp-json/wp/v2/users/me`, {
+  const res = await fetch(`${wordpressUrl}/wp-json/wp/v2/users/me?context=edit`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,

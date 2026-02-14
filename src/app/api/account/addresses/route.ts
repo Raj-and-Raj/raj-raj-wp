@@ -17,7 +17,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userRes = await fetch(`${wordpressUrl}/wp-json/wp/v2/users/me`, {
+  const userRes = await fetch(`${wordpressUrl}/wp-json/wp/v2/users/me?context=edit`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
@@ -57,7 +57,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userRes = await fetch(`${wordpressUrl}/wp-json/wp/v2/users/me`, {
+  const userRes = await fetch(`${wordpressUrl}/wp-json/wp/v2/users/me?context=edit`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });

@@ -122,6 +122,7 @@ export function AccountDashboard() {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    window.dispatchEvent(new Event("auth:updated"));
     router.push("/login");
   };
 
@@ -205,9 +206,19 @@ export function AccountDashboard() {
     }
   };
 
-  const setDefaultAddress = (id: string) => {
+  const setDefaultAddress = async (id: string) => {
     setDefaultAddressId(id);
     localStorage.setItem("defaultAddressId", id);
+    const entry = addressBook.find((item) => item.id === id);
+    if (!entry) return;
+    setBillingDraft(entry.address);
+    setShippingDraft(entry.address);
+    setAddresses({ billing: entry.address, shipping: entry.address });
+    await fetch("/api/account/addresses", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ billing: entry.address, shipping: entry.address }),
+    });
   };
 
   const loadOrderDetails = async (id: number) => {
@@ -235,7 +246,12 @@ export function AccountDashboard() {
   };
 
   if (loading) {
-    return <p className="text-sm text-[color:var(--muted)]">Loading...</p>;
+    return (
+      <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 text-sm text-[color:var(--muted)]">
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-black/10 border-t-[color:var(--brand)]" />
+        Loading your account...
+      </div>
+    );
   }
 
   if (!profile) {

@@ -32,6 +32,15 @@ export function CartClient() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [coupon, setCoupon] = useState("");
   const [couponError, setCouponError] = useState("");
+  const [couponSuccess, setCouponSuccess] = useState("");
+
+  useEffect(() => {
+    if (!couponSuccess) return;
+    const timer = window.setTimeout(() => {
+      setCouponSuccess("");
+    }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [couponSuccess]);
 
   const toCents = (value: unknown) => {
     if (typeof value === "number") return value;
@@ -42,7 +51,26 @@ export function CartClient() {
   const loadCart = async () => {
     const res = await fetch("/api/cart");
     if (res.ok) {
-      setCart(await res.json());
+      const data: Cart = await res.json();
+      setCart(data);
+      const hasItems = (data.items?.length ?? 0) > 0;
+      const couponCodes =
+        data.coupons?.map((entry) => entry.code).filter(Boolean) ?? [];
+      if (!hasItems && couponCodes.length) {
+        await Promise.all(
+          couponCodes.map((code) =>
+            fetch("/api/cart/remove-coupon", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ code }),
+            }),
+          ),
+        );
+        const refreshed = await fetch("/api/cart");
+        if (refreshed.ok) {
+          setCart(await refreshed.json());
+        }
+      }
     }
   };
 
@@ -56,6 +84,7 @@ export function CartClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key, quantity }),
     });
+    window.dispatchEvent(new Event("cart:updated"));
     loadCart();
   };
 
@@ -65,12 +94,14 @@ export function CartClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key }),
     });
+    window.dispatchEvent(new Event("cart:updated"));
     loadCart();
   };
 
   const applyCoupon = async () => {
     if (!coupon) return;
     setCouponError("");
+    setCouponSuccess("");
     const res = await fetch("/api/cart/apply-coupon", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -79,8 +110,11 @@ export function CartClient() {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setCouponError(data?.message || "Unable to apply coupon.");
+    } else {
+      setCouponSuccess("Coupon applied successfully.");
     }
     setCoupon("");
+    window.dispatchEvent(new Event("cart:updated"));
     loadCart();
   };
 
@@ -91,6 +125,8 @@ export function CartClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code }),
     });
+    setCouponSuccess("");
+    window.dispatchEvent(new Event("cart:updated"));
     loadCart();
   };
 
@@ -109,17 +145,35 @@ export function CartClient() {
       return sum + price * (item.quantity ?? 0);
     }, 0) ?? 0;
 
-  const subtotalCentsRaw = toCents(
-    cart.totals?.subtotal ?? cart.totals?.total ?? cart.totals?.total_price
-  );
-  const taxCents = toCents(cart.totals?.total_tax);
-  const totalCentsRaw = toCents(
-    cart.totals?.total_price ?? cart.totals?.total
-  );
+  const subtotalCentsRaw = toCents(cart.totals?.subtotal);
+  const totalCentsRaw = toCents(cart.totals?.total_price ?? cart.totals?.total);
 
-  const subtotalCents = subtotalCentsRaw > 0 ? subtotalCentsRaw : itemsSubtotalCents;
-  const totalCents =
-    totalCentsRaw > 0 ? totalCentsRaw : subtotalCents + taxCents;
+  const subtotalCents =
+    subtotalCentsRaw > 0 ? subtotalCentsRaw : itemsSubtotalCents;
+  const couponDiscountFromCoupons =
+    cart.coupons?.reduce(
+      (sum, entry) => sum + toCents(entry.discount),
+      0,
+    ) ?? 0;
+  const derivedDiscountFromTotals = Math.max(
+    0,
+    subtotalCents - totalCentsRaw,
+  );
+  const derivedDiscountFromItems = Math.max(
+    0,
+    itemsSubtotalCents - subtotalCents,
+  );
+  const couponDiscountCents =
+    couponDiscountFromCoupons > 0
+      ? couponDiscountFromCoupons
+      : derivedDiscountFromTotals > 0
+        ? derivedDiscountFromTotals
+        : derivedDiscountFromItems;
+  const derivedTotalCents = Math.max(
+    0,
+    subtotalCents - couponDiscountCents,
+  );
+  const totalCents = totalCentsRaw > 0 ? totalCentsRaw : derivedTotalCents;
 
   return (
     <div className="space-y-6">
@@ -217,28 +271,42 @@ export function CartClient() {
               <span>Subtotal</span>
               <span>{formatPrice(subtotalCents / 100)}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span>Tax</span>
-              <span>{formatPrice(taxCents / 100)}</span>
-            </div>
+            {cart.coupons?.length || couponDiscountCents > 0 ? (
+              <div className="flex items-center justify-between text-[color:var(--brand)]">
+                <span>Coupon</span>
+                <span>-{formatPrice(couponDiscountCents / 100)}</span>
+              </div>
+            ) : null}
             <div className="flex items-center justify-between font-semibold">
               <span>Total</span>
               <span>{formatPrice(totalCents / 100)}</span>
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-2">
-            <input
-              value={coupon}
-              onChange={(event) => setCoupon(event.target.value)}
-              placeholder="Coupon code"
-              className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-            />
-            <Button onClick={applyCoupon} size="sm">
-              Apply
-            </Button>
-          </div>
-          {couponError ? (
-            <p className="mt-2 text-xs text-red-500">{couponError}</p>
+          {couponDiscountCents > 0 ? (
+            <p className="mt-2 text-xs text-[color:var(--muted)]">
+              You saved {formatPrice(couponDiscountCents / 100)} with coupons.
+            </p>
+          ) : null}
+          {!cart.coupons?.length ? (
+            <>
+              <div className="mt-4 flex items-center gap-2">
+                <input
+                  value={coupon}
+                  onChange={(event) => setCoupon(event.target.value)}
+                  placeholder="Coupon code"
+                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                />
+                <Button onClick={applyCoupon} size="sm">
+                  Apply
+                </Button>
+              </div>
+              {couponError ? (
+                <p className="mt-2 text-xs text-red-500">{couponError}</p>
+              ) : null}
+              {couponSuccess ? (
+                <p className="mt-2 text-xs text-emerald-600">{couponSuccess}</p>
+              ) : null}
+            </>
           ) : null}
           <Button className="mt-6 w-full" onClick={() => (window.location.href = "/checkout")}>
             Checkout
