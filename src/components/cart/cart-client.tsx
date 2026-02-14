@@ -308,13 +308,22 @@ export function CartClient() {
               ) : null}
             </>
           ) : null}
-          <Button
-            className="mt-6 w-full"
-            onClick={() => (window.location.href = "/checkout")}
-            disabled={!cart.items?.length}
-          >
-            Checkout
-          </Button>
+          <div className="mt-6 space-y-2">
+            <Button
+              className={`w-full ${
+                !cart.items?.length ? "bg-gray-300 text-gray-600" : ""
+              }`}
+              onClick={() => (window.location.href = "/checkout")}
+              disabled={!cart.items?.length}
+            >
+              Checkout
+            </Button>
+            {!cart.items?.length ? (
+              <p className="text-xs text-[color:var(--muted)]">
+                Add items to your cart to proceed to checkout.
+              </p>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>
