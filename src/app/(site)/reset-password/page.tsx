@@ -81,58 +81,60 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="mx-auto max-w-lg px-20 space-y-6 rounded-[16px] border border-black/5 bg-white/95 p-8">
-      <div>
-        <h1 className="text-2xl font-semibold">Reset your password</h1>
-        <p className="mt-2 text-sm text-[color:var(--muted)]">
-          Enter a new password for your account.
-        </p>
+    <div className="min-h-screen w-full flex items-center justify-center px-4">
+      <div className="w-full max-w-lg space-y-6 rounded-[16px] border border-black/5 bg-white/95 p-8">
+        <div>
+          <h1 className="text-2xl font-semibold">Reset your password</h1>
+          <p className="mt-2 text-sm text-[color:var(--muted)]">
+            Enter a new password for your account.
+          </p>
+        </div>
+        {!ready ? (
+          <div className="flex min-h-[120px] items-center justify-center text-sm text-[color:var(--muted)]">
+            Loading...
+          </div>
+        ) : !login || !key ? (
+          <div className="rounded-[12px] border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+            This reset link is invalid or has expired.
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                placeholder="********"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                placeholder="********"
+                value={confirm}
+                onChange={(event) => setConfirm(event.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Updating..." : "Update password"}
+            </Button>
+            <div className="text-right">
+              <a
+                href="/login"
+                className="text-xs font-semibold text-[color:var(--brand)]"
+              >
+                Back to login
+              </a>
+            </div>
+          </form>
+        )}
       </div>
-      {!ready ? (
-        <div className="flex min-h-[120px] items-center justify-center text-sm text-[color:var(--muted)]">
-          Loading…
-        </div>
-      ) : !login || !key ? (
-        <div className="rounded-[12px] border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-          This reset link is invalid or has expired.
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="new-password">New password</Label>
-            <Input
-              id="new-password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirm password</Label>
-            <Input
-              id="confirm-password"
-              type="password"
-              placeholder="••••••••"
-              value={confirm}
-              onChange={(event) => setConfirm(event.target.value)}
-              required
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Updating..." : "Update password"}
-          </Button>
-          <div className="text-right">
-            <a
-              href="/login"
-              className="text-xs font-semibold text-[color:var(--brand)]"
-            >
-              Back to login
-            </a>
-          </div>
-        </form>
-      )}
     </div>
   );
 }
