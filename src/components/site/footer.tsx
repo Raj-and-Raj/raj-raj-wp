@@ -108,7 +108,7 @@ export function SiteFooter() {
               <ul className="space-y-4 text-sm text-gray-500">
                 <li>
                   <Link
-                    href="/terms"
+                    href="/terms-condition"
                     className="transition-colors hover:text-[#c4302b]"
                   >
                     Terms & Condition
@@ -116,7 +116,7 @@ export function SiteFooter() {
                 </li>
                 <li>
                   <Link
-                    href="/privacy"
+                    href="/privacy-policy"
                     className="transition-colors hover:text-[#c4302b]"
                   >
                     Privacy Policy
@@ -124,7 +124,7 @@ export function SiteFooter() {
                 </li>
                 <li>
                   <Link
-                    href="/returns"
+                    href="/return-policy"
                     className="transition-colors hover:text-[#c4302b]"
                   >
                     Refund and Returns Policy
