@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { User, Mail, Lock, MoveRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -90,39 +91,81 @@ export function RegisterForm() {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="register-first-name">First name</Label>
-          <Input id="register-first-name" name="firstName" placeholder="First" />
+          <div className="relative">
+            <User className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
+            <Input
+              id="register-first-name"
+              name="firstName"
+              placeholder="First"
+              className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
+            />
+          </div>
         </div>
         <div className="space-y-2">
           <Label htmlFor="register-last-name">Last name</Label>
-          <Input id="register-last-name" name="lastName" placeholder="Last" />
+          <div className="relative">
+            <User className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
+            <Input
+              id="register-last-name"
+              name="lastName"
+              placeholder="Last"
+              className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
+            />
+          </div>
         </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="register-email">Email</Label>
-        <Input
-          id="register-email"
-          name="email"
-          type="email"
-          placeholder="you@email.com"
-          required
-        />
+        <div className="relative">
+          <Mail className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
+          <Input
+            id="register-email"
+            name="email"
+            type="email"
+            placeholder="you@email.com"
+            required
+            className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
+          />
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="register-username">Username</Label>
-        <Input id="register-username" name="username" placeholder="yourname" />
+        <div className="relative">
+          <User className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
+          <Input
+            id="register-username"
+            name="username"
+            placeholder="yourname"
+            className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
+          />
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="register-password">Password</Label>
-        <Input
-          id="register-password"
-          name="password"
-          type="password"
-          placeholder="••••••••"
-          required
-        />
+        <div className="relative">
+          <Lock className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
+          <Input
+            id="register-password"
+            name="password"
+            type="password"
+            placeholder="••••••••"
+            required
+            className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
+          />
+        </div>
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Creating..." : "Create account"}
+      <Button
+        type="submit"
+        className="w-full bg-linear-to-r from-[color:var(--brand)] to-red-600 font-bold text-white shadow-lg shadow-red-500/20 transition-all hover:scale-[1.02] hover:brightness-110"
+        disabled={loading}
+      >
+        {loading ? (
+          "Creating..."
+        ) : (
+          <>
+            Create account <MoveRight className="ml-2 h-4 w-4" />
+          </>
+        )}
       </Button>
     </form>
   );

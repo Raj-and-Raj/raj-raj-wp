@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { User, Lock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,35 +75,53 @@ export function LoginForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="login-username">Username or email</Label>
-          <Input
-            id="login-username"
-            name="username"
-            placeholder="you@email.com"
-            required
-          />
+          <div className="relative">
+            <User className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
+            <Input
+              id="login-username"
+              name="username"
+              placeholder="you@email.com"
+              required
+              className="pl-9 transition-all focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-1"
+            />
+          </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="login-password">Password</Label>
-          <Input
-            id="login-password"
-            name="password"
-            type="password"
-            placeholder="••••••••"
-            required
-          />
+          <div className="flex items-center justify-between">
+            <Label htmlFor="login-password">Password</Label>
+            <a
+              href="/forgot-password"
+              className="text-xs font-semibold text-[color:var(--brand)] hover:underline"
+            >
+              Forgot password?
+            </a>
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
+            <Input
+              id="login-password"
+              name="password"
+              type="password"
+              placeholder="••••••••"
+              required
+              className="pl-9 transition-all focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-1"
+            />
+          </div>
         </div>
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Signing in..." : "Sign in"}
+        <Button
+          type="submit"
+          className="w-full bg-linear-to-r from-[color:var(--brand)] to-red-600 font-bold text-white shadow-lg shadow-red-500/20 transition-all hover:scale-[1.02] hover:brightness-110"
+          disabled={loading}
+        >
+          {loading ? (
+            "Signing in..."
+          ) : (
+            <>
+              Sign in <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
         </Button>
       </form>
-      <div className="text-right">
-        <a
-          href="/forgot-password"
-          className="text-xs font-semibold text-[color:var(--brand)]"
-        >
-          Forgot password?
-        </a>
-      </div>
     </div>
   );
 }

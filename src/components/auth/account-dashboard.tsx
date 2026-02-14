@@ -2,7 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  LayoutDashboard,
+  Package,
+  MapPin,
+  Shield,
+  LogOut,
+  User,
+  Plus,
+  Trash2,
+  Check,
+  Edit2,
+  Search,
+  Truck,
+  ArrowRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type AddressBookEntry = {
@@ -266,8 +282,8 @@ export function AccountDashboard() {
   }
 
   return (
-    <div className="space-y-8 pt-32">
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-[18px] border border-black/5 bg-white/95 p-6">
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-black/5 bg-white/95 p-6">
         <div>
           <h1 className="text-2xl font-semibold">My account</h1>
           <p className="mt-2 text-sm text-[color:var(--muted)]">
@@ -279,594 +295,640 @@ export function AccountDashboard() {
         </Button>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="flex flex-wrap gap-2 rounded-[14px] border border-black/5 bg-white/80 p-2">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="addresses">Addresses</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
+      <Tabs defaultValue="orders" className="w-full">
+        <TabsList className="mb-8 grid h-auto w-full grid-cols-1 gap-2 bg-black/5 p-1 md:grid-cols-4">
+          <TabsTrigger
+            value="orders"
+            className="flex items-center gap-2 rounded-md py-2.5 transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm"
+          >
+            <Package className="h-4 w-4" />
+            <span>Orders</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="track-order"
+            className="flex items-center gap-2 rounded-md py-2.5 transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm"
+          >
+            <Truck className="h-4 w-4" />
+            <span>Track Order</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="addresses"
+            className="flex items-center gap-2 rounded-md py-2.5 transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm"
+          >
+            <MapPin className="h-4 w-4" />
+            <span>Addresses</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="security"
+            className="flex items-center gap-2 rounded-md py-2.5 transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm"
+          >
+            <Shield className="h-4 w-4" />
+            <span>Security</span>
+          </TabsTrigger>
         </TabsList>
 
-      <TabsContent value="overview" className="mt-6">
-      <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="rounded-[16px] border border-black/5 bg-white/95 p-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted)]">
-            Profile
-          </p>
-          <div className="mt-4 flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--brand)]/10 text-lg font-semibold text-[color:var(--brand)]">
-              {profile.name.slice(0, 1).toUpperCase()}
+        <TabsContent value="track-order" className="mt-0">
+          <div className="rounded-xl border border-black/5 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--muted)]">
+                Track Order
+              </p>
+              <Truck className="h-4 w-4 text-[color:var(--muted)]" />
             </div>
-            <div>
-              <p className="text-base font-semibold">{profile.name}</p>
-              <p className="text-sm text-[color:var(--muted)]">
-                {profile.email}
-              </p>
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/50" />
+                <Input
+                  className="pl-9"
+                  value={trackId}
+                  onChange={(e) => setTrackId(e.target.value)}
+                  placeholder="Order ID (e.g. 12345)"
+                />
+              </div>
+              <Button variant="outline" onClick={trackOrder}>
+                Track
+              </Button>
             </div>
-          </div>
-          <div className="mt-6 grid gap-3">
-            <input
-              className="rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-              placeholder="Full name"
-              value={profileDraft.name}
-              onChange={(event) =>
-                setProfileDraft({ ...profileDraft, name: event.target.value })
-              }
-            />
-            <input
-              className="rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-              placeholder="Email"
-              value={profileDraft.email}
-              onChange={(event) =>
-                setProfileDraft({ ...profileDraft, email: event.target.value })
-              }
-            />
-            {profileMessage ? (
-              <p className="text-xs text-[color:var(--muted)]">
-                {profileMessage}
-              </p>
-            ) : null}
-            <Button onClick={saveProfile}>Save profile</Button>
-          </div>
-        </div>
-
-        <div className="rounded-[16px] border border-black/5 bg-white/95 p-6">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted)]">
-              Track order
-            </p>
-            <Button size="sm" variant="outline" onClick={trackOrder}>
-              Track
-            </Button>
-          </div>
-          <div className="mt-3 flex items-center gap-2">
-            <input
-              value={trackId}
-              onChange={(event) => setTrackId(event.target.value)}
-              placeholder="Enter order id"
-              className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-            />
-          </div>
-          {tracked ? (
-            <div className="mt-4 rounded-[12px] border border-black/10 bg-white p-4 text-sm">
-              <p className="font-semibold">Order #{tracked.id}</p>
-              <p className="text-[color:var(--muted)]">
-                Status: {tracked.status}
-              </p>
-              <p className="text-[color:var(--muted)]">
-                Total: ₹{tracked.total}
-              </p>
-            </div>
-          ) : null}
-        </div>
-      </div>
-      </TabsContent>
-
-      <TabsContent value="security" className="mt-6">
-      <div className="rounded-[16px] border border-black/5 bg-white/95 p-6">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted)]">
-            Change password
-          </p>
-        </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <input
-            className="rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-            type="password"
-            placeholder="New password"
-            value={passwordDraft.password}
-            onChange={(event) =>
-              setPasswordDraft({ ...passwordDraft, password: event.target.value })
-            }
-          />
-          <input
-            className="rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-            type="password"
-            placeholder="Confirm password"
-            value={passwordDraft.confirm}
-            onChange={(event) =>
-              setPasswordDraft({ ...passwordDraft, confirm: event.target.value })
-            }
-          />
-        </div>
-        {passwordMessage ? (
-          <p className="mt-2 text-xs text-[color:var(--muted)]">
-            {passwordMessage}
-          </p>
-        ) : null}
-        <Button className="mt-4" onClick={savePassword}>
-          Update password
-        </Button>
-      </div>
-      </TabsContent>
-
-      <TabsContent value="orders" className="mt-6">
-      <div className="rounded-[16px] border border-black/5 bg-white/95 p-6">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted)]">
-            Orders
-          </p>
-        </div>
-        {orders.length === 0 ? (
-          <p className="mt-3 text-sm text-[color:var(--muted)]">
-            No orders yet.
-          </p>
-        ) : (
-          <div className="mt-4 space-y-3">
-            {orders.map((order) => (
-              <div
-                key={order.id}
-                className="flex flex-wrap items-center justify-between gap-4 rounded-[12px] border border-black/10 bg-white p-4 text-sm"
-              >
-                <div>
-                  <p className="font-semibold">Order #{order.id}</p>
-                  <p className="text-[color:var(--muted)]">
-                    {new Date(order.date_created).toLocaleDateString()}
-                  </p>
+            {tracked && (
+              <div className="mt-6 rounded-lg border border-black/5 bg-slate-50 p-4">
+                <div className="flex items-center justify-between border-b border-black/5 pb-3">
+                  <p className="font-semibold">Order #{tracked.id}</p>
+                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                    {tracked.status}
+                  </span>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold">₹{order.total}</p>
-                  <p className="text-[color:var(--muted)]">{order.status}</p>
+                <div className="pt-3">
+                  <p className="text-sm text-[color:var(--muted)]">Total Amount</p>
+                  <p className="text-lg font-bold">₹{tracked.total}</p>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => loadOrderDetails(order.id)}>
-                  View details
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-0 space-y-6">
+          <div className="rounded-xl border border-black/5 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--muted)]">
+                Profile
+              </p>
+              <User className="h-4 w-4 text-[color:var(--muted)]" />
+            </div>
+            <div className="mt-6 flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-[color:var(--brand)] to-red-600 text-2xl font-bold text-white shadow-lg shadow-red-500/20">
+                {profile.name.slice(0, 1).toUpperCase()}
+              </div>
+              <div>
+                <p className="text-lg font-bold">{profile.name}</p>
+                <p className="text-sm text-[color:var(--muted)]">{profile.email}</p>
+              </div>
+            </div>
+            <div className="mt-8 grid gap-4">
+              <div>
+                <label className="mb-2 block text-xs font-semibold text-[color:var(--muted)]">
+                  Full Name
+                </label>
+                <Input
+                  value={profileDraft.name}
+                  onChange={(e) =>
+                    setProfileDraft({ ...profileDraft, name: e.target.value })
+                  }
+                  placeholder="John Doe"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-xs font-semibold text-[color:var(--muted)]">
+                  Email Address
+                </label>
+                <Input
+                  value={profileDraft.email}
+                  onChange={(e) =>
+                    setProfileDraft({ ...profileDraft, email: e.target.value })
+                  }
+                  placeholder="john@example.com"
+                />
+              </div>
+              {profileMessage && (
+                <div className="rounded-lg bg-green-50 p-3 text-sm text-green-600">
+                  <Check className="mr-2 inline h-4 w-4" />
+                  {profileMessage}
+                </div>
+              )}
+              <Button onClick={saveProfile} className="w-full sm:w-auto">
+                Save Changes
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-black/5 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--muted)]">
+                Change Password
+              </p>
+              <Shield className="h-4 w-4 text-[color:var(--muted)]" />
+            </div>
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-xs font-semibold text-[color:var(--muted)]">
+                  New Password
+                </label>
+                <Input
+                  type="password"
+                  placeholder="New password"
+                  value={passwordDraft.password}
+                  onChange={(e) =>
+                    setPasswordDraft({ ...passwordDraft, password: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-xs font-semibold text-[color:var(--muted)]">
+                  Confirm Password
+                </label>
+                <Input
+                  type="password"
+                  placeholder="Confirm password"
+                  value={passwordDraft.confirm}
+                  onChange={(e) =>
+                    setPasswordDraft({ ...passwordDraft, confirm: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            {passwordMessage && (
+              <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-[color:var(--brand)]">
+                {passwordMessage}
+              </div>
+            )}
+            <div className="mt-6 flex justify-end">
+              <Button onClick={savePassword}>Update Password</Button>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="orders" className="mt-0">
+          <div className="rounded-xl border border-black/5 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--muted)]">
+                Order History
+              </p>
+              <Package className="h-4 w-4 text-[color:var(--muted)]" />
+            </div>
+            {orders.length === 0 ? (
+              <div className="flex min-h-[200px] flex-col items-center justify-center gap-4 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--muted)]/10">
+                  <Package className="h-6 w-6 text-[color:var(--muted)]" />
+                </div>
+                <p className="text-sm text-[color:var(--muted)]">
+                  No orders found.
+                </p>
+                <Button variant="outline" className="w-full sm:w-auto" onClick={() => router.push("/products")}>
+                  Start Shopping
                 </Button>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-      </TabsContent>
-
-      <TabsContent value="addresses" className="mt-6">
-      <div className="rounded-[16px] border border-black/5 bg-white/95 p-6">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted)]">
-            Address book
-          </p>
-        </div>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="space-y-3">
-            <input
-              className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-              placeholder="Label (Home, Office)"
-              value={addressLabel}
-              onChange={(event) => setAddressLabel(event.target.value)}
-            />
-            <input
-              className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-              placeholder="Address line 1"
-              value={addressForm.address_1 ?? ""}
-              onChange={(event) =>
-                setAddressForm({ ...addressForm, address_1: event.target.value })
-              }
-            />
-            <input
-              className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-              placeholder="Address line 2"
-              value={addressForm.address_2 ?? ""}
-              onChange={(event) =>
-                setAddressForm({ ...addressForm, address_2: event.target.value })
-              }
-            />
-            <input
-              className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-              placeholder="City"
-              value={addressForm.city ?? ""}
-              onChange={(event) =>
-                setAddressForm({ ...addressForm, city: event.target.value })
-              }
-            />
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                placeholder="State"
-                value={addressForm.state ?? ""}
-                onChange={(event) =>
-                  setAddressForm({ ...addressForm, state: event.target.value })
-                }
-              />
-              <input
-                className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                placeholder="Postcode"
-                value={addressForm.postcode ?? ""}
-                onChange={(event) =>
-                  setAddressForm({ ...addressForm, postcode: event.target.value })
-                }
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                placeholder="Country"
-                value={addressForm.country ?? ""}
-                onChange={(event) =>
-                  setAddressForm({ ...addressForm, country: event.target.value })
-                }
-              />
-              <input
-                className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                placeholder="Phone"
-                value={addressForm.phone ?? ""}
-                onChange={(event) =>
-                  setAddressForm({ ...addressForm, phone: event.target.value })
-                }
-              />
-            </div>
-            <Button onClick={addAddress}>Save address</Button>
-          </div>
-          <div className="space-y-3">
-            {addressBook.length === 0 ? (
-              <p className="text-sm text-[color:var(--muted)]">
-                No saved addresses yet.
-              </p>
             ) : (
-              addressBook.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="rounded-[12px] border border-black/10 bg-white p-4 text-sm"
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold">{entry.label}</p>
-                    <button
-                      className="text-xs text-red-500"
-                      onClick={() => removeAddress(entry.id)}
-                    >
-                      Remove
-                    </button>
+              <div className="mt-6 space-y-4">
+                {orders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="flex flex-col gap-4 rounded-[16px] border border-black/5 bg-slate-50 p-5 transition-colors hover:border-black/10 hover:bg-slate-100 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[color:var(--brand)] shadow-sm">
+                        <Package className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="font-bold">Order #{order.id}</p>
+                        <p className="text-sm text-[color:var(--muted)]">
+                          {new Date(order.date_created).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-6 sm:justify-end">
+                      <div className="text-right">
+                        <p className="font-bold">₹{order.total}</p>
+                        <span
+                          className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                            order.status === "completed"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {order.status}
+                        </span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => loadOrderDetails(order.id)}
+                      >
+                        Details <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <p className="mt-2 text-[color:var(--muted)]">
-                    {entry.address.address_1}
-                  </p>
-                  <p className="text-[color:var(--muted)]">
-                    {entry.address.address_2}
-                  </p>
-                  <p className="text-[color:var(--muted)]">
-                    {[entry.address.city, entry.address.state]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </p>
-                  <div className="mt-3 flex items-center justify-between">
-                    <button
-                      className={`text-xs font-semibold ${
-                        defaultAddressId === entry.id
-                          ? "text-[color:var(--brand)]"
-                          : "text-[color:var(--muted)]"
-                      }`}
-                      onClick={() => setDefaultAddress(entry.id)}
-                    >
-                      {defaultAddressId === entry.id
-                        ? "Default address"
-                        : "Set as default"}
-                    </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="addresses" className="mt-0 space-y-6">
+          <div className="rounded-[24px] border border-black/5 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--muted)]">
+                Address Book
+              </p>
+              <MapPin className="h-4 w-4 text-[color:var(--muted)]" />
+            </div>
+            <div className="mt-6">
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Input
+                      placeholder="Label (e.g. Home, Office)"
+                      value={addressLabel}
+                      onChange={(e) => setAddressLabel(e.target.value)}
+                    />
+                    <Button onClick={addAddress} variant="outline" className="w-full sm:w-auto shrink-0">
+                      <Plus className="mr-2 h-4 w-4" /> Add
+                    </Button>
                   </div>
+
+              {addressBook.length === 0 ? (
+                <p className="mt-6 text-center text-sm text-[color:var(--muted)]">
+                  No saved addresses.
+                </p>
+              ) : (
+                <div className="mt-6 space-y-4">
+                  {addressBook.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="rounded-[16px] border border-black/5 bg-slate-50 p-5"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-bold">{entry.label}</p>
+                          <p className="mt-1 text-sm text-[color:var(--muted)]">
+                            {entry.address.address_1}
+                            {entry.address.address_2 &&
+                              `, ${entry.address.address_2}`}
+                          </p>
+                          <p className="text-sm text-[color:var(--muted)]">
+                            {[
+                              entry.address.city,
+                              entry.address.state,
+                              entry.address.postcode,
+                            ]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </p>
+                        </div>
+                        <button
+                          className="rounded-full p-2 text-red-500 hover:bg-red-50"
+                          onClick={() => removeAddress(entry.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-black/5">
+                        <button
+                          className={`text-xs font-semibold hover:underline ${
+                            defaultAddressId === entry.id
+                              ? "text-[color:var(--brand)]"
+                              : "text-[color:var(--muted)]"
+                          }`}
+                          onClick={() => setDefaultAddress(entry.id)}
+                        >
+                          {defaultAddressId === entry.id
+                            ? "Default Address"
+                            : "Set as Default"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div className="rounded-[16px] border border-black/5 bg-white/95 p-6">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted)]">
-            Addresses
-          </p>
-          <Button size="sm" variant="outline" onClick={() => setEditing(!editing)}>
-            {editing ? "Cancel" : "Edit"}
-          </Button>
-        </div>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="rounded-[12px] border border-black/10 bg-white p-4 text-sm">
-            <p className="font-semibold">Billing</p>
-            {editing ? (
-              <div className="mt-3 space-y-2">
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="First name"
-                  value={billingDraft.first_name ?? ""}
-                  onChange={(event) =>
-                    setBillingDraft({
-                      ...billingDraft,
-                      first_name: event.target.value,
-                    })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="Last name"
-                  value={billingDraft.last_name ?? ""}
-                  onChange={(event) =>
-                    setBillingDraft({
-                      ...billingDraft,
-                      last_name: event.target.value,
-                    })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="Address line 1"
-                  value={billingDraft.address_1 ?? ""}
-                  onChange={(event) =>
-                    setBillingDraft({
-                      ...billingDraft,
-                      address_1: event.target.value,
-                    })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="Address line 2"
-                  value={billingDraft.address_2 ?? ""}
-                  onChange={(event) =>
-                    setBillingDraft({
-                      ...billingDraft,
-                      address_2: event.target.value,
-                    })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="City"
-                  value={billingDraft.city ?? ""}
-                  onChange={(event) =>
-                    setBillingDraft({ ...billingDraft, city: event.target.value })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="State"
-                  value={billingDraft.state ?? ""}
-                  onChange={(event) =>
-                    setBillingDraft({ ...billingDraft, state: event.target.value })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="Postcode"
-                  value={billingDraft.postcode ?? ""}
-                  onChange={(event) =>
-                    setBillingDraft({
-                      ...billingDraft,
-                      postcode: event.target.value,
-                    })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="Country"
-                  value={billingDraft.country ?? ""}
-                  onChange={(event) =>
-                    setBillingDraft({ ...billingDraft, country: event.target.value })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="Phone"
-                  value={billingDraft.phone ?? ""}
-                  onChange={(event) =>
-                    setBillingDraft({ ...billingDraft, phone: event.target.value })
-                  }
-                />
-              </div>
-            ) : addresses.billing ? (
-              <div className="mt-2 text-[color:var(--muted)]">
-                <p>
-                  {addresses.billing.first_name} {addresses.billing.last_name}
-                </p>
-                <p>{addresses.billing.address_1}</p>
-                <p>{addresses.billing.address_2}</p>
-                <p>
-                  {addresses.billing.city} {addresses.billing.state}
-                </p>
-                <p>{addresses.billing.postcode}</p>
-                <p>{addresses.billing.country}</p>
-                <p>{addresses.billing.phone}</p>
-              </div>
-            ) : (
-              <p className="mt-2 text-[color:var(--muted)]">
-                No billing address saved.
+          <div className="rounded-xl border border-black/5 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--muted)]">
+                Billing & Shipping
               </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setEditing(!editing)}
+              >
+                {editing ? "Cancel Edit" : "Edit Details"}
+              </Button>
+            </div>
+            <div className="mt-6 grid gap-6 md:grid-cols-2">
+              <div className="rounded-[16px] border border-black/5 bg-slate-50 p-5">
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="rounded-full bg-white p-2 shadow-sm">
+                    <Shield className="h-4 w-4 text-[color:var(--muted)]" />
+                  </div>
+                  <p className="font-semibold">Billing Address</p>
+                </div>
+                {editing ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        placeholder="First Name"
+                        value={billingDraft.first_name ?? ""}
+                        onChange={(e) =>
+                          setBillingDraft({
+                            ...billingDraft,
+                            first_name: e.target.value,
+                          })
+                        }
+                      />
+                      <Input
+                        placeholder="Last Name"
+                        value={billingDraft.last_name ?? ""}
+                        onChange={(e) =>
+                          setBillingDraft({
+                            ...billingDraft,
+                            last_name: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <Input
+                      placeholder="Address Line 1"
+                      value={billingDraft.address_1 ?? ""}
+                      onChange={(e) =>
+                        setBillingDraft({
+                          ...billingDraft,
+                          address_1: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="City"
+                      value={billingDraft.city ?? ""}
+                      onChange={(e) =>
+                        setBillingDraft({ ...billingDraft, city: e.target.value })
+                      }
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        placeholder="State"
+                        value={billingDraft.state ?? ""}
+                        onChange={(e) =>
+                          setBillingDraft({ ...billingDraft, state: e.target.value })
+                        }
+                      />
+                      <Input
+                        placeholder="Postcode"
+                        value={billingDraft.postcode ?? ""}
+                        onChange={(e) =>
+                          setBillingDraft({
+                            ...billingDraft,
+                            postcode: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <Input
+                      placeholder="Country"
+                      value={billingDraft.country ?? ""}
+                      onChange={(e) =>
+                        setBillingDraft({ ...billingDraft, country: e.target.value })
+                      }
+                    />
+                    <Input
+                      placeholder="Phone"
+                      value={billingDraft.phone ?? ""}
+                      onChange={(e) =>
+                        setBillingDraft({ ...billingDraft, phone: e.target.value })
+                      }
+                    />
+                  </div>
+                ) : addresses.billing ? (
+                  <div className="text-sm text-[color:var(--muted)] space-y-1">
+                    <p className="font-medium text-[color:var(--ink)]">
+                      {addresses.billing.first_name} {addresses.billing.last_name}
+                    </p>
+                    <p>{addresses.billing.address_1}</p>
+                    {addresses.billing.address_2 && (
+                      <p>{addresses.billing.address_2}</p>
+                    )}
+                    <p>
+                      {[
+                        addresses.billing.city,
+                        addresses.billing.state,
+                        addresses.billing.postcode,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </p>
+                    <p>{addresses.billing.country}</p>
+                    <p>{addresses.billing.phone}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-[color:var(--muted)]">
+                    No billing address set.
+                  </p>
+                )}
+              </div>
+
+              <div className="rounded-[16px] border border-black/5 bg-slate-50 p-5">
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="rounded-full bg-white p-2 shadow-sm">
+                    <Truck className="h-4 w-4 text-[color:var(--muted)]" />
+                  </div>
+                  <p className="font-semibold">Shipping Address</p>
+                </div>
+                {editing ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        placeholder="First Name"
+                        value={shippingDraft.first_name ?? ""}
+                        onChange={(e) =>
+                          setShippingDraft({
+                            ...shippingDraft,
+                            first_name: e.target.value,
+                          })
+                        }
+                      />
+                      <Input
+                        placeholder="Last Name"
+                        value={shippingDraft.last_name ?? ""}
+                        onChange={(e) =>
+                          setShippingDraft({
+                            ...shippingDraft,
+                            last_name: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <Input
+                      placeholder="Address Line 1"
+                      value={shippingDraft.address_1 ?? ""}
+                      onChange={(e) =>
+                        setShippingDraft({
+                          ...shippingDraft,
+                          address_1: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="City"
+                      value={shippingDraft.city ?? ""}
+                      onChange={(e) =>
+                        setShippingDraft({ ...shippingDraft, city: e.target.value })
+                      }
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        placeholder="State"
+                        value={shippingDraft.state ?? ""}
+                        onChange={(e) =>
+                          setShippingDraft({
+                            ...shippingDraft,
+                            state: e.target.value,
+                          })
+                        }
+                      />
+                      <Input
+                        placeholder="Postcode"
+                        value={shippingDraft.postcode ?? ""}
+                        onChange={(e) =>
+                          setShippingDraft({
+                            ...shippingDraft,
+                            postcode: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <Input
+                      placeholder="Country"
+                      value={shippingDraft.country ?? ""}
+                      onChange={(e) =>
+                        setShippingDraft({
+                          ...shippingDraft,
+                          country: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="Phone"
+                      value={shippingDraft.phone ?? ""}
+                      onChange={(e) =>
+                        setShippingDraft({ ...shippingDraft, phone: e.target.value })
+                      }
+                    />
+                  </div>
+                ) : addresses.shipping ? (
+                  <div className="text-sm text-[color:var(--muted)] space-y-1">
+                    <p className="font-medium text-[color:var(--ink)]">
+                      {addresses.shipping.first_name} {addresses.shipping.last_name}
+                    </p>
+                    <p>{addresses.shipping.address_1}</p>
+                    {addresses.shipping.address_2 && (
+                      <p>{addresses.shipping.address_2}</p>
+                    )}
+                    <p>
+                      {[
+                        addresses.shipping.city,
+                        addresses.shipping.state,
+                        addresses.shipping.postcode,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </p>
+                    <p>{addresses.shipping.country}</p>
+                    <p>{addresses.shipping.phone}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-[color:var(--muted)]">
+                    No shipping address set.
+                  </p>
+                )}
+              </div>
+            </div>
+            {editing && (
+              <div className="mt-6 flex justify-end">
+                <Button onClick={saveAddresses}>Save Changes</Button>
+              </div>
             )}
           </div>
-          <div className="rounded-[12px] border border-black/10 bg-white p-4 text-sm">
-            <p className="font-semibold">Shipping</p>
-            {editing ? (
-              <div className="mt-3 space-y-2">
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="First name"
-                  value={shippingDraft.first_name ?? ""}
-                  onChange={(event) =>
-                    setShippingDraft({
-                      ...shippingDraft,
-                      first_name: event.target.value,
-                    })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="Last name"
-                  value={shippingDraft.last_name ?? ""}
-                  onChange={(event) =>
-                    setShippingDraft({
-                      ...shippingDraft,
-                      last_name: event.target.value,
-                    })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="Address line 1"
-                  value={shippingDraft.address_1 ?? ""}
-                  onChange={(event) =>
-                    setShippingDraft({
-                      ...shippingDraft,
-                      address_1: event.target.value,
-                    })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="Address line 2"
-                  value={shippingDraft.address_2 ?? ""}
-                  onChange={(event) =>
-                    setShippingDraft({
-                      ...shippingDraft,
-                      address_2: event.target.value,
-                    })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="City"
-                  value={shippingDraft.city ?? ""}
-                  onChange={(event) =>
-                    setShippingDraft({ ...shippingDraft, city: event.target.value })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="State"
-                  value={shippingDraft.state ?? ""}
-                  onChange={(event) =>
-                    setShippingDraft({ ...shippingDraft, state: event.target.value })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="Postcode"
-                  value={shippingDraft.postcode ?? ""}
-                  onChange={(event) =>
-                    setShippingDraft({
-                      ...shippingDraft,
-                      postcode: event.target.value,
-                    })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="Country"
-                  value={shippingDraft.country ?? ""}
-                  onChange={(event) =>
-                    setShippingDraft({ ...shippingDraft, country: event.target.value })
-                  }
-                />
-                <input
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  placeholder="Phone"
-                  value={shippingDraft.phone ?? ""}
-                  onChange={(event) =>
-                    setShippingDraft({ ...shippingDraft, phone: event.target.value })
-                  }
-                />
-              </div>
-            ) : addresses.shipping ? (
-              <div className="mt-2 text-[color:var(--muted)]">
-                <p>
-                  {addresses.shipping.first_name} {addresses.shipping.last_name}
-                </p>
-                <p>{addresses.shipping.address_1}</p>
-                <p>{addresses.shipping.address_2}</p>
-                <p>
-                  {addresses.shipping.city} {addresses.shipping.state}
-                </p>
-                <p>{addresses.shipping.postcode}</p>
-                <p>{addresses.shipping.country}</p>
-                <p>{addresses.shipping.phone}</p>
-              </div>
-            ) : (
-              <p className="mt-2 text-[color:var(--muted)]">
-                No shipping address saved.
-              </p>
-            )}
-          </div>
-        </div>
-        {editing ? (
-          <div className="mt-4">
-            <Button onClick={saveAddresses}>Save addresses</Button>
-          </div>
-        ) : null}
-      </div>
-      </TabsContent>
+        </TabsContent>
       </Tabs>
 
       {orderDetails ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-2xl rounded-[16px] bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-[24px] bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-black/5 pb-4">
               <h3 className="text-lg font-semibold">
                 Order #{orderDetails.id}
               </h3>
               <button
                 onClick={() => setOrderDetails(null)}
-                className="text-sm text-[color:var(--muted)]"
+                className="text-sm text-[color:var(--muted)] hover:text-black"
               >
                 Close
               </button>
             </div>
-            <div className="mt-4 space-y-3 text-sm">
-              <p>Status: {orderDetails.status}</p>
-              <p>Total: ₹{orderDetails.total}</p>
-              <div className="mt-4 space-y-2">
-                {orderDetails.line_items?.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between border-b border-black/5 pb-2"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 overflow-hidden rounded-[10px] bg-[#f1ece4]">
-                        {item.image?.src ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={item.image.src}
-                            alt={item.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : null}
+            <div className="mt-4 space-y-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[color:var(--muted)]">Status:</span>
+                <span className="font-medium capitalize">{orderDetails.status}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[color:var(--muted)]">Total Amount:</span>
+                <span className="text-lg font-bold">₹{orderDetails.total}</span>
+              </div>
+              <div className="mt-4 rounded-[16px] border border-black/5 bg-slate-50 p-4">
+                <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[color:var(--muted)]">
+                  Items
+                </p>
+                <div className="space-y-3">
+                  {orderDetails.line_items?.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 overflow-hidden rounded-[10px] bg-white border border-black/5">
+                          {item.image?.src ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={item.image.src}
+                              alt={item.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-slate-100">
+                              <Package className="h-4 w-4 text-[color:var(--muted)]" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold">{item.name}</p>
+                          <p className="text-xs text-[color:var(--muted)]">
+                            Qty: {item.quantity}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold">{item.name}</p>
-                        <p className="text-xs text-[color:var(--muted)]">
-                          x {item.quantity}
-                        </p>
-                      </div>
+                      <span className="text-sm font-medium">₹{item.total}</span>
                     </div>
-                    <span>₹{item.total}</span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
-            <div className="mt-5 flex gap-3">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <Button onClick={() => window.print()} className="w-full">
-                Print invoice
+                Print Invoice
               </Button>
               <Button
                 variant="outline"
                 className="w-full"
                 onClick={() => setOrderDetails(null)}
               >
-                Close
+                Close Details
               </Button>
             </div>
           </div>

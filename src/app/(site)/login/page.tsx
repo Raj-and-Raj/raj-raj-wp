@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LogIn, UserPlus, KeyRound } from "lucide-react";
 import { LoginForm } from "@/components/auth/login-form";
 import { RegisterForm } from "@/components/auth/register-form";
 import { ResetPasswordForm } from "@/components/auth/reset-form";
@@ -28,38 +29,61 @@ export default function LoginPage() {
 
   if (checking) {
     return (
-      <div className="mx-auto max-w-lg rounded-[16px] border border-black/5 bg-white/95 p-8">
-        <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 text-sm text-[color:var(--muted)]">
-          <span className="h-6 w-6 animate-spin rounded-full border-2 border-black/10 border-t-[color:var(--brand)]" />
-          Checking your session...
+      <div className="mx-auto mt-32 flex min-h-[400px] max-w-lg items-center justify-center rounded-[24px] border border-black/5 bg-white/80 p-8 shadow-xl backdrop-blur-md">
+        <div className="flex flex-col items-center gap-4 text-sm text-[color:var(--muted)]">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-black/10 border-t-[color:var(--brand)]" />
+          <p>Checking session...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-lg space-y-6 rounded-[16px] border border-black/5 bg-white/95 p-8">
-      <div>
-        <h1 className="text-2xl font-semibold">Account access</h1>
+    <div className="mx-auto mt-32 max-w-lg space-y-8 rounded-xl border border-black/5 bg-white/90 p-6 shadow-lg backdrop-blur-xl sm:p-10">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+          Welcome back
+        </h1>
         <p className="mt-2 text-sm text-[color:var(--muted)]">
-          Sign in, create an account, or reset your password.
+          Sign in to access your account or create a new one.
         </p>
       </div>
+
       <Tabs defaultValue="login" className="w-full">
-        <TabsList>
-          <TabsTrigger value="login">Login</TabsTrigger>
-          <TabsTrigger value="register">Register</TabsTrigger>
-          <TabsTrigger value="reset">Forgot</TabsTrigger>
+        <TabsList className="mb-8 grid w-full grid-cols-3 gap-1 bg-black/5 p-1">
+          <TabsTrigger
+            value="login"
+            className="flex items-center justify-center gap-2 py-2.5 data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm"
+          >
+            <LogIn className="h-4 w-4" />
+            <span className="text-xs font-semibold sm:text-sm">Login</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="register"
+            className="flex items-center justify-center gap-2 py-2.5 data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm"
+          >
+            <UserPlus className="h-4 w-4" />
+            <span className="text-xs font-semibold sm:text-sm">Join</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="reset"
+            className="flex items-center justify-center gap-2 py-2.5 data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm"
+          >
+            <KeyRound className="h-4 w-4" />
+            <span className="text-xs font-semibold sm:text-sm">Reset</span>
+          </TabsTrigger>
         </TabsList>
-        <TabsContent value="login">
-          <LoginForm />
-        </TabsContent>
-        <TabsContent value="register">
-          <RegisterForm />
-        </TabsContent>
-        <TabsContent value="reset">
-          <ResetPasswordForm />
-        </TabsContent>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <TabsContent value="login" className="mt-0">
+            <LoginForm />
+          </TabsContent>
+          <TabsContent value="register" className="mt-0">
+            <RegisterForm />
+          </TabsContent>
+          <TabsContent value="reset" className="mt-0">
+            <ResetPasswordForm />
+          </TabsContent>
+        </div>
       </Tabs>
     </div>
   );
