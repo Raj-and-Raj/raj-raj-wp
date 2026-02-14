@@ -27,9 +27,27 @@ export async function POST(request: Request) {
   });
 
   if (!res.ok) {
+    // Fallback to WP core lostpassword form endpoint
+    if (wordpressUrl) {
+      const form = new URLSearchParams();
+      form.set("user_login", email);
+      form.set("redirect_to", "");
+      const fallback = await fetch(
+        `${wordpressUrl}/wp-login.php?action=lostpassword`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: form.toString(),
+        }
+      );
+      if (fallback.ok) {
+        return NextResponse.json({ ok: true });
+      }
+    }
+    const text = await res.text().catch(() => "");
     return NextResponse.json(
-      { error: "Unable to send reset link" },
-      { status: 500 }
+      { error: "Unable to send reset link", detail: text || undefined },
+      { status: res.status || 500 }
     );
   }
 

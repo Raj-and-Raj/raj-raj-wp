@@ -88,6 +88,11 @@ export function ResetPasswordForm() {
           </>
         )}
       </Button>
+      <div className="text-right">
+        <a href="/login" className="text-xs font-semibold text-[color:var(--brand)]">
+          Back to login
+        </a>
+      </div>
     </form>
   );
 }
