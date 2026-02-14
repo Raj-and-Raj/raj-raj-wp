@@ -308,7 +308,11 @@ export function CartClient() {
               ) : null}
             </>
           ) : null}
-          <Button className="mt-6 w-full" onClick={() => (window.location.href = "/checkout")}>
+          <Button
+            className="mt-6 w-full"
+            onClick={() => (window.location.href = "/checkout")}
+            disabled={!cart.items?.length}
+          >
             Checkout
           </Button>
         </div>
