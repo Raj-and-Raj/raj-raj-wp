@@ -60,7 +60,7 @@ export function InstagramFeed() {
                </div>
                <span className="text-xs font-bold tracking-wider uppercase text-slate-500">@rajandraj_official</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight">
+            <h2 className="text-3xl md:text-3xl font-bold text-slate-900 leading-tight">
               Follow us on Instagram
             </h2>
             <p className="mt-3 text-base text-slate-600 max-w-lg">

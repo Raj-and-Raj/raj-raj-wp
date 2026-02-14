@@ -31,14 +31,14 @@ export default function ContactPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center rounded-full border border-black/5 bg-white px-3 py-1 text-sm font-medium text-[color:var(--brand)] shadow-sm mb-6">
+              <div className="inline-flex items-center rounded-full border border-black/5 bg-white px-3 py-1 text-xs font-medium text-[color:var(--brand)] shadow-sm mb-6">
                 <span className="flex h-2 w-2 rounded-full bg-[color:var(--brand)] mr-2 animate-pulse"></span>
                 We are here to help
               </div>
-              <h1 className="text-5xl font-bold tracking-tight text-[color:var(--ink)] sm:text-6xl mb-6">
+              <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl mb-6">
                  Let's Start a Conversation.
               </h1>
-              <p className="text-xl text-[color:var(--muted)] max-w-2xl mx-auto leading-relaxed">
+              <p className="text-lg text-[color:var(--muted)] max-w-2xl mx-auto leading-relaxed">
                  Whether you have a question about our products, need a custom solution, or want to discuss a large project, our team is ready to assist you.
               </p>
             </motion.div>
@@ -56,49 +56,49 @@ export default function ContactPage() {
             className="grid gap-8 md:grid-cols-3"
           >
              {/* Phone Card */}
-             <motion.div variants={fadeInUp} className="group relative overflow-hidden rounded-2xl border border-black/5 bg-white p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
-                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
-                   <Phone className="h-7 w-7" />
+             <motion.div variants={fadeInUp} className="group relative overflow-hidden rounded-xl border border-black/5 bg-white p-6 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
+                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
+                   <Phone className="h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-bold text-[color:var(--ink)] mb-2">Phone Support</h3>
-                <p className="text-[color:var(--muted)] mb-6">Call us directly Mon-Sat from 10am to 7pm.</p>
+                <h3 className="text-lg font-bold text-[color:var(--ink)] mb-2">Phone Support</h3>
+                <p className="text-sm text-[color:var(--muted)] mb-5">Call us directly Mon-Sat from 10am to 7pm.</p>
                 <div className="space-y-1">
-                  <a href="tel:+913348000018" className="block text-xl font-bold text-[color:var(--brand)] hover:underline">
+                  <a href="tel:+913348000018" className="block text-lg font-bold text-[color:var(--brand)] hover:underline">
                     +91 33 4800 0018
                   </a>
-                  <p className="text-sm text-[color:var(--muted)]">Main Office</p>
+                  <p className="text-xs text-[color:var(--muted)]">Main Office</p>
                 </div>
              </motion.div>
 
              {/* Email Card */}
-             <motion.div variants={fadeInUp} className="group relative overflow-hidden rounded-2xl border border-black/5 bg-white p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
-                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
-                   <Mail className="h-7 w-7" />
+             <motion.div variants={fadeInUp} className="group relative overflow-hidden rounded-xl border border-black/5 bg-white p-6 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
+                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                   <Mail className="h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-bold text-[color:var(--ink)] mb-2">Email Us</h3>
-                <p className="text-[color:var(--muted)] mb-6">Drop us a line anytime. We usually reply within 24 hours.</p>
+                <h3 className="text-lg font-bold text-[color:var(--ink)] mb-2">Email Us</h3>
+                <p className="text-sm text-[color:var(--muted)] mb-5">Drop us a line anytime. We usually reply within 24 hours.</p>
                 <div className="space-y-1">
-                  <a href="mailto:hello@rajandraj.co" className="block text-xl font-bold text-[color:var(--brand)] hover:underline">
+                  <a href="mailto:hello@rajandraj.co" className="block text-lg font-bold text-[color:var(--brand)] hover:underline">
                     hello@rajandraj.co
                   </a>
-                  <a href="mailto:support@rajandraj.co" className="block text-base font-medium text-[color:var(--muted)] hover:text-[color:var(--ink)]">
+                  <a href="mailto:support@rajandraj.co" className="block text-sm font-medium text-[color:var(--muted)] hover:text-[color:var(--ink)]">
                     sales@rajandraj.co
                   </a>
                 </div>
              </motion.div>
              
              {/* Chat/Social Card */}
-             <motion.div variants={fadeInUp} className="group relative overflow-hidden rounded-2xl border border-black/5 bg-white p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
-                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-full bg-purple-50 text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white">
-                   <MessageSquare className="h-7 w-7" />
+             <motion.div variants={fadeInUp} className="group relative overflow-hidden rounded-xl border border-black/5 bg-white p-6 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
+                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-purple-50 text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white">
+                   <MessageSquare className="h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-bold text-[color:var(--ink)] mb-2">Live Chat</h3>
-                <p className="text-[color:var(--muted)] mb-6">Chat with our support team on WhatsApp for quick queries.</p>
+                <h3 className="text-lg font-bold text-[color:var(--ink)] mb-2">Live Chat</h3>
+                <p className="text-sm text-[color:var(--muted)] mb-5">Chat with our support team on WhatsApp for quick queries.</p>
                 <a 
                   href="#" 
-                  className="inline-flex items-center text-lg font-bold text-[color:var(--brand)] group-hover:underline"
+                  className="inline-flex items-center text-base font-bold text-[color:var(--brand)] group-hover:underline"
                 >
-                  Start WhatsApp Chat <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                  Start WhatsApp Chat <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </a>
              </motion.div>
           </motion.div>
@@ -106,7 +106,7 @@ export default function ContactPage() {
       </section>
 
       {/* 3. VISIT US SECTION - Map & Address */}
-      <section className="bg-slate-50 py-24 border-t border-black/5">
+      <section className="bg-slate-50 py-20 border-t border-black/5">
          <div className="container mx-auto max-w-6xl px-6">
             <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
                <motion.div 
@@ -115,45 +115,45 @@ export default function ContactPage() {
                  viewport={{ once: true }}
                  transition={{ duration: 0.6 }}
                >
-                  <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--brand)]/10 text-[color:var(--brand)]">
-                    <MapPin className="h-6 w-6" />
+                  <div className="mb-6 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[color:var(--brand)]/10 text-[color:var(--brand)]">
+                    <MapPin className="h-5 w-5" />
                   </div>
-                  <h2 className="text-3xl font-bold text-[color:var(--ink)] sm:text-4xl mb-6">Visit Our Showroom</h2>
-                  <p className="text-lg text-[color:var(--muted)] mb-8 leading-relaxed">
+                  <h2 className="text-2xl font-bold text-[color:var(--ink)] sm:text-3xl mb-5">Visit Our Showroom</h2>
+                  <p className="text-base text-[color:var(--muted)] mb-8 leading-relaxed">
                     Experiencing our furniture in person is the best way to appreciate the craftsmanship. 
                     Visit our flagship store in Kolkata to see our complete collection.
                   </p>
                   
                   <div className="space-y-6">
                      <div className="pl-4 border-l-2 border-[color:var(--brand)]">
-                        <h4 className="text-lg font-bold text-[color:var(--ink)]">Raj & Raj HQ</h4>
-                        <p className="text-[color:var(--muted)] mt-1">
+                        <h4 className="text-base font-bold text-[color:var(--ink)]">Raj & Raj HQ</h4>
+                        <p className="text-sm text-[color:var(--muted)] mt-1">
                            25 Black Burn Lane, <br/>
                            Kolkata – 700012, West Bengal
                         </p>
                      </div>
                      
                      <div className="pl-4 border-l-2 border-slate-200">
-                        <h4 className="text-lg font-bold text-[color:var(--ink)]">Opening Hours</h4>
-                        <p className="text-[color:var(--muted)] mt-1">
+                        <h4 className="text-base font-bold text-[color:var(--ink)]">Opening Hours</h4>
+                        <p className="text-sm text-[color:var(--muted)] mt-1">
                            Monday - Saturday: 10:00 AM - 07:00 PM<br/>
                            Sunday: Closed
                         </p>
                      </div>
                   </div>
 
-                  <div className="mt-10 flex gap-4">
-                     <a href="#" className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/10 text-[color:var(--muted)] hover:text-[color:var(--brand)] hover:border-[color:var(--brand)] transition-colors">
-                        <Facebook className="h-5 w-5" />
+                  <div className="mt-8 flex gap-3">
+                     <a href="#" className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white border border-black/10 text-[color:var(--muted)] hover:text-[color:var(--brand)] hover:border-[color:var(--brand)] transition-colors">
+                        <Facebook className="h-4 w-4" />
                      </a>
-                     <a href="#" className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/10 text-[color:var(--muted)] hover:text-[color:var(--brand)] hover:border-[color:var(--brand)] transition-colors">
-                        <Instagram className="h-5 w-5" />
+                     <a href="#" className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white border border-black/10 text-[color:var(--muted)] hover:text-[color:var(--brand)] hover:border-[color:var(--brand)] transition-colors">
+                        <Instagram className="h-4 w-4" />
                      </a>
-                     <a href="#" className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/10 text-[color:var(--muted)] hover:text-[color:var(--brand)] hover:border-[color:var(--brand)] transition-colors">
-                        <Linkedin className="h-5 w-5" />
+                     <a href="#" className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white border border-black/10 text-[color:var(--muted)] hover:text-[color:var(--brand)] hover:border-[color:var(--brand)] transition-colors">
+                        <Linkedin className="h-4 w-4" />
                      </a>
-                     <a href="#" className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/10 text-[color:var(--muted)] hover:text-[color:var(--brand)] hover:border-[color:var(--brand)] transition-colors">
-                        <Twitter className="h-5 w-5" />
+                     <a href="#" className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white border border-black/10 text-[color:var(--muted)] hover:text-[color:var(--brand)] hover:border-[color:var(--brand)] transition-colors">
+                        <Twitter className="h-4 w-4" />
                      </a>
                   </div>
                </motion.div>
@@ -163,7 +163,7 @@ export default function ContactPage() {
                  whileInView={{ opacity: 1, scale: 1 }}
                  viewport={{ once: true }}
                  transition={{ duration: 0.8 }}
-                 className="relative h-[400px] w-full overflow-hidden rounded-2xl shadow-xl bg-slate-200 border border-black/5"
+                 className="relative h-[350px] w-full overflow-hidden rounded-xl shadow-lg bg-slate-200 border border-black/5"
                >
                   {/* Placeholder for an actual map embed or image */}
                   <div className="absolute inset-0 flex items-center justify-center bg-slate-100">

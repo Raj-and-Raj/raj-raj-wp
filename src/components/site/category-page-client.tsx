@@ -341,7 +341,7 @@ export function CategoryPageClient({
                               type="button"
                               key={swatch.label}
                               title={swatch.label}
-                              className="h-8 w-8 rounded-full border border-black/10 bg-center bg-no-repeat"
+                              className="h-6 w-6 rounded-full border border-black/10 bg-center bg-no-repeat"
                               style={{
                                 backgroundImage: swatch.image
                                   ? `url(${swatch.image})`
@@ -376,9 +376,9 @@ export function CategoryPageClient({
                           />
                         ))}
                   </div>
-                  <p className="mb-3 line-clamp-2 text-xs leading-relaxed text-[color:var(--muted)]">
+                  {/* <p className="mb-3 line-clamp-2 text-xs leading-relaxed text-[color:var(--muted)]">
                     {stripHtml(product.shortDescription || product.description)}
-                  </p>
+                  </p> */}
                   <div className="flex items-center justify-between gap-3">
                     <button
                       type="button"
@@ -396,7 +396,7 @@ export function CategoryPageClient({
                       {cartIds.includes(product.id)
                         ? "Already in cart"
                         : product.type === "variable"
-                          ? "Select options"
+                          ? "View more"
                           : "Add"}
                     </button>
                   </div>
