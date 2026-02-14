@@ -1,197 +1,218 @@
 "use client";
 
-import { useRef } from "react";
-import { CheckCircle, ChevronLeft, ChevronRight, Star } from "lucide-react";
-import { motion } from "framer-motion";
+import { useRef, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Star, Quote } from "lucide-react";
+import { motion, useAnimation, useInView } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const reviews = [
   {
     id: 1,
     name: "Prabha Shenoy",
     date: "1 month ago",
-    rating: 4,
-    text: "Congratulations on great work. Helpful staff and responsive service throughout the process.",
+    rating: 5,
+    text: "Congratulations on great work. Helpful staff and responsive service throughout the process. The finish is exactly what we were looking for.",
     initial: "P",
-    bg: "bg-slate-500",
+    bg: "bg-emerald-600",
   },
   {
     id: 2,
     name: "Anitha Rajagopal",
     date: "1 month ago",
     rating: 5,
-    text: "Very good service and on-time delivery. Great support from the team.",
+    text: "Very good service and on-time delivery. Great support from the team. The attention to detail in the craftsmanship is truly commendable.",
     initial: "A",
-    bg: "bg-red-800",
+    bg: "bg-rose-600",
   },
   {
     id: 3,
     name: "Mahesh B M",
     date: "2 months ago",
     rating: 5,
-    text: "Good service and good infrastructure.",
+    text: "Good service and good infrastructure. I was impressed by the wide variety of options available and the knowledgeable staff.",
     initial: "M",
-    bg: "bg-purple-700",
+    bg: "bg-violet-600",
   },
   {
     id: 4,
     name: "Sneha Gupta",
     date: "1 week ago",
-    rating: 5,
-    text: "The best furniture store in town. Innovative designs and durable builds.",
+    rating: 4,
+    text: "The best furniture store in town. Innovative designs and durable builds. Highly recommended for anyone looking for premium furniture.",
     initial: "S",
-    bg: "bg-green-600",
+    bg: "bg-amber-600",
   },
   {
     id: 5,
     name: "Rahul Verma",
     rating: 5,
     date: "1 month ago",
-    text: "Great experience shopping with Raj & Raj. Premium quality and sturdy finishing.",
+    text: "Great experience shopping with Raj & Raj. Premium quality and sturdy finishing. Will definitely visit again for more purchases.",
     initial: "R",
-    bg: "bg-orange-500",
+    bg: "bg-blue-600",
+  },
+  {
+    id: 6,
+    name: "Vikram Singh",
+    rating: 5,
+    date: "3 weeks ago",
+    text: "Exceptional quality and service. The team went above and beyond to ensure our requirements were met. Fantastic experience!",
+    initial: "V",
+    bg: "bg-indigo-600",
   },
 ];
 
 export function GoogleReviews() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
+  }, []);
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
-    const scrollAmount = 350;
+    const scrollAmount = 400;
     scrollRef.current.scrollBy({
       left: direction === "left" ? -scrollAmount : scrollAmount,
       behavior: "smooth",
     });
+    setTimeout(checkScroll, 500);
   };
 
   return (
-    <div className="mb-20 py-16">
-      <div className="container mx-auto px-4 md:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-          className="mb-12 text-center"
-        >
-          <h2 className="mb-2 text-2xl font-bold uppercase tracking-widest text-gray-900">
-            Excellent
-          </h2>
+    <section className="py-16 relative overflow-hidden">
+        {/* Background Decorative Elements */}
+        {/* <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-black/5 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-black/5 to-transparent"></div> */}
+        <div className="absolute top-1/2 left-0 w-32 h-32 bg-[color:var(--brand)]/5 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2"></div>
+        <div className="absolute top-1/2 right-0 w-32 h-32 bg-[color:var(--brand)]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
 
-          <div className="mb-2 flex justify-center gap-1">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="relative h-8 w-8">
-                <Star fill="#facc15" stroke="none" className="h-full w-full" />
-              </div>
-            ))}
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="max-w-2xl"
+          >
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-slate-50 border border-slate-100 shadow-sm text-xs font-medium text-[color:var(--brand)] mb-4">
+               <Star className="w-3 h-3 fill-current" />
+               <span>Trusted by our customers</span>
+            </div>
+            <h2 className="text-3xl md:text-3xl font-bold text-slate-900 leading-tight mb-4">
+              Loved by <span className="text-[color:var(--brand)] relative inline-block">
+                Thousands
+                <svg className="absolute w-full h-2 -bottom-1 left-0 text-[color:var(--brand)]/20" viewBox="0 0 100 10" preserveAspectRatio="none">
+                    <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
+                </svg>
+              </span>
+            </h2>
+            <div className="flex items-center gap-3 text-slate-500 text-sm">
+               <div className="flex items-center gap-1">
+                  <span className="text-lg font-bold text-slate-900">4.9</span>
+                  <div className="flex text-yellow-500">
+                     {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-current" />
+                     ))}
+                  </div>
+               </div>
+               <span className="w-px h-4 bg-slate-200"></span>
+               <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-slate-900">Google Reviews</span>
+                  <span className="text-xs text-slate-400">(1128+ Reviews)</span>
+               </div>
+            </div>
+          </motion.div>
+
+          {/* Navigation Buttons */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => scroll("left")}
+              disabled={!canScrollLeft}
+              className="w-10 h-10 rounded-full border border-slate-100 bg-white flex items-center justify-center text-slate-500 hover:border-[color:var(--brand)] hover:text-[color:var(--brand)] disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+              aria-label="Previous reviews"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => scroll("right")}
+              disabled={!canScrollRight}
+              className="w-10 h-10 rounded-full border border-slate-100 bg-white flex items-center justify-center text-slate-500 hover:border-[color:var(--brand)] hover:text-[color:var(--brand)] disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+              aria-label="Next reviews"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
+        </div>
 
-          <p className="mb-4 text-sm text-gray-600">
-            Based on <span className="font-bold text-black">55 reviews</span>
-          </p>
-
-          <div className="flex items-center justify-center gap-0.5">
-            <span className="text-2xl font-bold text-[#4285F4]">G</span>
-            <span className="text-2xl font-bold text-[#EA4335]">o</span>
-            <span className="text-2xl font-bold text-[#FBBC05]">o</span>
-            <span className="text-2xl font-bold text-[#4285F4]">g</span>
-            <span className="text-2xl font-bold text-[#34A853]">l</span>
-            <span className="text-2xl font-bold text-[#EA4335]">e</span>
-          </div>
-        </motion.div>
-
-        <div className="relative mx-auto max-w-7xl">
-          <div
+        {/* Reviews Horizontal Scroll */}
+        <div 
             ref={scrollRef}
-            className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto pb-8 px-4"
-          >
-            {reviews.map((review) => (
-              <motion.div
-                key={review.id}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                viewport={{ once: true }}
-                className="relative min-w-[25vw] flex-shrink-0 snap-center rounded-xl border border-gray-100 bg-white p-6 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-lg md:min-w-[calc(33.333%-16px)]"
-              >
-                <div className="absolute right-6 top-6 opacity-80">
-                  <svg
-                    className="h-6 w-6"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      fill="#4285F4"
-                    />
-                    <path
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      fill="#34A853"
-                    />
-                    <path
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      fill="#FBBC05"
-                    />
-                    <path
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      fill="#EA4335"
-                    />
-                  </svg>
-                </div>
+            onScroll={checkScroll}
+            className="flex overflow-x-auto gap-4 pb-12 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0"
+        >
+            {reviews.map((review, index) => (
+               <motion.div
+                  key={review.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="min-w-[85vw] md:min-w-[360px] snap-center"
+               >
+                  <div className="h-full p-6 bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300 relative group">
+                     <Quote className="absolute top-6 right-6 w-8 h-8 text-[color:var(--brand)]/5 group-hover:text-[color:var(--brand)]/10 transition-colors" />
+                     
+                     <div className="flex items-center gap-3 mb-4">
+                        <div className={cn("w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm", review.bg)}>
+                           {review.initial}
+                        </div>
+                        <div>
+                           <h3 className="font-bold text-slate-900 text-sm">{review.name}</h3>
+                           <p className="text-[10px] text-slate-400 uppercase tracking-wide font-medium">{review.date}</p>
+                        </div>
+                     </div>
 
-                <div className="mb-4 flex items-center gap-4">
-                  <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-full text-lg font-medium text-white ${review.bg}`}
-                  >
-                    {review.initial}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold leading-tight text-gray-900">
-                      {review.name}
-                    </h4>
-                    <p className="text-xs text-gray-400">{review.date}</p>
-                  </div>
-                </div>
+                     <div className="flex mb-3 text-yellow-400">
+                        {[...Array(5)].map((_, i) => (
+                           <Star key={i} className={cn("w-3.5 h-3.5", i < review.rating ? "fill-current" : "text-gray-100")} />
+                        ))}
+                     </div>
 
-                <div className="mb-4 flex items-center gap-2">
-                  <div className="flex gap-0.5 text-yellow-400">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        fill={i < review.rating ? "#facc15" : "#e5e7eb"}
-                        stroke="none"
-                        className="h-4 w-4"
-                      />
-                    ))}
+                     <p className="text-slate-600 leading-relaxed text-sm line-clamp-4">
+                        "{review.text}"
+                     </p>
+                     
+                     <div className="mt-4 flex items-center gap-1.5 opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all">
+                        <div className="w-4 h-4 bg-white border border-slate-100 rounded-full flex items-center justify-center p-0.5">
+                             <svg viewBox="0 0 24 24" className="w-full h-full">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                             </svg>
+                        </div>
+                        <span className="text-[10px] font-semibold text-slate-400">Verified Review</span>
+                     </div>
                   </div>
-                  <div className="relative flex h-4 w-4 items-center justify-center rounded-full bg-blue-500">
-                    <CheckCircle className="h-4 w-4 stroke-[3px] text-white" />
-                  </div>
-                </div>
-
-                <p className="text-sm leading-relaxed text-gray-600">
-                  {review.text}
-                </p>
-              </motion.div>
+               </motion.div>
             ))}
-          </div>
-
-          <button
-            onClick={() => scroll("left")}
-            aria-label="Scroll reviews left"
-            className="absolute -left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-white text-gray-600 shadow-lg transition-colors hover:bg-gray-50 hover:text-black md:-left-6"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => scroll("right")}
-            aria-label="Scroll reviews right"
-            className="absolute -right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-white text-gray-600 shadow-lg transition-colors hover:bg-gray-50 hover:text-black md:-right-6"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
+

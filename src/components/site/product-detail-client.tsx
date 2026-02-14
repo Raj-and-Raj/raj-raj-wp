@@ -47,6 +47,7 @@ export function ProductDetailClient({
   const [variantSelections, setVariantSelections] = useState<
     Record<string, string>
   >({});
+  const [selectionError, setSelectionError] = useState("");
   const [pincode, setPincode] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState<
     | { state: "idle" }
@@ -205,7 +206,7 @@ export function ProductDetailClient({
                 <button
                   key={image}
                   onClick={() => setActiveImage(image)}
-                  className={`relative h-16 w-16 shrink-0 rounded-[12px] border ${
+                  className={`relative aspect-square h-16 w-16 shrink-0 rounded-[12px] border ${
                     activeImage === image
                       ? "border-[color:var(--brand)]"
                       : "border-black/10"
@@ -221,7 +222,7 @@ export function ProductDetailClient({
                 </button>
               ))}
             </div>
-            <div className="order-1 relative min-h-[420px] overflow-hidden rounded-[12px] bg-[#f2ede6] lg:order-2 lg:min-h-[520px]">
+            <div className="order-1 relative aspect-square overflow-hidden rounded-[12px] bg-[#f2ede6] lg:order-2">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeImage}
@@ -330,6 +331,7 @@ export function ProductDetailClient({
                               ...variantSelections,
                               [colorAttribute.name]: option.option,
                             });
+                            setSelectionError("");
                             if (option.image) {
                               setActiveImage(option.image);
                             }
@@ -491,12 +493,13 @@ export function ProductDetailClient({
                       <select
                         className="mt-2 w-full rounded-[12px] border border-black/10 bg-white px-3 py-2 text-sm"
                         value={variantSelections[attr.name] ?? ""}
-                        onChange={(event) =>
+                        onChange={(event) => {
                           setVariantSelections({
                             ...variantSelections,
                             [attr.name]: event.target.value,
-                          })
-                        }
+                          });
+                          setSelectionError("");
+                        }}
                       >
                         <option value="">Select {attr.name}</option>
                         {attr.options.map((option) => (
@@ -538,10 +541,8 @@ export function ProductDetailClient({
 
               return (
                 <div className="mt-6 space-y-2">
-                  {disableForSelection && colorAttribute ? (
-                    <p className="text-xs text-[color:var(--muted)]">
-                      Select a color to continue.
-                    </p>
+                  {selectionError ? (
+                    <p className="text-xs text-red-500">{selectionError}</p>
                   ) : null}
                   <div className="grid grid-cols-1 gap-3 items-center sm:grid-cols-3">
                   <div
@@ -566,10 +567,21 @@ export function ProductDetailClient({
                     </button>
                   </div>
                   <Button
-                    className="bg-[color:var(--brand)] rounded-[10px] text-white hover:brightness-110"
-                    disabled={isInCart || disableForSelection}
+                    disabled={isInCart}
+                    aria-disabled={disableForSelection}
+                    data-disabled={disableForSelection ? "true" : "false"}
+                    className={`bg-[color:var(--brand)] rounded-[10px] text-white hover:brightness-110 ${
+                      disableForSelection ? "opacity-60" : ""
+                    }`}
                     onClick={async () => {
-                      if (disableForSelection) return;
+                      if (disableForSelection) {
+                        setSelectionError(
+                          colorAttribute
+                            ? "Please select a colour to continue."
+                            : "Please select all options to continue.",
+                        );
+                        return;
+                      }
                       if (isInCart) {
                         toast({
                           title: "Already in cart",
@@ -598,10 +610,20 @@ export function ProductDetailClient({
                   </Button>
                   <Button
                     variant="outline"
-                    className="rounded-[10px] bg-black border-black/10 text-white hover:border-[color:var(--brand)] hover:bg-[color:var(--brand)] hover:text-white"
-                    disabled={disableForSelection}
+                    className={`rounded-[10px] bg-black border-black/10 text-white hover:border-[color:var(--brand)] hover:bg-[color:var(--brand)] hover:text-white ${
+                      disableForSelection ? "opacity-60" : ""
+                    }`}
+                    aria-disabled={disableForSelection}
+                    data-disabled={disableForSelection ? "true" : "false"}
                     onClick={async () => {
-                      if (disableForSelection) return;
+                      if (disableForSelection) {
+                        setSelectionError(
+                          colorAttribute
+                            ? "Please select a colour to continue."
+                            : "Please select all options to continue.",
+                        );
+                        return;
+                      }
                       if (!isInCart) {
                         await fetch("/api/cart/add", {
                           method: "POST",

@@ -285,7 +285,7 @@ export function CategoryPageClient({
                 href={`/products/${product.slug}`}
                 className="group block rounded-xl border border-black/5 bg-white/95 p-4 transition hover:-translate-y-1 hover:shadow-lg"
               >
-                <div className="relative mb-4 aspect-[5/5] overflow-hidden rounded-xl bg-[#f3eee8]">
+                <div className="relative mb-4 aspect-square overflow-hidden rounded-xl bg-[#f3eee8]">
                   {hoverImage[product.id] || product.image ? (
                     <img
                       src={hoverImage[product.id] || product.image}
@@ -323,69 +323,72 @@ export function CategoryPageClient({
                       {formatPrice(product.price)}
                     </span>
                   </div>
-                  <p className="mb-3 line-clamp-2 text-xs leading-relaxed text-[color:var(--muted)]">
-                    {stripHtml(product.shortDescription || product.description)}
-                  </p>
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex gap-1.5">
-                      {variationSwatches[product.id]?.length
-                        ? variationSwatches[product.id]
-                            .slice(0, 4)
-                            .map((swatch) => (
-                              <span
-                                key={swatch.label}
-                                title={swatch.label}
-                                className="h-3.5 w-3.5 rounded-full border border-black/10 bg-center bg-no-repeat"
-                                style={{
-                                  backgroundImage: swatch.image
-                                    ? `url(${swatch.image})`
-                                    : undefined,
-                                  backgroundSize: "cover",
-                                }}
-                                onMouseEnter={() => {
-                                  if (swatch.image) {
-                                    setHoverImage((prev) => ({
-                                      ...prev,
-                                      [product.id]: swatch.image as string,
-                                    }));
-                                  }
-                                }}
-                                onMouseLeave={() =>
-                                  setHoverImage((prev) => {
-                                    const next = { ...prev };
-                                    delete next[product.id];
-                                    return next;
-                                  })
+                  <div
+                    className="mb-3 flex gap-2"
+                    onMouseLeave={() =>
+                      setHoverImage((prev) => {
+                        const next = { ...prev };
+                        delete next[product.id];
+                        return next;
+                      })
+                    }
+                  >
+                    {variationSwatches[product.id]?.length
+                      ? variationSwatches[product.id]
+                          .slice(0, 4)
+                          .map((swatch) => (
+                            <button
+                              type="button"
+                              key={swatch.label}
+                              title={swatch.label}
+                              className="h-6 w-6 rounded-full border border-black/10 bg-center bg-no-repeat"
+                              style={{
+                                backgroundImage: swatch.image
+                                  ? `url(${swatch.image})`
+                                  : undefined,
+                                backgroundSize: "cover",
+                              }}
+                              onMouseEnter={() => {
+                                if (swatch.image) {
+                                  setHoverImage((prev) => ({
+                                    ...prev,
+                                    [product.id]: swatch.image as string,
+                                  }));
                                 }
-                              />
-                            ))
-                        : (
-                            product.attributes
-                              ?.find((attr) => {
-                                const name = attr.name.toLowerCase();
-                                return (
-                                  name.includes("color") ||
-                                  name.includes("colour")
-                                );
-                              })
-                              ?.options.slice(0, 4) ?? ["Red", "Black", "Grey"]
-                          ).map((option) => (
-                            <span
-                              key={option}
-                              className="h-3.5 w-3.5 rounded-full border border-black/10"
-                              style={{ backgroundColor: colorToHex(option) }}
+                              }}
                             />
-                          ))}
-                    </div>
+                          ))
+                      : (
+                          product.attributes
+                            ?.find((attr) => {
+                              const name = attr.name.toLowerCase();
+                              return (
+                                name.includes("color") ||
+                                name.includes("colour")
+                              );
+                            })
+                            ?.options.slice(0, 4) ?? ["Red", "Black", "Grey"]
+                        ).map((option) => (
+                          <span
+                            key={option}
+                            className="h-3.5 w-3.5 rounded-full border border-black/10"
+                            style={{ backgroundColor: colorToHex(option) }}
+                          />
+                        ))}
+                  </div>
+                  {/* <p className="mb-3 line-clamp-2 text-xs leading-relaxed text-[color:var(--muted)]">
+                    {stripHtml(product.shortDescription || product.description)}
+                  </p> */}
+                  <div className="flex items-center justify-between gap-3">
                     <button
                       type="button"
                       onClick={(event) => {
+                        if (product.type === "variable") return;
                         event.preventDefault();
                         addToCart(product.id);
                       }}
                       disabled={
-                        cartIds.includes(product.id) ||
-                        product.type === "variable"
+                        product.type !== "variable" && cartIds.includes(product.id)
                       }
                       className="inline-flex items-center gap-2 rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-[color:var(--muted)] transition hover:border-[color:var(--brand)] hover:text-[color:var(--brand)] disabled:cursor-not-allowed disabled:border-black/5 disabled:text-gray-400 disabled:hover:text-gray-400"
                     >
@@ -393,7 +396,7 @@ export function CategoryPageClient({
                       {cartIds.includes(product.id)
                         ? "Already in cart"
                         : product.type === "variable"
-                          ? "Select options"
+                          ? "View more"
                           : "Add"}
                     </button>
                   </div>

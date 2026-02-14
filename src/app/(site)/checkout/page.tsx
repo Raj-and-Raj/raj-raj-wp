@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 import { useRouter } from "next/navigation";
+import { Loader } from "@/components/ui/loader";
 
 type CartItem = {
   key: string;
@@ -15,11 +16,15 @@ type CartItem = {
 
 type CartTotals = {
   total?: number | string;
+  subtotal?: number | string;
+  total_tax?: number | string;
+  total_price?: number | string;
 };
 
 type Cart = {
   items?: CartItem[];
   totals?: CartTotals;
+  coupons?: Array<{ code?: string; discount?: string | number }>;
   shipping_rates?: Array<{
     shipping_rates?: Array<{
       rate_id?: string;
@@ -69,9 +74,13 @@ export default function CheckoutPage() {
   const [isPlacing, setIsPlacing] = useState(false);
   const [error, setError] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
+  const [coupon, setCoupon] = useState("");
+  const [couponError, setCouponError] = useState("");
+  const [couponSuccess, setCouponSuccess] = useState("");
   const [savedAddresses, setSavedAddresses] = useState<AddressBookEntry[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
+  const [hasPrefilled, setHasPrefilled] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -100,16 +109,48 @@ export default function CheckoutPage() {
           setShippingMethod("free");
         }
       }
-      const checkoutRes = await fetch("/api/checkout");
-      if (checkoutRes.ok) {
-        const draft = await checkoutRes.json();
-        if (draft?.billing_address) {
-          setBilling((prev) => ({ ...prev, ...draft.billing_address }));
+      if (!hasPrefilled) {
+        const mergeAddress = (
+          current: typeof billing,
+          incoming?: Partial<typeof billing> | null
+        ) => {
+          if (!incoming) return current;
+          const next = { ...current };
+          (Object.keys(next) as Array<keyof typeof billing>).forEach((key) => {
+            if (!next[key] && incoming[key]) {
+              next[key] = incoming[key] as string;
+            }
+          });
+          return next;
+        };
+
+        let nextBilling: typeof billing | null = null;
+        const addressRes = await fetch("/api/account/addresses");
+        if (addressRes.ok) {
+          const data = await addressRes.json();
+          nextBilling = mergeAddress(
+            nextBilling ?? billing,
+            data?.billing ?? data?.shipping
+          );
         }
+
+        const checkoutRes = await fetch("/api/checkout");
+        if (checkoutRes.ok) {
+          const draft = await checkoutRes.json();
+          nextBilling = mergeAddress(
+            nextBilling ?? billing,
+            draft?.billing_address
+          );
+        }
+
+        if (nextBilling) {
+          setBilling(nextBilling);
+        }
+        setHasPrefilled(true);
       }
     };
     load();
-  }, [shippingMethod, router]);
+  }, [shippingMethod, router, hasPrefilled]);
 
   useEffect(() => {
     const stored = localStorage.getItem("addressBook");
@@ -130,6 +171,14 @@ export default function CheckoutPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (!couponSuccess) return;
+    const timer = window.setTimeout(() => {
+      setCouponSuccess("");
+    }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [couponSuccess]);
 
   const placeOrder = async () => {
     if (!isAuthed) {
@@ -168,6 +217,50 @@ export default function CheckoutPage() {
     }
   };
 
+  const toCents = (value: unknown) => {
+    if (typeof value === "number") return value;
+    if (typeof value === "string") return Number(value) || 0;
+    return 0;
+  };
+
+  const refreshCart = async () => {
+    const res = await fetch("/api/cart");
+    if (res.ok) {
+      const data = await res.json();
+      setCart(data);
+    }
+  };
+
+  const applyCoupon = async () => {
+    if (!coupon.trim()) return;
+    setCouponError("");
+    setCouponSuccess("");
+    const res = await fetch("/api/cart/apply-coupon", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: coupon.trim() }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setCouponError(data?.message || "Unable to apply coupon.");
+    } else {
+      setCouponSuccess("Coupon applied successfully.");
+    }
+    setCoupon("");
+    refreshCart();
+  };
+
+  const removeCoupon = async (code?: string) => {
+    if (!code) return;
+    await fetch("/api/cart/remove-coupon", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    setCouponSuccess("");
+    refreshCart();
+  };
+
   const itemsSubtotalCents =
     cart?.items?.reduce((sum, item) => {
       const price =
@@ -176,10 +269,27 @@ export default function CheckoutPage() {
           : Number(item.prices?.price || 0);
       return sum + price * (item.quantity ?? 0);
     }, 0) ?? 0;
-  const totalsCents =
-    typeof cart?.totals?.total === "number"
-      ? cart?.totals?.total
-      : Number(cart?.totals?.total || 0);
+  const totalsCents = toCents(cart?.totals?.total_price ?? cart?.totals?.total);
+  const subtotalCentsRaw = toCents(cart?.totals?.subtotal);
+  const subtotalCents =
+    subtotalCentsRaw > 0 ? subtotalCentsRaw : itemsSubtotalCents;
+  const couponDiscountFromCoupons =
+    cart?.coupons?.reduce(
+      (sum, entry) => sum + toCents(entry.discount),
+      0,
+    ) ?? 0;
+  const derivedDiscountCents = Math.max(
+    0,
+    itemsSubtotalCents - subtotalCents,
+  );
+  const couponDiscountCents =
+    couponDiscountFromCoupons > 0
+      ? couponDiscountFromCoupons
+      : derivedDiscountCents;
+  const derivedTotalCents = Math.max(
+    0,
+    subtotalCents - couponDiscountCents,
+  );
   const shippingRates =
     cart?.shipping_rates?.flatMap((pkg) => pkg.shipping_rates ?? []) ?? [];
   const selectedRate = shippingRates.find(
@@ -194,7 +304,7 @@ export default function CheckoutPage() {
   const orderTotalCents =
     totalsCents > 0
       ? totalsCents
-      : itemsSubtotalCents + (selectedRateCents || fallbackShippingCents);
+      : derivedTotalCents + (selectedRateCents || fallbackShippingCents);
 
   return (
     <div className="mx-auto w-full max-w-[96rem] px-6 pt-32">
@@ -394,6 +504,47 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span>{formatPrice(itemsSubtotalCents / 100)}</span>
                 </div>
+                {cart.coupons?.length ? (
+                  <div className="mt-2 rounded-[10px] border border-black/5 bg-white/80 p-3 text-xs">
+                    <p className="mb-2 font-semibold">Applied coupons</p>
+                    <div className="space-y-1">
+                      {cart.coupons.map((entry) => (
+                        <div key={entry.code} className="flex items-center justify-between">
+                          <span className="uppercase">{entry.code}</span>
+                          <button
+                            className="text-[color:var(--brand)]"
+                            onClick={() => removeCoupon(entry.code)}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {!cart.coupons?.length ? (
+                  <>
+                    <div className="mt-3 flex items-center gap-2">
+                      <input
+                        value={coupon}
+                        onChange={(event) => setCoupon(event.target.value)}
+                        placeholder="Coupon code"
+                        className="w-full rounded-[10px] border border-black/10 px-3 py-2 text-sm"
+                      />
+                      <Button onClick={applyCoupon} size="sm">
+                        Apply
+                      </Button>
+                    </div>
+                    {couponError ? (
+                      <p className="mt-2 text-xs text-red-500">{couponError}</p>
+                    ) : null}
+                    {couponSuccess ? (
+                      <p className="mt-2 text-xs text-emerald-600">
+                        {couponSuccess}
+                      </p>
+                    ) : null}
+                  </>
+                ) : null}
                 <div className="mt-3 space-y-2 text-xs">
                   <p className="font-semibold text-[color:var(--muted)]">Shipping</p>
                   {shippingRates.length ? (
@@ -444,12 +595,17 @@ export default function CheckoutPage() {
                   )}
                 </div>
                 <div className="flex justify-between border-t border-black/10 pt-3 font-semibold">
-                  <span>Total</span>
+                  <span>
+                    Total
+                    {couponDiscountCents > 0
+                      ? ` (saved ${formatPrice(couponDiscountCents / 100)})`
+                      : ""}
+                  </span>
                   <span>{formatPrice(orderTotalCents / 100)}</span>
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-[color:var(--muted)]">Loading...</p>
+              <Loader />
             )}
           </div>
 
