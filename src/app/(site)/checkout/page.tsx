@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 import { useRouter } from "next/navigation";
+import { Loader } from "@/components/ui/loader";
 
 type CartItem = {
   key: string;
@@ -604,7 +605,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-[color:var(--muted)]">Loading...</p>
+              <Loader />
             )}
           </div>
 

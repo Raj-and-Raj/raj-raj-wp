@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import { Loader } from "@/components/ui/loader";
 import { useRouter } from "next/navigation";
 import { Product } from "@/lib/products";
 import { formatPrice } from "@/lib/format";
@@ -142,9 +143,7 @@ export default function WishlistPage() {
       </div>
 
       {loading ? (
-        <div className="rounded-3xl border border-black/5 bg-white/90 p-8 text-sm text-[color:var(--muted)]">
-          Loading wishlist...
-        </div>
+        <Loader />
       ) : products.length ? (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-black/5 bg-white/90 p-4">
@@ -305,8 +304,28 @@ export default function WishlistPage() {
           </div>
         </div>
       ) : (
-        <div className="rounded-3xl border border-black/5 bg-white/90 p-8 text-sm text-[color:var(--muted)]">
-          Your wishlist is empty.
+        <div className="flex min-h-[280px] flex-col items-center justify-center rounded-3xl border border-dashed border-black/10 bg-white/90 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--brand)]/10 text-[color:var(--brand)]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M20.8 4.6C20.3 4.1 19.7 3.7 19.1 3.4C18.4 3.1 17.7 3 17 3C16.2 3 15.5 3.1 14.8 3.4C14.2 3.7 13.6 4.1 13.1 4.6L12 5.7L10.9 4.6C9.9 3.6 8.5 3 7.1 3C5.6 3 4.2 3.6 3.2 4.6C2.1 5.6 1.5 7 1.5 8.5C1.5 10 2.1 11.4 3.2 12.4L4.2 13.4L12 21.2L19.8 13.4L20.8 12.4C21.8 11.4 22.5 10 22.5 8.5C22.5 7 21.8 5.6 20.8 4.6Z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+            </svg>
+          </div>
+          <p className="mt-3 text-sm font-semibold text-[color:var(--ink)]">
+            Wishlist is empty
+          </p>
+          <p className="mt-1 text-xs text-[color:var(--muted)]">
+            Save your favorites to revisit them anytime.
+          </p>
+          <button
+            className="mt-4 rounded-full bg-[color:var(--brand)] px-4 py-2 text-xs font-semibold text-white hover:brightness-110"
+            onClick={() => router.push("/products")}
+          >
+            Browse products
+          </button>
         </div>
       )}
     </div>

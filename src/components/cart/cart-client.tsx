@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
+import { Loader } from "@/components/ui/loader";
 
 type CartItem = {
   key: string;
@@ -131,7 +132,7 @@ export function CartClient() {
   };
 
   if (!cart) {
-    return <p className="text-sm text-[color:var(--muted)]">Loading...</p>;
+    return <Loader />;
   }
 
   const itemsCount =
@@ -178,10 +179,10 @@ export function CartClient() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Cart</h1>
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="space-y-4">
-          {cart.items?.length ? (
-            cart.items.map((item) => (
+      {cart.items?.length ? (
+        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="space-y-4">
+            {cart.items.map((item) => (
               <div
                 key={item.key}
                 className="flex flex-col gap-4 rounded-[16px] border border-black/5 bg-white/95 p-4 md:flex-row md:items-center md:justify-between"
@@ -237,95 +238,127 @@ export function CartClient() {
                   </button>
                 </div>
               </div>
-            ))
-          ) : (
-            <p className="text-sm text-[color:var(--muted)]">Cart is empty.</p>
-          )}
-        </div>
-        <div className="rounded-[12px] border border-black/5 bg-white/95 p-4">
-          <p className="text-sm font-semibold">Summary</p>
-          <div className="mt-4 space-y-2 text-sm">
-            {cart.coupons?.length ? (
-              <div className="rounded-[12px] border border-black/5 bg-white/80 p-3 text-xs">
-                <p className="mb-2 font-semibold">Applied coupons</p>
-                <div className="space-y-1">
-                  {cart.coupons.map((entry) => (
-                    <div key={entry.code} className="flex items-center justify-between">
-                      <span className="uppercase">{entry.code}</span>
-                      <button
-                        className="text-[color:var(--brand)]"
-                        onClick={() => removeCoupon(entry.code)}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-            <div className="flex items-center justify-between">
-              <span>Items</span>
-              <span>{itemsCount}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Subtotal</span>
-              <span>{formatPrice(subtotalCents / 100)}</span>
-            </div>
-            {cart.coupons?.length || couponDiscountCents > 0 ? (
-              <div className="flex items-center justify-between text-[color:var(--brand)]">
-                <span>Coupon</span>
-                <span>-{formatPrice(couponDiscountCents / 100)}</span>
-              </div>
-            ) : null}
-            <div className="flex items-center justify-between font-semibold">
-              <span>Total</span>
-              <span>{formatPrice(totalCents / 100)}</span>
-            </div>
+            ))}
           </div>
-          {couponDiscountCents > 0 ? (
-            <p className="mt-2 text-xs text-[color:var(--muted)]">
-              You saved {formatPrice(couponDiscountCents / 100)} with coupons.
-            </p>
-          ) : null}
-          {!cart.coupons?.length ? (
-            <>
-              <div className="mt-4 flex items-center gap-2">
-                <input
-                  value={coupon}
-                  onChange={(event) => setCoupon(event.target.value)}
-                  placeholder="Coupon code"
-                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                />
-                <Button onClick={applyCoupon} size="sm">
-                  Apply
-                </Button>
+          <div className="rounded-[12px] border border-black/5 bg-white/95 p-4">
+            <p className="text-sm font-semibold">Summary</p>
+            <div className="mt-4 space-y-2 text-sm">
+              {cart.coupons?.length ? (
+                <div className="rounded-[12px] border border-black/5 bg-white/80 p-3 text-xs">
+                  <p className="mb-2 font-semibold">Applied coupons</p>
+                  <div className="space-y-1">
+                    {cart.coupons.map((entry) => (
+                      <div key={entry.code} className="flex items-center justify-between">
+                        <span className="uppercase">{entry.code}</span>
+                        <button
+                          className="text-[color:var(--brand)]"
+                          onClick={() => removeCoupon(entry.code)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              <div className="flex items-center justify-between">
+                <span>Items</span>
+                <span>{itemsCount}</span>
               </div>
-              {couponError ? (
-                <p className="mt-2 text-xs text-red-500">{couponError}</p>
+              <div className="flex items-center justify-between">
+                <span>Subtotal</span>
+                <span>{formatPrice(subtotalCents / 100)}</span>
+              </div>
+              {cart.coupons?.length || couponDiscountCents > 0 ? (
+                <div className="flex items-center justify-between text-[color:var(--brand)]">
+                  <span>Coupon</span>
+                  <span>-{formatPrice(couponDiscountCents / 100)}</span>
+                </div>
               ) : null}
-              {couponSuccess ? (
-                <p className="mt-2 text-xs text-emerald-600">{couponSuccess}</p>
-              ) : null}
-            </>
-          ) : null}
-          <div className="mt-6 space-y-2">
-            <Button
-              className={`w-full ${
-                !cart.items?.length ? "bg-gray-300 text-gray-600" : ""
-              }`}
-              onClick={() => (window.location.href = "/checkout")}
-              disabled={!cart.items?.length}
-            >
-              Checkout
-            </Button>
-            {!cart.items?.length ? (
-              <p className="text-xs text-[color:var(--muted)]">
-                Add items to your cart to proceed to checkout.
+              <div className="flex items-center justify-between font-semibold">
+                <span>Total</span>
+                <span>{formatPrice(totalCents / 100)}</span>
+              </div>
+            </div>
+            {couponDiscountCents > 0 ? (
+              <p className="mt-2 text-xs text-[color:var(--muted)]">
+                You saved {formatPrice(couponDiscountCents / 100)} with coupons.
               </p>
             ) : null}
+            {!cart.coupons?.length ? (
+              <>
+                <div className="mt-4 flex items-center gap-2">
+                  <input
+                    value={coupon}
+                    onChange={(event) => setCoupon(event.target.value)}
+                    placeholder="Coupon code"
+                    className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                  />
+                  <Button onClick={applyCoupon} size="sm">
+                    Apply
+                  </Button>
+                </div>
+                {couponError ? (
+                  <p className="mt-2 text-xs text-red-500">{couponError}</p>
+                ) : null}
+                {couponSuccess ? (
+                  <p className="mt-2 text-xs text-emerald-600">{couponSuccess}</p>
+                ) : null}
+              </>
+            ) : null}
+            <div className="mt-6 space-y-2">
+              <Button
+                className={`w-full ${
+                  !cart.items?.length ? "bg-gray-300 text-gray-600" : ""
+                }`}
+                onClick={() => (window.location.href = "/checkout")}
+                disabled={!cart.items?.length}
+              >
+                Checkout
+              </Button>
+              {!cart.items?.length ? (
+                <p className="text-xs text-[color:var(--muted)]">
+                  Add items to your cart to proceed to checkout.
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex min-h-[280px] flex-col items-center justify-center rounded-[16px] border border-dashed border-black/10 bg-white/80 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--brand)]/10 text-[color:var(--brand)]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M6 6H22L20 14H8L6 3H3"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M9.5 20a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M18.5 20a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+            </svg>
+          </div>
+          <p className="mt-3 text-sm font-semibold text-[color:var(--ink)]">
+            Cart is empty
+          </p>
+          <p className="mt-1 text-xs text-[color:var(--muted)]">
+            Browse products and add your favorites to the cart.
+          </p>
+          <button
+            className="mt-4 rounded-full bg-[color:var(--brand)] px-4 py-2 text-xs font-semibold text-white hover:brightness-110"
+            onClick={() => (window.location.href = "/products")}
+          >
+            Shop now
+          </button>
+        </div>
+      )}
     </div>
   );
 }
