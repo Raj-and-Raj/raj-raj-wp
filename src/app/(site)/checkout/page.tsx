@@ -19,6 +19,8 @@ type CartTotals = {
   subtotal?: number | string;
   total_tax?: number | string;
   total_price?: number | string;
+  discount_total?: number | string;
+  discount_tax?: number | string;
 };
 
 type Cart = {
@@ -278,14 +280,19 @@ export default function CheckoutPage() {
       (sum, entry) => sum + toCents(entry.discount),
       0,
     ) ?? 0;
-  const derivedDiscountCents = Math.max(
-    0,
-    itemsSubtotalCents - subtotalCents,
-  );
+  const couponDiscountFromTotals =
+    toCents(cart?.totals?.discount_total) +
+    toCents(cart?.totals?.discount_tax);
+  const derivedDiscountFromTotals = Math.max(0, subtotalCents - totalsCents);
+  const derivedDiscountFromItems = Math.max(0, itemsSubtotalCents - subtotalCents);
   const couponDiscountCents =
     couponDiscountFromCoupons > 0
       ? couponDiscountFromCoupons
-      : derivedDiscountCents;
+      : couponDiscountFromTotals > 0
+        ? couponDiscountFromTotals
+        : derivedDiscountFromTotals > 0
+          ? derivedDiscountFromTotals
+          : derivedDiscountFromItems;
   const derivedTotalCents = Math.max(
     0,
     subtotalCents - couponDiscountCents,
@@ -504,6 +511,12 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span>{formatPrice(itemsSubtotalCents / 100)}</span>
                 </div>
+                {cart.coupons?.length || couponDiscountCents > 0 ? (
+                  <div className="flex justify-between text-sm text-[color:var(--brand)]">
+                    <span>Coupon</span>
+                    <span>-{formatPrice(couponDiscountCents / 100)}</span>
+                  </div>
+                ) : null}
                 {cart.coupons?.length ? (
                   <div className="mt-2 rounded-[10px] border border-black/5 bg-white/80 p-3 text-xs">
                     <p className="mb-2 font-semibold">Applied coupons</p>

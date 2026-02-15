@@ -21,6 +21,8 @@ type CartTotals = {
   total?: number | string;
   total_tax?: number | string;
   total_price?: number | string;
+  discount_total?: number | string;
+  discount_tax?: number | string;
 };
 
 type Cart = {
@@ -156,6 +158,9 @@ export function CartClient() {
       (sum, entry) => sum + toCents(entry.discount),
       0,
     ) ?? 0;
+  const couponDiscountFromTotals =
+    toCents(cart.totals?.discount_total) +
+    toCents(cart.totals?.discount_tax);
   const derivedDiscountFromTotals = Math.max(
     0,
     subtotalCents - totalCentsRaw,
@@ -167,9 +172,11 @@ export function CartClient() {
   const couponDiscountCents =
     couponDiscountFromCoupons > 0
       ? couponDiscountFromCoupons
-      : derivedDiscountFromTotals > 0
-        ? derivedDiscountFromTotals
-        : derivedDiscountFromItems;
+      : couponDiscountFromTotals > 0
+        ? couponDiscountFromTotals
+        : derivedDiscountFromTotals > 0
+          ? derivedDiscountFromTotals
+          : derivedDiscountFromItems;
   const derivedTotalCents = Math.max(
     0,
     subtotalCents - couponDiscountCents,
@@ -218,7 +225,11 @@ export function CartClient() {
                   <div className="flex items-center gap-2 rounded-full border border-black/10 px-2 py-1">
                     <button
                       className="h-8 w-8 rounded-full border border-black/10"
-                      onClick={() => updateItem(item.key, item.quantity - 1)}
+                      onClick={() =>
+                        item.quantity > 1
+                          ? updateItem(item.key, item.quantity - 1)
+                          : removeItem(item.key)
+                      }
                     >
                       -
                     </button>
