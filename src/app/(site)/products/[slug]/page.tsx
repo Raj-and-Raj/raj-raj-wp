@@ -20,8 +20,8 @@ export async function generateMetadata({
 
   const title = `${product.name} | Raj & Raj`;
   const description =
-    product.shortDescription?.replace(/<[^>]+>/g, "").trim() ||
     product.description?.replace(/<[^>]+>/g, "").trim() ||
+    product.name?.replace(/<[^>]+>/g, "").trim() ||
     `Shop ${product.name} at Raj & Raj.`;
   const image = product.image || product.images?.[0];
   const url = `/products/${product.slug}`;
