@@ -19,7 +19,7 @@ const item = {
 
 export function FeaturedBrands() {
   return (
-    <div className="container mx-auto mb-20 px-4 md:px-8">
+    <div className="mx-auto mb-20 px-4 md:px-8">
       <motion.div
         variants={container}
         initial="hidden"

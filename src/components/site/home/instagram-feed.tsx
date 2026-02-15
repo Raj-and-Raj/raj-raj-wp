@@ -45,8 +45,8 @@ const posts = [
 
 export function InstagramFeed() {
   return (
-    <section className="py-20 overflow-hidden">
-      <div className="container mx-auto px-6">
+    <section className="py-10 overflow-hidden">
+      <div className="mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -55,16 +55,19 @@ export function InstagramFeed() {
             transition={{ duration: 0.6 }}
           >
             <div className="flex items-center gap-2 mb-2">
-               <div className="p-1.5 bg-pink-50 rounded-full text-pink-600">
-                  <Instagram className="w-4 h-4" />
-               </div>
-               <span className="text-xs font-bold tracking-wider uppercase text-slate-500">@rajandraj_official</span>
+              <div className="p-1.5 bg-pink-50 rounded-full text-pink-600">
+                <Instagram className="w-4 h-4" />
+              </div>
+              <span className="text-xs font-bold tracking-wider uppercase text-slate-500">
+                @rajandraj_official
+              </span>
             </div>
             <h2 className="text-3xl md:text-3xl font-bold text-slate-900 leading-tight">
               Follow us on Instagram
             </h2>
             <p className="mt-3 text-base text-slate-600 max-w-lg">
-              Join our community of design enthusiasts. Get inspired by our latest projects, behind-the-scenes content, and styling tips.
+              Join our community of design enthusiasts. Get inspired by our
+              latest projects, behind-the-scenes content, and styling tips.
             </p>
           </motion.div>
 
@@ -92,8 +95,10 @@ export function InstagramFeed() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className={cn(
-                  "group relative aspect-square overflow-hidden rounded-xl bg-slate-50 cursor-pointer",
-                  index === 0 || index === 1 ? "col-span-2 row-span-2" : "col-span-1 row-span-1"
+                "group relative aspect-square overflow-hidden rounded-xl bg-slate-50 cursor-pointer",
+                index === 0 || index === 1
+                  ? "col-span-2 row-span-2"
+                  : "col-span-1 row-span-1",
               )}
             >
               <img
@@ -101,23 +106,23 @@ export function InstagramFeed() {
                 alt={`Instagram post ${post.id}`}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
-              
+
               {/* Overlay */}
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[1px]">
-                 <div className="flex items-center gap-4 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                    <div className="flex items-center gap-1.5 font-semibold text-sm">
-                       <Heart className="w-4 h-4 fill-white" />
-                       <span>{post.likes}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 font-semibold text-sm">
-                       <MessageCircle className="w-4 h-4 fill-white" />
-                       <span>{post.comments}</span>
-                    </div>
-                 </div>
-                 
-                 <div className="absolute top-3 right-3 bg-white/20 p-1.5 rounded-full backdrop-blur-md">
-                    <Instagram className="w-3 h-3 text-white" />
-                 </div>
+                <div className="flex items-center gap-4 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                  <div className="flex items-center gap-1.5 font-semibold text-sm">
+                    <Heart className="w-4 h-4 fill-white" />
+                    <span>{post.likes}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 font-semibold text-sm">
+                    <MessageCircle className="w-4 h-4 fill-white" />
+                    <span>{post.comments}</span>
+                  </div>
+                </div>
+
+                <div className="absolute top-3 right-3 bg-white/20 p-1.5 rounded-full backdrop-blur-md">
+                  <Instagram className="w-3 h-3 text-white" />
+                </div>
               </div>
             </motion.div>
           ))}
@@ -126,4 +131,3 @@ export function InstagramFeed() {
     </section>
   );
 }
-

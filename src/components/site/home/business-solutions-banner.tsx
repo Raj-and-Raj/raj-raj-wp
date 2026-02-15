@@ -7,7 +7,7 @@ import { uploadsUrl } from "@/lib/uploads";
 
 export function BusinessSolutionsBanner() {
   return (
-    <div className="container mx-auto mb-20 px-4 md:px-8">
+    <div className="mx-auto mb-20 px-4 md:px-8">
       <div className="flex flex-col items-center gap-12 lg:flex-row">
         <div className="w-full lg:w-1/2">
           <span className="mb-2 block text-sm font-bold uppercase tracking-wide text-[#DD3333]">

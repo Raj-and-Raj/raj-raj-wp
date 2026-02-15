@@ -76,6 +76,45 @@ export default function CheckoutPage() {
   const [couponSuccess, setCouponSuccess] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [hasPrefilled, setHasPrefilled] = useState(false);
+  const indiaStates = [
+    "AN",
+    "AP",
+    "AR",
+    "AS",
+    "BR",
+    "CH",
+    "CT",
+    "DN",
+    "DD",
+    "DL",
+    "GA",
+    "GJ",
+    "HR",
+    "HP",
+    "JK",
+    "JH",
+    "KA",
+    "KL",
+    "LA",
+    "LD",
+    "MP",
+    "MH",
+    "MN",
+    "ML",
+    "MZ",
+    "NL",
+    "OR",
+    "PY",
+    "PB",
+    "RJ",
+    "SK",
+    "TN",
+    "TG",
+    "TR",
+    "UP",
+    "UT",
+    "WB",
+  ];
 
   useEffect(() => {
     const load = async () => {
@@ -343,13 +382,15 @@ export default function CheckoutPage() {
             </label>
             <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
               Country / Region <span className="text-[color:var(--brand)]">*</span>
-              <input
+              <select
                 className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                 value={billing.country}
                 onChange={(event) =>
                   setBilling({ ...billing, country: event.target.value })
                 }
-              />
+              >
+                <option value="IN">India</option>
+              </select>
             </label>
             <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
               Street address <span className="text-[color:var(--brand)]">*</span>
@@ -385,13 +426,20 @@ export default function CheckoutPage() {
               </label>
               <label className="text-xs font-semibold text-[color:var(--muted)]">
                 State / County <span className="text-[color:var(--brand)]">*</span>
-                <input
+                <select
                   className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                   value={billing.state}
                   onChange={(event) =>
                     setBilling({ ...billing, state: event.target.value })
                   }
-                />
+                >
+                  <option value="">Select state</option>
+                  {indiaStates.map((state) => (
+                    <option key={state} value={state}>
+                      {state}
+                    </option>
+                  ))}
+                </select>
               </label>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -485,13 +533,15 @@ export default function CheckoutPage() {
               </label>
               <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
                 Country / Region <span className="text-[color:var(--brand)]">*</span>
-                <input
+                <select
                   className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                   value={shipping.country}
                   onChange={(event) =>
                     setShipping({ ...shipping, country: event.target.value })
                   }
-                />
+                >
+                  <option value="IN">India</option>
+                </select>
               </label>
               <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
                 Street address <span className="text-[color:var(--brand)]">*</span>
@@ -527,13 +577,20 @@ export default function CheckoutPage() {
                 </label>
                 <label className="text-xs font-semibold text-[color:var(--muted)]">
                   State / County <span className="text-[color:var(--brand)]">*</span>
-                  <input
+                  <select
                     className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                     value={shipping.state}
                     onChange={(event) =>
                       setShipping({ ...shipping, state: event.target.value })
                     }
-                  />
+                  >
+                    <option value="">Select state</option>
+                    {indiaStates.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
                 </label>
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">

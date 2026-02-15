@@ -74,6 +74,45 @@ export function AccountDashboard() {
       image?: { src?: string };
     }>;
   }>(null);
+  const indiaStates = [
+    "AN",
+    "AP",
+    "AR",
+    "AS",
+    "BR",
+    "CH",
+    "CT",
+    "DN",
+    "DD",
+    "DL",
+    "GA",
+    "GJ",
+    "HR",
+    "HP",
+    "JK",
+    "JH",
+    "KA",
+    "KL",
+    "LA",
+    "LD",
+    "MP",
+    "MH",
+    "MN",
+    "ML",
+    "MZ",
+    "NL",
+    "OR",
+    "PY",
+    "PB",
+    "RJ",
+    "SK",
+    "TN",
+    "TG",
+    "TR",
+    "UP",
+    "UT",
+    "WB",
+  ];
 
   const loadAll = async () => {
     const res = await fetch("/api/auth/me");
@@ -529,13 +568,20 @@ export function AccountDashboard() {
                       }
                     />
                     <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        placeholder="State"
+                      <select
+                        className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                         value={billingDraft.state ?? ""}
                         onChange={(e) =>
                           setBillingDraft({ ...billingDraft, state: e.target.value })
                         }
-                      />
+                      >
+                        <option value="">State</option>
+                        {indiaStates.map((state) => (
+                          <option key={state} value={state}>
+                            {state}
+                          </option>
+                        ))}
+                      </select>
                       <Input
                         placeholder="Postcode"
                         value={billingDraft.postcode ?? ""}
@@ -547,13 +593,15 @@ export function AccountDashboard() {
                         }
                       />
                     </div>
-                    <Input
-                      placeholder="Country"
-                      value={billingDraft.country ?? ""}
+                    <select
+                      className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                      value={billingDraft.country ?? "IN"}
                       onChange={(e) =>
                         setBillingDraft({ ...billingDraft, country: e.target.value })
                       }
-                    />
+                    >
+                      <option value="IN">India</option>
+                    </select>
                     <Input
                       placeholder="Phone"
                       value={billingDraft.phone ?? ""}
@@ -639,8 +687,8 @@ export function AccountDashboard() {
                       }
                     />
                     <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        placeholder="State"
+                      <select
+                        className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                         value={shippingDraft.state ?? ""}
                         onChange={(e) =>
                           setShippingDraft({
@@ -648,7 +696,14 @@ export function AccountDashboard() {
                             state: e.target.value,
                           })
                         }
-                      />
+                      >
+                        <option value="">State</option>
+                        {indiaStates.map((state) => (
+                          <option key={state} value={state}>
+                            {state}
+                          </option>
+                        ))}
+                      </select>
                       <Input
                         placeholder="Postcode"
                         value={shippingDraft.postcode ?? ""}
@@ -660,16 +715,18 @@ export function AccountDashboard() {
                         }
                       />
                     </div>
-                    <Input
-                      placeholder="Country"
-                      value={shippingDraft.country ?? ""}
+                    <select
+                      className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                      value={shippingDraft.country ?? "IN"}
                       onChange={(e) =>
                         setShippingDraft({
                           ...shippingDraft,
                           country: e.target.value,
                         })
                       }
-                    />
+                    >
+                      <option value="IN">India</option>
+                    </select>
                     <Input
                       placeholder="Phone"
                       value={shippingDraft.phone ?? ""}

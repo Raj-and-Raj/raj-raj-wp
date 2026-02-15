@@ -42,7 +42,7 @@ function CategoryCard({
         >
           {subtitle}
         </span>
-        <h3 className={`mb-3 text-4xl font-bold ${textColor}`}>{title}</h3>
+        <h3 className={`mb-3 text-2xl font-bold ${textColor}`}>{title}</h3>
         {/* <p className={`max-w-xs text-sm text-white/80 ${bodyColor}"`}>{body}</p> */}
 
         {showButton ? (
@@ -69,7 +69,7 @@ function CategoryCard({
 
 export function PopularCategories() {
   return (
-    <div className="container mx-auto mb-20 px-4 md:px-8">
+    <div className=" mx-auto mb-20 px-4 md:px-8">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
