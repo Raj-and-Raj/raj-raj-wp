@@ -9,8 +9,6 @@ import {
   Shield,
   LogOut,
   User,
-  Plus,
-  Trash2,
   Check,
   Edit2,
   Search,
@@ -20,12 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-type AddressBookEntry = {
-  id: string;
-  label: string;
-  address: Address;
-};
 
 type Address = {
   first_name?: string;
@@ -70,10 +62,6 @@ export function AccountDashboard() {
     confirm: "",
   });
   const [passwordMessage, setPasswordMessage] = useState("");
-  const [addressBook, setAddressBook] = useState<AddressBookEntry[]>([]);
-  const [addressForm, setAddressForm] = useState<Address>({});
-  const [addressLabel, setAddressLabel] = useState("");
-  const [defaultAddressId, setDefaultAddressId] = useState<string | null>(null);
   const [orderDetails, setOrderDetails] = useState<null | {
     id: number;
     status: string;
@@ -119,21 +107,6 @@ export function AccountDashboard() {
 
   useEffect(() => {
     loadAll();
-  }, []);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("addressBook");
-    const defaultId = localStorage.getItem("defaultAddressId");
-    if (defaultId) {
-      setDefaultAddressId(defaultId);
-    }
-    if (!stored) return;
-    try {
-      const parsed = JSON.parse(stored) as AddressBookEntry[];
-      setAddressBook(parsed);
-    } catch {
-      setAddressBook([]);
-    }
   }, []);
 
   const handleLogout = async () => {
@@ -195,46 +168,6 @@ export function AccountDashboard() {
     }
     setPasswordMessage("Password updated.");
     setPasswordDraft({ password: "", confirm: "" });
-  };
-
-  const addAddress = () => {
-    if (!addressLabel.trim()) return;
-    const id = `${Date.now()}`;
-    const entry: AddressBookEntry = {
-      id,
-      label: addressLabel.trim(),
-      address: addressForm,
-    };
-    const next = [...addressBook, entry];
-    setAddressBook(next);
-    localStorage.setItem("addressBook", JSON.stringify(next));
-    setAddressForm({});
-    setAddressLabel("");
-  };
-
-  const removeAddress = (id: string) => {
-    const next = addressBook.filter((entry) => entry.id !== id);
-    setAddressBook(next);
-    localStorage.setItem("addressBook", JSON.stringify(next));
-    if (defaultAddressId === id) {
-      setDefaultAddressId(null);
-      localStorage.removeItem("defaultAddressId");
-    }
-  };
-
-  const setDefaultAddress = async (id: string) => {
-    setDefaultAddressId(id);
-    localStorage.setItem("defaultAddressId", id);
-    const entry = addressBook.find((item) => item.id === id);
-    if (!entry) return;
-    setBillingDraft(entry.address);
-    setShippingDraft(entry.address);
-    setAddresses({ billing: entry.address, shipping: entry.address });
-    await fetch("/api/account/addresses", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ billing: entry.address, shipping: entry.address }),
-    });
   };
 
   const loadOrderDetails = async (id: number) => {
@@ -533,82 +466,6 @@ export function AccountDashboard() {
         </TabsContent>
 
         <TabsContent value="addresses" className="mt-0 space-y-6">
-          <div className="rounded-[24px] border border-black/5 bg-white p-6">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--muted)]">
-                Address Book
-              </p>
-              <MapPin className="h-4 w-4 text-[color:var(--muted)]" />
-            </div>
-            <div className="mt-6">
-                  <div className="flex flex-col gap-2 sm:flex-row">
-                    <Input
-                      placeholder="Label (e.g. Home, Office)"
-                      value={addressLabel}
-                      onChange={(e) => setAddressLabel(e.target.value)}
-                    />
-                    <Button onClick={addAddress} variant="outline" className="w-full sm:w-auto shrink-0">
-                      <Plus className="mr-2 h-4 w-4" /> Add
-                    </Button>
-                  </div>
-
-              {addressBook.length === 0 ? (
-                <p className="mt-6 text-center text-sm text-[color:var(--muted)]">
-                  No saved addresses.
-                </p>
-              ) : (
-                <div className="mt-6 space-y-4">
-                  {addressBook.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="rounded-[16px] border border-black/5 bg-slate-50 p-5"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-bold">{entry.label}</p>
-                          <p className="mt-1 text-sm text-[color:var(--muted)]">
-                            {entry.address.address_1}
-                            {entry.address.address_2 &&
-                              `, ${entry.address.address_2}`}
-                          </p>
-                          <p className="text-sm text-[color:var(--muted)]">
-                            {[
-                              entry.address.city,
-                              entry.address.state,
-                              entry.address.postcode,
-                            ]
-                              .filter(Boolean)
-                              .join(", ")}
-                          </p>
-                        </div>
-                        <button
-                          className="rounded-full p-2 text-red-500 hover:bg-red-50"
-                          onClick={() => removeAddress(entry.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <div className="mt-4 pt-4 border-t border-black/5">
-                        <button
-                          className={`text-xs font-semibold hover:underline ${
-                            defaultAddressId === entry.id
-                              ? "text-[color:var(--brand)]"
-                              : "text-[color:var(--muted)]"
-                          }`}
-                          onClick={() => setDefaultAddress(entry.id)}
-                        >
-                          {defaultAddressId === entry.id
-                            ? "Default Address"
-                            : "Set as Default"}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
           <div className="rounded-xl border border-black/5 bg-white p-6">
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--muted)]">

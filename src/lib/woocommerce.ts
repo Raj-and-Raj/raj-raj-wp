@@ -114,6 +114,41 @@ async function wooFetch<T>(path: string, params?: URLSearchParams): Promise<T> {
   throw new Error(`WooCommerce request failed: ${res.status}`);
 }
 
+async function wooFetchNoStore<T>(
+  path: string,
+  params?: URLSearchParams
+): Promise<T> {
+  if (!baseUrl) {
+    throw new Error("Missing WOOCOMMERCE_URL env var");
+  }
+
+  const query = params ? `?${withAuth(params).toString()}` : "";
+  const primaryUrl = `${baseUrl}/wp-json/wc/v3/${path}${query}`;
+  const legacyUrl = `${baseUrl}/wc-api/v3/${path}${query}`;
+
+  const res = await fetch(primaryUrl, {
+    cache: "no-store",
+    headers: { ...authHeaders() },
+  });
+
+  if (res.ok) {
+    return res.json() as Promise<T>;
+  }
+
+  if (res.status === 404) {
+    const legacyRes = await fetch(legacyUrl, {
+      cache: "no-store",
+      headers: { ...authHeaders() },
+    });
+    if (legacyRes.ok) {
+      return legacyRes.json() as Promise<T>;
+    }
+    throw new Error(`WooCommerce request failed: ${legacyRes.status}`);
+  }
+
+  throw new Error(`WooCommerce request failed: ${res.status}`);
+}
+
 async function wooPost<T>(path: string, body: unknown): Promise<T> {
   if (!baseUrl) {
     throw new Error("Missing WOOCOMMERCE_URL env var");
@@ -213,7 +248,7 @@ export async function fetchCategoryBySlug(slug: string) {
 
 export async function fetchCustomerByEmail(email: string) {
   const query = new URLSearchParams({ email });
-  const items = await wooFetch<WooCustomer[]>("customers", query);
+  const items = await wooFetchNoStore<WooCustomer[]>("customers", query);
   return items[0];
 }
 
