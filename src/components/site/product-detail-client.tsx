@@ -301,12 +301,12 @@ export function ProductDetailClient({
               ) : null}
             </div>
 
-            {product.shortDescription ? (
+            {product.description ? (
               <div className="mt-4 rounded-[12px] border border-black/5 bg-[#f4efe8] p-4 text-sm text-[color:var(--muted)]">
                 <p className="text-[color:var(--ink)]">Highlights</p>
                 <div
                   className="mt-2 space-y-2"
-                  dangerouslySetInnerHTML={{ __html: product.shortDescription }}
+                  dangerouslySetInnerHTML={{ __html: product.description }}
                 />
               </div>
             ) : null}
@@ -545,86 +545,50 @@ export function ProductDetailClient({
                     <p className="text-xs text-red-500">{selectionError}</p>
                   ) : null}
                   <div className="grid grid-cols-1 gap-3 items-center sm:grid-cols-3">
-                  <div
-                    className={`flex items-center justify-between rounded-[12px] border border-black/10 px-3 py-2 ${
-                      disableForSelection ? "opacity-50" : ""
-                    }`}
-                  >
-                    <button
-                      onClick={() => setQty(Math.max(1, qty - 1))}
-                      disabled={disableForSelection}
-                      className="h-8 w-8 rounded-[10px] border border-black/10 text-sm disabled:cursor-not-allowed"
+                    <div
+                      className={`flex items-center justify-between rounded-[12px] border border-black/10 px-3 py-2 ${
+                        disableForSelection ? "opacity-50" : ""
+                      }`}
                     >
-                      -
-                    </button>
-                    <span className="px-3 text-sm font-semibold">{qty}</span>
-                    <button
-                      onClick={() => setQty(qty + 1)}
-                      disabled={disableForSelection}
-                      className="h-8 w-8 rounded-[10px] border border-black/10 text-sm disabled:cursor-not-allowed"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <Button
-                    disabled={isInCart}
-                    aria-disabled={disableForSelection}
-                    data-disabled={disableForSelection ? "true" : "false"}
-                    className={`bg-[color:var(--brand)] rounded-[10px] text-white hover:brightness-110 ${
-                      disableForSelection ? "opacity-60" : ""
-                    }`}
-                    onClick={async () => {
-                      if (disableForSelection) {
-                        setSelectionError(
-                          colorAttribute
-                            ? "Please select a colour to continue."
-                            : "Please select all options to continue.",
-                        );
-                        return;
-                      }
-                      if (isInCart) {
-                        toast({
-                          title: "Already in cart",
-                          description: "This item is already in your cart.",
-                        });
-                        return;
-                      }
-                      await fetch("/api/cart/add", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          id: Number(product.id),
-                          quantity: qty,
-                          variation: variationPayload,
-                        }),
-                      });
-                      window.dispatchEvent(new Event("cart:updated"));
-                      toast({
-                        title: "Added to cart",
-                        description: "Item has been added to your cart.",
-                        variant: "success",
-                      });
-                    }}
-                  >
-                    {isInCart ? "Already in cart" : "Add to cart"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className={`rounded-[10px] bg-black border-black/10 text-white hover:border-[color:var(--brand)] hover:bg-[color:var(--brand)] hover:text-white ${
-                      disableForSelection ? "opacity-60" : ""
-                    }`}
-                    aria-disabled={disableForSelection}
-                    data-disabled={disableForSelection ? "true" : "false"}
-                    onClick={async () => {
-                      if (disableForSelection) {
-                        setSelectionError(
-                          colorAttribute
-                            ? "Please select a colour to continue."
-                            : "Please select all options to continue.",
-                        );
-                        return;
-                      }
-                      if (!isInCart) {
+                      <button
+                        onClick={() => setQty(Math.max(1, qty - 1))}
+                        disabled={disableForSelection}
+                        className="h-8 w-8 rounded-[10px] border border-black/10 text-sm disabled:cursor-not-allowed"
+                      >
+                        -
+                      </button>
+                      <span className="px-3 text-sm font-semibold">{qty}</span>
+                      <button
+                        onClick={() => setQty(qty + 1)}
+                        disabled={disableForSelection}
+                        className="h-8 w-8 rounded-[10px] border border-black/10 text-sm disabled:cursor-not-allowed"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <Button
+                      disabled={isInCart}
+                      aria-disabled={disableForSelection}
+                      data-disabled={disableForSelection ? "true" : "false"}
+                      className={`bg-[color:var(--brand)] rounded-[10px] text-white hover:brightness-110 ${
+                        disableForSelection ? "opacity-60" : ""
+                      }`}
+                      onClick={async () => {
+                        if (disableForSelection) {
+                          setSelectionError(
+                            colorAttribute
+                              ? "Please select a colour to continue."
+                              : "Please select all options to continue.",
+                          );
+                          return;
+                        }
+                        if (isInCart) {
+                          toast({
+                            title: "Already in cart",
+                            description: "This item is already in your cart.",
+                          });
+                          return;
+                        }
                         await fetch("/api/cart/add", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
@@ -635,14 +599,50 @@ export function ProductDetailClient({
                           }),
                         });
                         window.dispatchEvent(new Event("cart:updated"));
-                      }
-                      window.location.href = "/checkout";
-                    }}
-                  >
-                    Buy now
-                  </Button>
+                        toast({
+                          title: "Added to cart",
+                          description: "Item has been added to your cart.",
+                          variant: "success",
+                        });
+                      }}
+                    >
+                      {isInCart ? "Already in cart" : "Add to cart"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className={`rounded-[10px] bg-black border-black/10 text-white hover:border-[color:var(--brand)] hover:bg-[color:var(--brand)] hover:text-white ${
+                        disableForSelection ? "opacity-60" : ""
+                      }`}
+                      aria-disabled={disableForSelection}
+                      data-disabled={disableForSelection ? "true" : "false"}
+                      onClick={async () => {
+                        if (disableForSelection) {
+                          setSelectionError(
+                            colorAttribute
+                              ? "Please select a colour to continue."
+                              : "Please select all options to continue.",
+                          );
+                          return;
+                        }
+                        if (!isInCart) {
+                          await fetch("/api/cart/add", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              id: Number(product.id),
+                              quantity: qty,
+                              variation: variationPayload,
+                            }),
+                          });
+                          window.dispatchEvent(new Event("cart:updated"));
+                        }
+                        window.location.href = "/checkout";
+                      }}
+                    >
+                      Buy now
+                    </Button>
+                  </div>
                 </div>
-              </div>
               );
             })()}
 
@@ -656,10 +656,10 @@ export function ProductDetailClient({
       <section className="grid gap-[10px] lg:grid-cols-[2fr_1fr]">
         <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
           <h3 className="text-base font-semibold">Product details</h3>
-          {product.description ? (
+          {product.shortDescription ? (
             <div
               className="mt-4 space-y-3 text-sm text-[color:var(--muted)]"
-              dangerouslySetInnerHTML={{ __html: product.description }}
+              dangerouslySetInnerHTML={{ __html: product.shortDescription }}
             />
           ) : (
             <p className="mt-4 text-sm text-[color:var(--muted)]">
