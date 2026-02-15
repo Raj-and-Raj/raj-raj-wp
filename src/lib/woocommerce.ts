@@ -140,6 +140,32 @@ async function wooPost<T>(path: string, body: unknown): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+async function wooPut<T>(path: string, body: unknown): Promise<T> {
+  if (!baseUrl) {
+    throw new Error("Missing WOOCOMMERCE_URL env var");
+  }
+  if (!consumerKey || !consumerSecret) {
+    throw new Error("Missing WooCommerce API keys");
+  }
+
+  const params = withAuth(new URLSearchParams());
+  const res = await fetch(
+    `${baseUrl}/wp-json/wc/v3/${path}?${params.toString()}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`WooCommerce request failed: ${res.status} ${text}`);
+  }
+
+  return res.json() as Promise<T>;
+}
+
 export async function fetchProducts(params?: { category?: string }) {
   const query = new URLSearchParams();
   if (params?.category) query.set("category", params.category);
@@ -257,7 +283,7 @@ export async function updateCustomer(
     shipping?: WooCustomer["shipping"];
   }
 ) {
-  return wooPost<WooCustomer>(`customers/${customerId}`, input);
+  return wooPut<WooCustomer>(`customers/${customerId}`, input);
 }
 
 export async function createCustomer(input: {
