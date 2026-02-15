@@ -37,24 +37,6 @@ type Cart = {
   }>;
 };
 
-type AddressBookEntry = {
-  id: string;
-  label: string;
-  address: {
-    first_name?: string;
-    last_name?: string;
-    company?: string;
-    address_1?: string;
-    address_2?: string;
-    city?: string;
-    state?: string;
-    postcode?: string;
-    country?: string;
-    phone?: string;
-    email?: string;
-  };
-};
-
 export default function CheckoutPage() {
   const router = useRouter();
   const [cart, setCart] = useState<Cart | null>(null);
@@ -71,6 +53,19 @@ export default function CheckoutPage() {
     postcode: "",
     country: "IN",
   });
+  const [shipping, setShipping] = useState({
+    first_name: "",
+    last_name: "",
+    company: "",
+    address_1: "",
+    address_2: "",
+    city: "",
+    state: "",
+    postcode: "",
+    country: "IN",
+    phone: "",
+  });
+  const [shipToBilling, setShipToBilling] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [shippingMethod, setShippingMethod] = useState("");
   const [isPlacing, setIsPlacing] = useState(false);
@@ -79,8 +74,6 @@ export default function CheckoutPage() {
   const [coupon, setCoupon] = useState("");
   const [couponError, setCouponError] = useState("");
   const [couponSuccess, setCouponSuccess] = useState("");
-  const [savedAddresses, setSavedAddresses] = useState<AddressBookEntry[]>([]);
-  const [selectedAddressId, setSelectedAddressId] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [hasPrefilled, setHasPrefilled] = useState(false);
 
@@ -127,12 +120,17 @@ export default function CheckoutPage() {
         };
 
         let nextBilling: typeof billing | null = null;
+        let nextShipping: typeof shipping | null = null;
         const addressRes = await fetch("/api/account/addresses");
         if (addressRes.ok) {
           const data = await addressRes.json();
           nextBilling = mergeAddress(
             nextBilling ?? billing,
             data?.billing ?? data?.shipping
+          );
+          nextShipping = mergeAddress(
+            nextShipping ?? shipping,
+            data?.shipping ?? data?.billing
           );
         }
 
@@ -143,10 +141,17 @@ export default function CheckoutPage() {
             nextBilling ?? billing,
             draft?.billing_address
           );
+          nextShipping = mergeAddress(
+            nextShipping ?? shipping,
+            draft?.shipping_address ?? draft?.billing_address
+          );
         }
 
         if (nextBilling) {
           setBilling(nextBilling);
+        }
+        if (nextShipping) {
+          setShipping(nextShipping);
         }
         setHasPrefilled(true);
       }
@@ -155,24 +160,9 @@ export default function CheckoutPage() {
   }, [shippingMethod, router, hasPrefilled]);
 
   useEffect(() => {
-    const stored = localStorage.getItem("addressBook");
-    const defaultId = localStorage.getItem("defaultAddressId");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as AddressBookEntry[];
-        setSavedAddresses(parsed);
-        if (defaultId) {
-          setSelectedAddressId(defaultId);
-          const match = parsed.find((entry) => entry.id === defaultId);
-          if (match) {
-            setBilling((prev) => ({ ...prev, ...match.address }));
-          }
-        }
-      } catch {
-        setSavedAddresses([]);
-      }
-    }
-  }, []);
+    if (!shipToBilling) return;
+    setShipping((prev) => ({ ...prev, ...billing }));
+  }, [billing, shipToBilling]);
 
   useEffect(() => {
     if (!couponSuccess) return;
@@ -195,7 +185,7 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           billing_address: billing,
-          shipping_address: billing,
+          shipping_address: shipToBilling ? billing : shipping,
           shipping_method: shippingMethod ? [shippingMethod] : undefined,
           payment_method: paymentMethod,
           payment_data: [],
@@ -318,33 +308,7 @@ export default function CheckoutPage() {
       <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6">
           <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
-            <h1 className="text-xl font-semibold">Billing &amp; Shipping</h1>
-            {savedAddresses.length ? (
-              <div className="mt-4">
-                <label className="text-xs font-semibold text-[color:var(--muted)]">
-                  Saved address
-                </label>
-                <select
-                  className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  value={selectedAddressId}
-                  onChange={(event) => {
-                    const id = event.target.value;
-                    setSelectedAddressId(id);
-                    const match = savedAddresses.find((entry) => entry.id === id);
-                    if (match) {
-                      setBilling((prev) => ({ ...prev, ...match.address }));
-                    }
-                  }}
-                >
-                  <option value="">Select saved address</option>
-                  {savedAddresses.map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {entry.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : null}
+            <h1 className="text-xl font-semibold">Billing details</h1>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <label className="text-xs font-semibold text-[color:var(--muted)]">
                 First name <span className="text-[color:var(--brand)]">*</span>
@@ -462,6 +426,16 @@ export default function CheckoutPage() {
                 }
               />
             </label>
+            <div className="mt-6 rounded-[12px] border border-black/5 bg-white/80 p-4">
+              <label className="flex items-center gap-2 text-xs font-semibold text-[color:var(--muted)]">
+                <input
+                  type="checkbox"
+                  checked={shipToBilling}
+                  onChange={(event) => setShipToBilling(event.target.checked)}
+                />
+                Shipping address same as billing
+              </label>
+            </div>
             <label className="mt-6 block text-xs font-semibold text-[color:var(--muted)]">
               Additional information
               <textarea
@@ -473,6 +447,119 @@ export default function CheckoutPage() {
               />
             </label>
           </div>
+
+          {!shipToBilling ? (
+            <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
+              <h2 className="text-lg font-semibold">Shipping details</h2>
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                <label className="text-xs font-semibold text-[color:var(--muted)]">
+                  First name <span className="text-[color:var(--brand)]">*</span>
+                  <input
+                    className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                    value={shipping.first_name}
+                    onChange={(event) =>
+                      setShipping({ ...shipping, first_name: event.target.value })
+                    }
+                  />
+                </label>
+                <label className="text-xs font-semibold text-[color:var(--muted)]">
+                  Last name <span className="text-[color:var(--brand)]">*</span>
+                  <input
+                    className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                    value={shipping.last_name}
+                    onChange={(event) =>
+                      setShipping({ ...shipping, last_name: event.target.value })
+                    }
+                  />
+                </label>
+              </div>
+              <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
+                Company name (optional)
+                <input
+                  className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                  value={shipping.company ?? ""}
+                  onChange={(event) =>
+                    setShipping({ ...shipping, company: event.target.value })
+                  }
+                />
+              </label>
+              <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
+                Country / Region <span className="text-[color:var(--brand)]">*</span>
+                <input
+                  className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                  value={shipping.country}
+                  onChange={(event) =>
+                    setShipping({ ...shipping, country: event.target.value })
+                  }
+                />
+              </label>
+              <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
+                Street address <span className="text-[color:var(--brand)]">*</span>
+                <input
+                  className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                  placeholder="House number and street name"
+                  value={shipping.address_1}
+                  onChange={(event) =>
+                    setShipping({ ...shipping, address_1: event.target.value })
+                  }
+                />
+              </label>
+              <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
+                Apartment, suite, unit, etc. (optional)
+                <input
+                  className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                  value={shipping.address_2}
+                  onChange={(event) =>
+                    setShipping({ ...shipping, address_2: event.target.value })
+                  }
+                />
+              </label>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <label className="text-xs font-semibold text-[color:var(--muted)]">
+                  Town / City <span className="text-[color:var(--brand)]">*</span>
+                  <input
+                    className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                    value={shipping.city}
+                    onChange={(event) =>
+                      setShipping({ ...shipping, city: event.target.value })
+                    }
+                  />
+                </label>
+                <label className="text-xs font-semibold text-[color:var(--muted)]">
+                  State / County <span className="text-[color:var(--brand)]">*</span>
+                  <input
+                    className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                    value={shipping.state}
+                    onChange={(event) =>
+                      setShipping({ ...shipping, state: event.target.value })
+                    }
+                  />
+                </label>
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <label className="text-xs font-semibold text-[color:var(--muted)]">
+                  Postcode / ZIP <span className="text-[color:var(--brand)]">*</span>
+                  <input
+                    className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                    value={shipping.postcode}
+                    onChange={(event) =>
+                      setShipping({ ...shipping, postcode: event.target.value })
+                    }
+                  />
+                </label>
+                <label className="text-xs font-semibold text-[color:var(--muted)]">
+                  Phone <span className="text-[color:var(--brand)]">*</span>
+                  <input
+                    className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                    value={shipping.phone}
+                    onChange={(event) =>
+                      setShipping({ ...shipping, phone: event.target.value })
+                    }
+                  />
+                </label>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="space-y-6">
