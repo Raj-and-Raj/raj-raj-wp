@@ -77,43 +77,43 @@ export default function CheckoutPage() {
   const [isAuthed, setIsAuthed] = useState(false);
   const [hasPrefilled, setHasPrefilled] = useState(false);
   const indiaStates = [
-    "AN",
-    "AP",
-    "AR",
-    "AS",
-    "BR",
-    "CH",
-    "CT",
-    "DN",
-    "DD",
-    "DL",
-    "GA",
-    "GJ",
-    "HR",
-    "HP",
-    "JK",
-    "JH",
-    "KA",
-    "KL",
-    "LA",
-    "LD",
-    "MP",
-    "MH",
-    "MN",
-    "ML",
-    "MZ",
-    "NL",
-    "OR",
-    "PY",
-    "PB",
-    "RJ",
-    "SK",
-    "TN",
-    "TG",
-    "TR",
-    "UP",
-    "UT",
-    "WB",
+    { code: "AN", name: "Andaman and Nicobar Islands" },
+    { code: "AP", name: "Andhra Pradesh" },
+    { code: "AR", name: "Arunachal Pradesh" },
+    { code: "AS", name: "Assam" },
+    { code: "BR", name: "Bihar" },
+    { code: "CH", name: "Chandigarh" },
+    { code: "CT", name: "Chhattisgarh" },
+    { code: "DN", name: "Dadra and Nagar Haveli and Daman and Diu" },
+    { code: "DD", name: "Daman and Diu (Legacy)" },
+    { code: "DL", name: "Delhi" },
+    { code: "GA", name: "Goa" },
+    { code: "GJ", name: "Gujarat" },
+    { code: "HR", name: "Haryana" },
+    { code: "HP", name: "Himachal Pradesh" },
+    { code: "JK", name: "Jammu and Kashmir" },
+    { code: "JH", name: "Jharkhand" },
+    { code: "KA", name: "Karnataka" },
+    { code: "KL", name: "Kerala" },
+    { code: "LA", name: "Ladakh" },
+    { code: "LD", name: "Lakshadweep" },
+    { code: "MP", name: "Madhya Pradesh" },
+    { code: "MH", name: "Maharashtra" },
+    { code: "MN", name: "Manipur" },
+    { code: "ML", name: "Meghalaya" },
+    { code: "MZ", name: "Mizoram" },
+    { code: "NL", name: "Nagaland" },
+    { code: "OR", name: "Odisha" },
+    { code: "PY", name: "Puducherry" },
+    { code: "PB", name: "Punjab" },
+    { code: "RJ", name: "Rajasthan" },
+    { code: "SK", name: "Sikkim" },
+    { code: "TN", name: "Tamil Nadu" },
+    { code: "TG", name: "Telangana" },
+    { code: "TR", name: "Tripura" },
+    { code: "UP", name: "Uttar Pradesh" },
+    { code: "UT", name: "Uttarakhand" },
+    { code: "WB", name: "West Bengal" },
   ];
 
   useEffect(() => {
@@ -144,15 +144,15 @@ export default function CheckoutPage() {
         }
       }
       if (!hasPrefilled) {
-        const mergeAddress = (
-          current: typeof billing,
-          incoming?: Partial<typeof billing> | null
+        const mergeAddress = <T extends Record<string, string | undefined>>(
+          current: T,
+          incoming?: Partial<T> | null
         ) => {
           if (!incoming) return current;
           const next = { ...current };
-          (Object.keys(next) as Array<keyof typeof billing>).forEach((key) => {
+          (Object.keys(next) as Array<keyof T>).forEach((key) => {
             if (!next[key] && incoming[key]) {
-              next[key] = incoming[key] as string;
+              next[key] = incoming[key] as T[keyof T];
             }
           });
           return next;
@@ -435,8 +435,8 @@ export default function CheckoutPage() {
                 >
                   <option value="">Select state</option>
                   {indiaStates.map((state) => (
-                    <option key={state} value={state}>
-                      {state}
+                    <option key={state.code} value={state.code}>
+                      {state.name}
                     </option>
                   ))}
                 </select>
@@ -586,8 +586,8 @@ export default function CheckoutPage() {
                   >
                     <option value="">Select state</option>
                     {indiaStates.map((state) => (
-                      <option key={state} value={state}>
-                        {state}
+                      <option key={state.code} value={state.code}>
+                        {state.name}
                       </option>
                     ))}
                   </select>
