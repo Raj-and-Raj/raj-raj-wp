@@ -130,11 +130,17 @@ export default function CheckoutPage() {
         setCart(data);
         const options =
           data?.shipping_rates
-            ?.flatMap((pkg: { shipping_rates?: Array<{ rate_id?: string; method_id?: string }> }) =>
-              pkg.shipping_rates ?? []
+            ?.flatMap(
+              (pkg: {
+                shipping_rates?: Array<{
+                  rate_id?: string;
+                  method_id?: string;
+                }>;
+              }) => pkg.shipping_rates ?? [],
             )
-            ?.map((rate: { rate_id?: string; method_id?: string }) =>
-              rate.rate_id || rate.method_id
+            ?.map(
+              (rate: { rate_id?: string; method_id?: string }) =>
+                rate.rate_id || rate.method_id,
             )
             ?.filter(Boolean) ?? [];
         if (options.length && !shippingMethod) {
@@ -146,7 +152,7 @@ export default function CheckoutPage() {
       if (!hasPrefilled) {
         const mergeAddress = <T extends Record<string, string | undefined>>(
           current: T,
-          incoming?: Partial<T> | null
+          incoming?: Partial<T> | null,
         ) => {
           if (!incoming) return current;
           const next = { ...current };
@@ -165,11 +171,11 @@ export default function CheckoutPage() {
           const data = await addressRes.json();
           nextBilling = mergeAddress(
             nextBilling ?? billing,
-            data?.billing ?? data?.shipping
+            data?.billing ?? data?.shipping,
           );
           nextShipping = mergeAddress(
             nextShipping ?? shipping,
-            data?.shipping ?? data?.billing
+            data?.shipping ?? data?.billing,
           );
         }
 
@@ -178,11 +184,11 @@ export default function CheckoutPage() {
           const draft = await checkoutRes.json();
           nextBilling = mergeAddress(
             nextBilling ?? billing,
-            draft?.billing_address
+            draft?.billing_address,
           );
           nextShipping = mergeAddress(
             nextShipping ?? shipping,
-            draft?.shipping_address ?? draft?.billing_address
+            draft?.shipping_address ?? draft?.billing_address,
           );
         }
 
@@ -305,15 +311,15 @@ export default function CheckoutPage() {
   const subtotalCents =
     subtotalCentsRaw > 0 ? subtotalCentsRaw : itemsSubtotalCents;
   const couponDiscountFromCoupons =
-    cart?.coupons?.reduce(
-      (sum, entry) => sum + toCents(entry.discount),
-      0,
-    ) ?? 0;
+    cart?.coupons?.reduce((sum, entry) => sum + toCents(entry.discount), 0) ??
+    0;
   const couponDiscountFromTotals =
-    toCents(cart?.totals?.discount_total) +
-    toCents(cart?.totals?.discount_tax);
+    toCents(cart?.totals?.discount_total) + toCents(cart?.totals?.discount_tax);
   const derivedDiscountFromTotals = Math.max(0, subtotalCents - totalsCents);
-  const derivedDiscountFromItems = Math.max(0, itemsSubtotalCents - subtotalCents);
+  const derivedDiscountFromItems = Math.max(
+    0,
+    itemsSubtotalCents - subtotalCents,
+  );
   const couponDiscountCents =
     couponDiscountFromCoupons > 0
       ? couponDiscountFromCoupons
@@ -322,14 +328,11 @@ export default function CheckoutPage() {
         : derivedDiscountFromTotals > 0
           ? derivedDiscountFromTotals
           : derivedDiscountFromItems;
-  const derivedTotalCents = Math.max(
-    0,
-    subtotalCents - couponDiscountCents,
-  );
+  const derivedTotalCents = Math.max(0, subtotalCents - couponDiscountCents);
   const shippingRates =
     cart?.shipping_rates?.flatMap((pkg) => pkg.shipping_rates ?? []) ?? [];
   const selectedRate = shippingRates.find(
-    (rate) => (rate.rate_id || rate.method_id) === shippingMethod
+    (rate) => (rate.rate_id || rate.method_id) === shippingMethod,
   );
   const selectedRateCents = selectedRate
     ? typeof selectedRate.price === "number"
@@ -343,7 +346,7 @@ export default function CheckoutPage() {
       : derivedTotalCents + (selectedRateCents || fallbackShippingCents);
 
   return (
-    <div className="mx-auto w-full max-w-[96rem] px-6 pt-32">
+    <div className="mx-auto w-full max-w-[96rem] px-6 mb-24 pt-32">
       <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6">
           <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
@@ -381,7 +384,8 @@ export default function CheckoutPage() {
               />
             </label>
             <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
-              Country / Region <span className="text-[color:var(--brand)]">*</span>
+              Country / Region{" "}
+              <span className="text-[color:var(--brand)]">*</span>
               <select
                 className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                 value={billing.country}
@@ -393,7 +397,8 @@ export default function CheckoutPage() {
               </select>
             </label>
             <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
-              Street address <span className="text-[color:var(--brand)]">*</span>
+              Street address{" "}
+              <span className="text-[color:var(--brand)]">*</span>
               <input
                 className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                 placeholder="House number and street name"
@@ -425,7 +430,8 @@ export default function CheckoutPage() {
                 />
               </label>
               <label className="text-xs font-semibold text-[color:var(--muted)]">
-                State / County <span className="text-[color:var(--brand)]">*</span>
+                State / County{" "}
+                <span className="text-[color:var(--brand)]">*</span>
                 <select
                   className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                   value={billing.state}
@@ -444,7 +450,8 @@ export default function CheckoutPage() {
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <label className="text-xs font-semibold text-[color:var(--muted)]">
-                Postcode / ZIP <span className="text-[color:var(--brand)]">*</span>
+                Postcode / ZIP{" "}
+                <span className="text-[color:var(--brand)]">*</span>
                 <input
                   className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                   value={billing.postcode}
@@ -501,12 +508,16 @@ export default function CheckoutPage() {
               <h2 className="text-lg font-semibold">Shipping details</h2>
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 <label className="text-xs font-semibold text-[color:var(--muted)]">
-                  First name <span className="text-[color:var(--brand)]">*</span>
+                  First name{" "}
+                  <span className="text-[color:var(--brand)]">*</span>
                   <input
                     className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                     value={shipping.first_name}
                     onChange={(event) =>
-                      setShipping({ ...shipping, first_name: event.target.value })
+                      setShipping({
+                        ...shipping,
+                        first_name: event.target.value,
+                      })
                     }
                   />
                 </label>
@@ -516,7 +527,10 @@ export default function CheckoutPage() {
                     className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                     value={shipping.last_name}
                     onChange={(event) =>
-                      setShipping({ ...shipping, last_name: event.target.value })
+                      setShipping({
+                        ...shipping,
+                        last_name: event.target.value,
+                      })
                     }
                   />
                 </label>
@@ -532,7 +546,8 @@ export default function CheckoutPage() {
                 />
               </label>
               <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
-                Country / Region <span className="text-[color:var(--brand)]">*</span>
+                Country / Region{" "}
+                <span className="text-[color:var(--brand)]">*</span>
                 <select
                   className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                   value={shipping.country}
@@ -544,7 +559,8 @@ export default function CheckoutPage() {
                 </select>
               </label>
               <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
-                Street address <span className="text-[color:var(--brand)]">*</span>
+                Street address{" "}
+                <span className="text-[color:var(--brand)]">*</span>
                 <input
                   className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                   placeholder="House number and street name"
@@ -566,7 +582,8 @@ export default function CheckoutPage() {
               </label>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <label className="text-xs font-semibold text-[color:var(--muted)]">
-                  Town / City <span className="text-[color:var(--brand)]">*</span>
+                  Town / City{" "}
+                  <span className="text-[color:var(--brand)]">*</span>
                   <input
                     className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                     value={shipping.city}
@@ -576,7 +593,8 @@ export default function CheckoutPage() {
                   />
                 </label>
                 <label className="text-xs font-semibold text-[color:var(--muted)]">
-                  State / County <span className="text-[color:var(--brand)]">*</span>
+                  State / County{" "}
+                  <span className="text-[color:var(--brand)]">*</span>
                   <select
                     className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                     value={shipping.state}
@@ -595,7 +613,8 @@ export default function CheckoutPage() {
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <label className="text-xs font-semibold text-[color:var(--muted)]">
-                  Postcode / ZIP <span className="text-[color:var(--brand)]">*</span>
+                  Postcode / ZIP{" "}
+                  <span className="text-[color:var(--brand)]">*</span>
                   <input
                     className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                     value={shipping.postcode}
@@ -629,13 +648,20 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                 </div>
                 {cart.items?.map((item) => (
-                  <div key={item.key} className="flex items-center justify-between border-b border-black/5 pb-3">
+                  <div
+                    key={item.key}
+                    className="flex items-center justify-between border-b border-black/5 pb-3"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="h-12 w-12 overflow-hidden rounded-[10px] bg-[#f1ece4]">
-                        {item.images?.[0]?.thumbnail || item.images?.[0]?.src ? (
+                        {item.images?.[0]?.thumbnail ||
+                        item.images?.[0]?.src ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={item.images?.[0]?.thumbnail || item.images?.[0]?.src}
+                            src={
+                              item.images?.[0]?.thumbnail ||
+                              item.images?.[0]?.src
+                            }
                             alt={item.name}
                             className="h-full w-full object-cover"
                           />
@@ -648,7 +674,9 @@ export default function CheckoutPage() {
                         </p>
                       </div>
                     </div>
-                    <span>{formatPrice(Number(item.prices?.price ?? 0) / 100)}</span>
+                    <span>
+                      {formatPrice(Number(item.prices?.price ?? 0) / 100)}
+                    </span>
                   </div>
                 ))}
                 <div className="flex justify-between text-sm">
@@ -666,7 +694,10 @@ export default function CheckoutPage() {
                     <p className="mb-2 font-semibold">Applied coupons</p>
                     <div className="space-y-1">
                       {cart.coupons.map((entry) => (
-                        <div key={entry.code} className="flex items-center justify-between">
+                        <div
+                          key={entry.code}
+                          className="flex items-center justify-between"
+                        >
                           <span className="uppercase">{entry.code}</span>
                           <button
                             className="text-[color:var(--brand)]"
@@ -703,7 +734,9 @@ export default function CheckoutPage() {
                   </>
                 ) : null}
                 <div className="mt-3 space-y-2 text-xs">
-                  <p className="font-semibold text-[color:var(--muted)]">Shipping</p>
+                  <p className="font-semibold text-[color:var(--muted)]">
+                    Shipping
+                  </p>
                   {shippingRates.length ? (
                     shippingRates.map((rate) => {
                       const id = rate.rate_id || rate.method_id || "";
@@ -791,7 +824,11 @@ export default function CheckoutPage() {
             {error ? (
               <p className="mt-3 text-sm text-red-500">{error}</p>
             ) : null}
-            <Button onClick={placeOrder} className="mt-6 w-full" disabled={isPlacing}>
+            <Button
+              onClick={placeOrder}
+              className="mt-6 w-full"
+              disabled={isPlacing}
+            >
               {isPlacing ? "Placing order..." : "Place order"}
             </Button>
           </div>

@@ -191,7 +191,7 @@ export default function WishlistPage() {
     );
 
   return (
-    <div className="space-y-8 pt-32">
+    <div className="space-y-8 container mx-auto pt-32">
       <div>
         <h1 className="text-3xl font-semibold text-[color:var(--ink)]">
           Wishlist

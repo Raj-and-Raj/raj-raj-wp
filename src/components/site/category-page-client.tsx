@@ -177,7 +177,7 @@ export function CategoryPageClient({
   }, [visibleProducts, variationSwatches]);
 
   return (
-    <div className="min-h-screen  pb-2 pt-32">
+    <div className="min-h-screen  pb-2 mb-24 pt-32">
       <div className="container mx-auto mb-2 px-4 md:px-8">
         <div className="mb-4 flex items-center gap-1 text-xs text-gray-500">
           <Link href="/" className="hover:text-[#DA3234]">
@@ -315,38 +315,38 @@ export function CategoryPageClient({
                 </div>
 
                 <div>
-                <div className="mb-1 flex items-start justify-between">
-                  <h3 className="text-lg font-semibold text-[color:var(--ink)] transition-colors group-hover:text-[color:var(--brand)]">
-                    {product.name}
-                  </h3>
-                  <div className="flex flex-col items-end gap-1">
-                    {typeof product.salePrice === "number" &&
-                    typeof product.regularPrice === "number" &&
-                    product.salePrice > 0 &&
-                    product.regularPrice > product.salePrice ? (
-                      <>
-                        <span className="text-xs text-[color:var(--muted)] line-through">
-                          {formatPrice(product.regularPrice)}
-                        </span>
+                  <div className="mb-1 flex items-start justify-between">
+                    <h3 className="text-lg font-semibold text-[color:var(--ink)] transition-colors group-hover:text-[color:var(--brand)]">
+                      {product.name}
+                    </h3>
+                    <div className="flex flex-col items-end gap-1">
+                      {typeof product.salePrice === "number" &&
+                      typeof product.regularPrice === "number" &&
+                      product.salePrice > 0 &&
+                      product.regularPrice > product.salePrice ? (
+                        <>
+                          <span className="text-xs text-[color:var(--muted)] line-through">
+                            {formatPrice(product.regularPrice)}
+                          </span>
+                          <span className="text-sm font-semibold text-[color:var(--brand)]">
+                            {formatPrice(product.salePrice)}
+                          </span>
+                        </>
+                      ) : (
                         <span className="text-sm font-semibold text-[color:var(--brand)]">
-                          {formatPrice(product.salePrice)}
+                          {formatPrice(product.price)}
                         </span>
-                      </>
-                    ) : (
-                      <span className="text-sm font-semibold text-[color:var(--brand)]">
-                        {formatPrice(product.price)}
-                      </span>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-                {product.acf?.introDescription ? (
-                  <div
-                    className="mb-2 line-clamp-2 text-xs text-[color:var(--muted)]"
-                    dangerouslySetInnerHTML={{
-                      __html: product.acf.introDescription,
-                    }}
-                  />
-                ) : null}
+                  {product.acf?.introDescription ? (
+                    <div
+                      className="mb-2 line-clamp-2 text-xs text-[color:var(--muted)]"
+                      dangerouslySetInnerHTML={{
+                        __html: product.acf.introDescription,
+                      }}
+                    />
+                  ) : null}
                   <div
                     className="mb-3 flex gap-2"
                     onMouseLeave={() =>
@@ -412,7 +412,8 @@ export function CategoryPageClient({
                         addToCart(product.id);
                       }}
                       disabled={
-                        product.type !== "variable" && cartIds.includes(product.id)
+                        product.type !== "variable" &&
+                        cartIds.includes(product.id)
                       }
                       className="inline-flex items-center gap-2 rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-[color:var(--muted)] transition hover:border-[color:var(--brand)] hover:text-[color:var(--brand)] disabled:cursor-not-allowed disabled:border-black/5 disabled:text-gray-400 disabled:hover:text-gray-400"
                     >

@@ -8,6 +8,7 @@ import { StoreLocatorBanner } from "@/components/site/home/store-locator-banner"
 import { BusinessSolutionsBanner } from "@/components/site/home/business-solutions-banner";
 import { GoogleReviews } from "@/components/site/home/google-reviews";
 import { InstagramFeed } from "@/components/site/home/instagram-feed";
+import { LongContentSection } from "@/components/site/home/long-content";
 
 export default function Home() {
   return (
@@ -22,6 +23,7 @@ export default function Home() {
       <BusinessSolutionsBanner />
       <GoogleReviews />
       <InstagramFeed />
+      <LongContentSection />
     </div>
   );
 }

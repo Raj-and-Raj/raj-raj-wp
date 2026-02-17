@@ -200,7 +200,7 @@ export function ProductDetailClient({
   };
 
   return (
-    <div className="space-y-4 pt-32">
+    <div className="space-y-4 container mx-auto mb-24 pt-32">
       <div className="text-xs text-[color:var(--muted)]">
         <Link href="/" className="hover:text-[color:var(--brand)]">
           Home

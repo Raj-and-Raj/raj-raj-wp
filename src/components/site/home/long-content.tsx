@@ -2,7 +2,7 @@
 
 export function LongContentSection() {
   return (
-    <section className="mx-auto mt-16 max-w-5xl rounded-3xl border border-black/5 bg-white/95 p-8 text-[color:var(--ink)] shadow-sm md:p-10">
+    <section className="mx-auto mt-16 rounded-3xl  p-8 text-[color:var(--ink)] md:p-10">
       <h2 className="text-2xl font-bold md:text-3xl">
         Explore Interio by Godrej Furniture Online
       </h2>
@@ -129,7 +129,9 @@ export function LongContentSection() {
             your style and provide ultimate comfort.
           </p>
           <p className="mt-2">
-            <span className="font-semibold text-[color:var(--ink)]">Sofas:</span>{" "}
+            <span className="font-semibold text-[color:var(--ink)]">
+              Sofas:
+            </span>{" "}
             Available in various styles, from modern to classic, and materials
             such as leather and fabric. Our sofas are designed for comfort and
             durability, making them the perfect addition to any living room.
@@ -174,10 +176,9 @@ export function LongContentSection() {
             <span className="font-semibold text-[color:var(--ink)]">
               Chest of Drawers:
             </span>{" "}
-            Essential for storage and organization, available in various
-            designs and finishes. Our dressers and chests are designed to
-            provide ample storage space while adding a touch of elegance to your
-            bedroom.
+            Essential for storage and organization, available in various designs
+            and finishes. Our dressers and chests are designed to provide ample
+            storage space while adding a touch of elegance to your bedroom.
           </p>
           <p className="mt-2">
             <span className="font-semibold text-[color:var(--ink)]">
@@ -185,8 +186,8 @@ export function LongContentSection() {
             </span>{" "}
             Convenient for keeping essentials close at hand, with options that
             complement your bed and other furniture. Our bedside tables are
-            designed to provide functionality and style, making them the
-            perfect addition to any bedroom.
+            designed to provide functionality and style, making them the perfect
+            addition to any bedroom.
           </p>
         </div>
 
@@ -227,8 +228,8 @@ export function LongContentSection() {
           </p>
           <p className="mt-2">
             Enhance your productivity with our stylish and ergonomic office
-            furniture. From functional desks to comfortable chairs, our range
-            is designed to create an efficient and pleasant workspace. Buy
+            furniture. From functional desks to comfortable chairs, our range is
+            designed to create an efficient and pleasant workspace. Buy
             furniture online from Interio by Godrej to set up a workspace that
             inspires creativity and efficiency.
           </p>
@@ -236,17 +237,17 @@ export function LongContentSection() {
             <span className="font-semibold text-[color:var(--ink)]">
               Study Table:
             </span>{" "}
-            Available in various sizes and designs to fit your space and
-            style. Our desks are designed to provide ample workspace and
-            storage, making them the perfect addition to any office.
+            Available in various sizes and designs to fit your space and style.
+            Our desks are designed to provide ample workspace and storage,
+            making them the perfect addition to any office.
           </p>
           <p className="mt-2">
             <span className="font-semibold text-[color:var(--ink)]">
               Office Chair:
             </span>{" "}
-            Designed for comfort and support, our office chairs are available
-            in various styles and materials. Our chairs are designed to provide
-            the support you need for a productive workday.
+            Designed for comfort and support, our office chairs are available in
+            various styles and materials. Our chairs are designed to provide the
+            support you need for a productive workday.
           </p>
         </div>
 
@@ -272,9 +273,9 @@ export function LongContentSection() {
               Consider Your Style:
             </span>{" "}
             While shopping furniture online, choose furniture that aligns with
-            your personal style and complements your existing décor. Whether
-            you prefer contemporary, traditional, or eclectic styles, we have a
-            wide range of options to suit your taste.
+            your personal style and complements your existing décor. Whether you
+            prefer contemporary, traditional, or eclectic styles, we have a wide
+            range of options to suit your taste.
           </p>
           <p className="mt-2">
             <span className="font-semibold text-[color:var(--ink)]">
@@ -313,9 +314,9 @@ export function LongContentSection() {
               Choose Durable Pieces:
             </span>{" "}
             Invest in high-quality, durable furniture that will last longer and
-            reduce the need for frequent replacements. Our furniture is
-            designed to withstand the test of time, ensuring that you get the
-            best value for your money.
+            reduce the need for frequent replacements. Our furniture is designed
+            to withstand the test of time, ensuring that you get the best value
+            for your money.
           </p>
         </div>
 
@@ -332,9 +333,9 @@ export function LongContentSection() {
               Consistent Style:
             </span>{" "}
             Stick to a consistent style or theme throughout your home for a
-            harmonious and balanced appearance. Whether you prefer
-            contemporary, traditional, or eclectic styles, choose furniture
-            that complements your overall design scheme.
+            harmonious and balanced appearance. Whether you prefer contemporary,
+            traditional, or eclectic styles, choose furniture that complements
+            your overall design scheme.
           </p>
           <p className="mt-2">
             <span className="font-semibold text-[color:var(--ink)]">
