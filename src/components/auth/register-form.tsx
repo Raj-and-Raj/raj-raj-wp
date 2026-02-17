@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { User, Mail, Lock, MoveRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,11 @@ export function RegisterForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [formStartedAt, setFormStartedAt] = useState(0);
+
+  useEffect(() => {
+    setFormStartedAt(Date.now());
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -20,15 +25,39 @@ export function RegisterForm() {
     const form = event.currentTarget;
     const formData = new FormData(form);
     const email = String(formData.get("email") ?? "").trim();
-    const username = String(formData.get("username") ?? "").trim();
     const password = String(formData.get("password") ?? "");
+    const honeypot = String(formData.get("company") ?? "").trim();
+    const startedAt = Number(formData.get("formStartedAt") ?? 0);
+    const now = Date.now();
+    const firstName = String(formData.get("firstName") ?? "").trim();
+    const lastName = String(formData.get("lastName") ?? "").trim();
 
-    if (!email || !username || !password) {
+    if (!email || !password) {
       setLoading(false);
       toast({
         variant: "destructive",
         title: "Missing details",
-        description: "Email, username, and password are required.",
+        description: "Email and password are required.",
+      });
+      return;
+    }
+
+    if (honeypot) {
+      setLoading(false);
+      toast({
+        variant: "destructive",
+        title: "Signup blocked",
+        description: "Please try again.",
+      });
+      return;
+    }
+
+    if (!startedAt || now - startedAt < 2000) {
+      setLoading(false);
+      toast({
+        variant: "destructive",
+        title: "Signup blocked",
+        description: "Please wait a moment and try again.",
       });
       return;
     }
@@ -53,12 +82,20 @@ export function RegisterForm() {
       return;
     }
 
+    const baseFromName = `${firstName}${lastName}`.toLowerCase();
+    const baseFromEmail = email.split("@")[0]?.toLowerCase() ?? "user";
+    const base = (baseFromName || baseFromEmail).replace(/[^a-z0-9]/g, "");
+    const suffix = String(Math.floor(Math.random() * 900) + 100);
+    const username = `${base || "user"}${suffix}`;
+
     const payload = {
       email,
       username,
       password,
-      firstName: formData.get("firstName"),
-      lastName: formData.get("lastName"),
+      firstName,
+      lastName,
+      honeypot,
+      formStartedAt: startedAt,
     };
 
     const res = await fetch("/api/auth/register", {
@@ -88,6 +125,23 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="hidden">
+        <Label htmlFor="register-company">Company</Label>
+        <Input
+          id="register-company"
+          name="company"
+          placeholder="Company"
+          autoComplete="off"
+          tabIndex={-1}
+        />
+        <Input
+          id="register-started-at"
+          name="formStartedAt"
+          type="hidden"
+          value={formStartedAt || ""}
+          readOnly
+        />
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="register-first-name">First name</Label>
@@ -124,18 +178,6 @@ export function RegisterForm() {
             type="email"
             placeholder="you@email.com"
             required
-            className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="register-username">Username</Label>
-        <div className="relative">
-          <User className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
-          <Input
-            id="register-username"
-            name="username"
-            placeholder="yourname"
             className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
           />
         </div>

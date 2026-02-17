@@ -12,10 +12,12 @@ export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
+    setErrorMessage("");
 
     const form = event.currentTarget;
     const formData = new FormData(form);
@@ -24,6 +26,7 @@ export function LoginForm() {
 
     if (!username || !password) {
       setLoading(false);
+      setErrorMessage("Enter your username/email and password.");
       toast({
         variant: "destructive",
         title: "Missing details",
@@ -34,6 +37,7 @@ export function LoginForm() {
 
     if (password.length < 6) {
       setLoading(false);
+      setErrorMessage("Use at least 6 characters.");
       toast({
         variant: "destructive",
         title: "Password too short",
@@ -44,19 +48,41 @@ export function LoginForm() {
 
     const payload = { username, password };
 
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    let res: Response | null = null;
+    try {
+      res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch (error) {
+      setLoading(false);
+      const message =
+        error instanceof Error ? error.message : "Unable to sign in.";
+      setErrorMessage(message);
+      toast({
+        variant: "destructive",
+        title: "Sign in failed",
+        description: message,
+      });
+      return;
+    }
 
     setLoading(false);
 
     if (!res.ok) {
+      let message = "Invalid credentials";
+      try {
+        const data = (await res.json()) as { error?: string };
+        if (data?.error) message = String(data.error);
+      } catch {
+        // ignore JSON parse errors
+      }
+      setErrorMessage(message);
       toast({
         variant: "destructive",
-        title: "Invalid credentials",
-        description: "Please check your details and try again.",
+        title: "Sign in failed",
+        description: message,
       });
       return;
     }
@@ -72,6 +98,14 @@ export function LoginForm() {
 
   return (
     <div className="space-y-4">
+      {errorMessage ? (
+        <div
+          role="alert"
+          className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+        >
+          {errorMessage}
+        </div>
+      ) : null}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="login-username">Username or email</Label>
