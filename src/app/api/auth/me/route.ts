@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { fetchCustomerByEmail } from "@/lib/woocommerce";
 
 const wordpressUrl = process.env.WORDPRESS_URL;
 
@@ -27,9 +28,49 @@ export async function GET() {
 
   const data = await res.json();
   const fallbackEmail = (await cookies()).get("wp_email")?.value;
+  const rawFirst =
+    data.first_name ??
+    data?.acf?.first_name ??
+    data?.meta?.first_name ??
+    data?.user_firstname ??
+    "";
+  const rawLast =
+    data.last_name ??
+    data?.acf?.last_name ??
+    data?.meta?.last_name ??
+    data?.user_lastname ??
+    "";
+  const displayName = String(data.name ?? data.display_name ?? "").trim();
+  const splitName =
+    !rawFirst && !rawLast && displayName.includes(" ")
+      ? displayName.split(" ")
+      : [];
+  const firstName = String(rawFirst || splitName[0] || "").trim();
+  const lastName = String(rawLast || splitName.slice(1).join(" ") || "").trim();
+
+  let customerFirst = "";
+  let customerLast = "";
+  const email = data.email || fallbackEmail;
+  if (email) {
+    try {
+      const customer = await fetchCustomerByEmail(email);
+      customerFirst =
+        customer?.billing?.first_name ||
+        customer?.shipping?.first_name ||
+        "";
+      customerLast =
+        customer?.billing?.last_name || customer?.shipping?.last_name || "";
+    } catch {
+      // ignore customer lookup failures
+    }
+  }
+
   return NextResponse.json({
     id: data.id,
     name: data.name,
-    email: data.email || fallbackEmail,
+    username: data.username ?? data.name,
+    firstName: firstName || customerFirst,
+    lastName: lastName || customerLast,
+    email,
   });
 }

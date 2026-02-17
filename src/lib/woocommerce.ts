@@ -6,6 +6,7 @@ export type WooProduct = {
   short_description: string;
   price: string;
   type?: string;
+  meta_data?: Array<{ key: string; value: unknown }>;
   attributes?: Array<{
     id: number;
     name: string;
@@ -19,6 +20,10 @@ export type WooProduct = {
 
 export type WooVariation = {
   id: number;
+  price?: string;
+  regular_price?: string;
+  sale_price?: string;
+  on_sale?: boolean;
   image?: { src?: string };
   attributes: Array<{ name: string; option: string }>;
 };

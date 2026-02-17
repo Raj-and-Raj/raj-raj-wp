@@ -60,6 +60,24 @@ export function ProductDetailClient({
   const [enquiryOpen, setEnquiryOpen] = useState(false);
   const { toast } = useToast();
   const cartIds = useCartIds();
+  const acfBlocks = [
+    // {
+    //   label: "Intro Description",
+    //   value: (product as any).acf?.introDescription,
+    // },
+    {
+      label: "Quality Assurance",
+      value: (product as any).acf?.qualityAssurance,
+    },
+    {
+      label: "Warranty & Support",
+      value: (product as any).acf?.warrantySupport,
+    },
+    // {
+    //   label: "Dimensions & Specifications",
+    //   value: (product as any).acf?.dimensionsSpecifications,
+    // },
+  ].filter((block) => Boolean(block.value));
 
   const variationPayload = useMemo(() => {
     if (!Object.keys(variantSelections).length) return undefined;
@@ -69,14 +87,13 @@ export function ProductDetailClient({
     return entries.length ? entries : undefined;
   }, [variantSelections]);
 
-  const displayPrice =
-    product.salePrice && product.salePrice > 0
-      ? product.salePrice
-      : product.price;
-  const comparePrice =
-    product.regularPrice && product.regularPrice > displayPrice
-      ? product.regularPrice
-      : undefined;
+  const hasSale =
+    typeof product.salePrice === "number" &&
+    typeof product.regularPrice === "number" &&
+    product.salePrice > 0 &&
+    product.regularPrice > product.salePrice;
+  const displayPrice = hasSale ? product.salePrice! : product.price;
+  const comparePrice = hasSale ? product.regularPrice : undefined;
   const stockLabel =
     product.stockStatus === "instock"
       ? "In stock"
@@ -241,9 +258,9 @@ export function ProductDetailClient({
                   />
                 </motion.div>
               </AnimatePresence>
-              <div className="absolute left-4 top-4 rounded-[12px] bg-white/90 px-3 py-1 text-xs font-semibold">
+              {/* <div className="absolute left-4 top-4 rounded-[12px] bg-white/90 px-3 py-1 text-xs font-semibold">
                 5 years warranty
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -255,7 +272,7 @@ export function ProductDetailClient({
                 <h1 className="text-2xl font-semibold text-[color:var(--ink)] md:text-3xl">
                   {product.name}
                 </h1>
-                <div className="mt-2 text-sm text-[color:var(--muted)]">
+                {/* <div className="mt-2 text-sm text-[color:var(--muted)]">
                   <span>
                     {product.sku ? `SKU: ${product.sku}` : "SKU: N/A"}
                   </span>
@@ -266,7 +283,7 @@ export function ProductDetailClient({
                       ({product.stockQuantity} available)
                     </span>
                   ) : null}
-                </div>
+                </div> */}
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -286,27 +303,38 @@ export function ProductDetailClient({
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <span className="text-2xl font-semibold text-[color:var(--brand)]">
+              <span className="text-4xl font-bold text-[color:var(--brand)]">
                 {formatPrice(displayPrice)}
               </span>
               {comparePrice ? (
-                <span className="text-sm line-through text-[color:var(--muted)]">
-                  {formatPrice(comparePrice)}
-                </span>
-              ) : null}
-              {comparePrice ? (
-                <span className="rounded-[12px] bg-[color:var(--brand)]/10 px-3 py-1 text-xs text-[color:var(--brand)]">
-                  Sale
-                </span>
+                <>
+                  <span className="text-sm line-through text-[color:var(--muted)]">
+                    {formatPrice(comparePrice)}
+                  </span>
+                  <span className="rounded-[12px] bg-[color:var(--brand)]/10 px-3 py-1 text-xs text-[color:var(--brand)]">
+                    SALE!
+                  </span>
+                </>
               ) : null}
             </div>
 
-            {product.description ? (
+            {product.shortDescription ? (
               <div className="mt-4 rounded-[12px] border border-black/5 bg-[#f4efe8] p-4 text-sm text-[color:var(--muted)]">
-                <p className="text-[color:var(--ink)]">Highlights</p>
+                <h3 className="font-semibold ">Highlights</h3>
                 <div
                   className="mt-2 space-y-2"
-                  dangerouslySetInnerHTML={{ __html: product.description }}
+                  dangerouslySetInnerHTML={{ __html: product.shortDescription }}
+                />
+              </div>
+            ) : null}
+            {(product as any).acf?.dimensionsSpecifications ? (
+              <div className="mt-3 rounded-[12px] border border-black/5 bg-white/95 p-4 text-sm text-[color:var(--muted)]">
+                <h3 className="font-semibold">Dimensions & Specifications</h3>
+                <div
+                  className="mt-2 space-y-2"
+                  dangerouslySetInnerHTML={{
+                    __html: (product as any).acf.dimensionsSpecifications,
+                  }}
                 />
               </div>
             ) : null}
@@ -381,7 +409,7 @@ export function ProductDetailClient({
                 </div>
               ) : null}
 
-              <div className="rounded-[12px] border border-black/5 bg-white p-4">
+              {/* <div className="rounded-[12px] border border-black/5 bg-white p-4">
                 <p className="text-sm font-semibold text-[color:var(--ink)]">
                   Check delivery & assembly
                 </p>
@@ -463,7 +491,7 @@ export function ProductDetailClient({
                     ) : null}
                   </div>
                 ) : null}
-              </div>
+              </div> */}
 
               {/* <div className="rounded-[12px] border border-black/5 bg-white p-4">
                 <div className="flex items-center justify-between">
@@ -528,7 +556,7 @@ export function ProductDetailClient({
 
               if (isOutOfStock) {
                 return (
-                  <div className="mt-6">
+                  <div className="mt-8 mb-4">
                     <Button
                       className="w-full rounded-[10px] bg-[color:var(--brand)] text-white hover:brightness-110"
                       onClick={() => setEnquiryOpen(true)}
@@ -654,12 +682,14 @@ export function ProductDetailClient({
       </section>
 
       <section className="grid gap-[10px] lg:grid-cols-[2fr_1fr]">
-        <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
-          <h3 className="text-base font-semibold">Product details</h3>
-          {product.shortDescription ? (
+        <div className="rounded-[12px] border-t-red-300 border-t-2  border border-black/5 bg-white/95 p-6">
+          <h3 className="text-base font-semibold text-red-700">
+            Product details
+          </h3>
+          {product.description ? (
             <div
               className="mt-4 space-y-3 text-sm text-[color:var(--muted)]"
-              dangerouslySetInnerHTML={{ __html: product.shortDescription }}
+              dangerouslySetInnerHTML={{ __html: product.description }}
             />
           ) : (
             <p className="mt-4 text-sm text-[color:var(--muted)]">
@@ -667,36 +697,29 @@ export function ProductDetailClient({
             </p>
           )}
         </div>
-        <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
-          <h3 className="text-base font-semibold">Specifications</h3>
-          <ul className="mt-4 space-y-2 text-sm text-[color:var(--muted)]">
-            <li>SKU: {product.sku ?? "N/A"}</li>
-            <li>Stock: {stockLabel}</li>
-            {product.weight ? <li>Weight: {product.weight}</li> : null}
-            {product.dimensions ? (
-              <li>
-                Dimensions:{" "}
-                {[
-                  product.dimensions.length,
-                  product.dimensions.width,
-                  product.dimensions.height,
-                ]
-                  .filter(Boolean)
-                  .join(" x ")}
-              </li>
+        <div>
+          <div className="rounded-[12px]">
+            {acfBlocks.length ? (
+              <div className="space-y-3">
+                {acfBlocks.map((block) => (
+                  <div
+                    key={block.label}
+                    className="rounded-[12px] border-t-red-300 border-t-2 border border-black/5 bg-white/95 p-4 text-sm text-[color:var(--muted)]"
+                  >
+                    <h3 className="text-base font-semibold text-red-700">
+                      {block.label}
+                    </h3>
+                    <div
+                      className="mt-2 space-y-2"
+                      dangerouslySetInnerHTML={{
+                        __html: block.value as string,
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             ) : null}
-            {product.categories?.length ? (
-              <li>
-                Categories:{" "}
-                {product.categories.map((cat) => cat.name).join(", ")}
-              </li>
-            ) : null}
-            {product.tagItems?.length ? (
-              <li>
-                Tags: {product.tagItems.map((tag) => tag.name).join(", ")}
-              </li>
-            ) : null}
-          </ul>
+          </div>
         </div>
       </section>
 

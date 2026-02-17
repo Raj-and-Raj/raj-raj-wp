@@ -41,7 +41,17 @@ export type Product = {
     id: number;
     image?: string;
     attributes: Array<{ name: string; option: string }>;
+    price?: number;
+    regularPrice?: number;
+    salePrice?: number;
+    onSale?: boolean;
   }>;
+  acf?: {
+    introDescription?: string;
+    qualityAssurance?: string;
+    warrantySupport?: string;
+    dimensionsSpecifications?: string;
+  };
 };
 
 const fallbackProducts: Product[] = [
@@ -165,15 +175,7 @@ export async function getProduct(slug: string) {
   if (!item) return undefined;
   const mapped: Product = mapWooProduct(item);
   if (item.type === "variable") {
-    const variations = await fetchProductVariations(item.id);
-    mapped.variations = variations.map((variation) => ({
-      id: variation.id,
-      image: variation.image?.src,
-      attributes: variation.attributes.map((attr) => ({
-        name: attr.name,
-        option: attr.option,
-      })),
-    }));
+    await applyVariationsToProduct(mapped, item.id);
   }
   return mapped;
 }
@@ -211,7 +213,47 @@ export async function getProductsByIds(ids: string[]) {
   const filtered = items.filter(
     (item): item is NonNullable<typeof item> => item !== null
   );
-  return filtered.map(mapWooProduct);
+  const mapped = filtered.map(mapWooProduct);
+  await Promise.all(
+    mapped.map(async (product, idx) => {
+      const item = filtered[idx];
+      if (item?.type === "variable") {
+        await applyVariationsToProduct(product, item.id);
+      }
+    })
+  );
+  return mapped;
+}
+
+async function applyVariationsToProduct(product: Product, productId: number) {
+  const variations = await fetchProductVariations(productId);
+  product.variations = variations.map((variation) => ({
+    id: variation.id,
+    image: variation.image?.src,
+    price: variation.price ? Number(variation.price) : undefined,
+    regularPrice: variation.regular_price
+      ? Number(variation.regular_price)
+      : undefined,
+    salePrice: variation.sale_price ? Number(variation.sale_price) : undefined,
+    onSale: variation.on_sale,
+    attributes: variation.attributes.map((attr) => ({
+      name: attr.name,
+      option: attr.option,
+    })),
+  }));
+
+  const regulars = product.variations
+    .map((v) => v.regularPrice)
+    .filter((v): v is number => typeof v === "number");
+  const sales = product.variations
+    .map((v) => v.salePrice)
+    .filter((v): v is number => typeof v === "number" && v > 0);
+  if (regulars.length) {
+    product.regularPrice = Math.min(...regulars);
+  }
+  if (sales.length) {
+    product.salePrice = Math.min(...sales);
+  }
 }
 
 function mapWooProduct(item: {
@@ -234,7 +276,15 @@ function mapWooProduct(item: {
   tags?: Array<{ name: string; slug: string }>;
   type?: string;
   attributes?: Array<{ name: string; variation: boolean; options: string[] }>;
+  meta_data?: Array<{ key: string; value: unknown }>;
 }): Product {
+  const metaLookup = new Map(
+    (item.meta_data ?? []).map((entry) => [entry.key, entry.value])
+  );
+  const getMeta = (key: string) => {
+    const value = metaLookup.get(key);
+    return typeof value === "string" ? value : undefined;
+  };
   const category = item.categories?.[0];
   return {
     id: String(item.id),
@@ -245,8 +295,8 @@ function mapWooProduct(item: {
     category: category?.name || "Collection",
     categorySlug: category?.slug || "collection",
     price: Number(item.price || item.sale_price || item.regular_price || 0),
-    regularPrice: Number(item.regular_price || item.price || 0),
-    salePrice: Number(item.sale_price || 0),
+    regularPrice: item.regular_price ? Number(item.regular_price) : undefined,
+    salePrice: item.sale_price ? Number(item.sale_price) : undefined,
     sku: item.sku,
     stockStatus: item.stock_status,
     stockQuantity: item.stock_quantity ?? null,
@@ -268,5 +318,11 @@ function mapWooProduct(item: {
       variation: attr.variation,
       options: attr.options,
     })),
+    acf: {
+      introDescription: getMeta("intro_description"),
+      qualityAssurance: getMeta("quality_assurance"),
+      warrantySupport: getMeta("warranty_support"),
+      dimensionsSpecifications: getMeta("dimensions_specifications"),
+    },
   };
 }

@@ -315,14 +315,38 @@ export function CategoryPageClient({
                 </div>
 
                 <div>
-                  <div className="mb-1 flex items-start justify-between">
-                    <h3 className="text-lg font-semibold text-[color:var(--ink)] transition-colors group-hover:text-[color:var(--brand)]">
-                      {product.name}
-                    </h3>
-                    <span className="text-sm font-semibold text-[color:var(--brand)]">
-                      {formatPrice(product.price)}
-                    </span>
+                <div className="mb-1 flex items-start justify-between">
+                  <h3 className="text-lg font-semibold text-[color:var(--ink)] transition-colors group-hover:text-[color:var(--brand)]">
+                    {product.name}
+                  </h3>
+                  <div className="flex flex-col items-end gap-1">
+                    {typeof product.salePrice === "number" &&
+                    typeof product.regularPrice === "number" &&
+                    product.salePrice > 0 &&
+                    product.regularPrice > product.salePrice ? (
+                      <>
+                        <span className="text-xs text-[color:var(--muted)] line-through">
+                          {formatPrice(product.regularPrice)}
+                        </span>
+                        <span className="text-sm font-semibold text-[color:var(--brand)]">
+                          {formatPrice(product.salePrice)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-sm font-semibold text-[color:var(--brand)]">
+                        {formatPrice(product.price)}
+                      </span>
+                    )}
                   </div>
+                </div>
+                {product.acf?.introDescription ? (
+                  <div
+                    className="mb-2 line-clamp-2 text-xs text-[color:var(--muted)]"
+                    dangerouslySetInnerHTML={{
+                      __html: product.acf.introDescription,
+                    }}
+                  />
+                ) : null}
                   <div
                     className="mb-3 flex gap-2"
                     onMouseLeave={() =>

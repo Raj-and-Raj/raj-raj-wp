@@ -38,6 +38,9 @@ export function AccountDashboard() {
   const [profile, setProfile] = useState<null | {
     name: string;
     email: string;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
   }>(null);
   const [orders, setOrders] = useState<
     Array<{ id: number; status: string; total: string; date_created: string }>
@@ -121,8 +124,19 @@ export function AccountDashboard() {
       return;
     }
     const data = await res.json();
-    setProfile({ name: data.name, email: data.email });
-    setProfileDraft({ name: data.name, email: data.email ?? "" });
+    const firstName = String(data.firstName ?? "").trim();
+    const lastName = String(data.lastName ?? "").trim();
+    const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+    const username = data.username || data.name || "";
+    const fallbackName = fullName || data.name || username || "Customer";
+    setProfile({
+      name: fallbackName,
+      email: data.email,
+      username,
+      firstName,
+      lastName,
+    });
+    setProfileDraft({ name: fallbackName, email: data.email ?? "" });
 
     const ordersRes = await fetch("/api/account/orders");
     if (ordersRes.ok) {
@@ -221,7 +235,6 @@ export function AccountDashboard() {
     });
   };
 
-
   const trackOrder = async () => {
     if (!trackId) return;
     const res = await fetch(`/api/account/orders/item?id=${trackId}`);
@@ -259,7 +272,7 @@ export function AccountDashboard() {
         <div>
           <h1 className="text-2xl font-semibold">My account</h1>
           <p className="mt-2 text-sm text-[color:var(--muted)]">
-            Welcome back, {profile.name}
+            Welcome back, {profile.firstName}
           </p>
         </div>
         <Button variant="outline" onClick={handleLogout}>
@@ -330,7 +343,9 @@ export function AccountDashboard() {
                   </span>
                 </div>
                 <div className="pt-3">
-                  <p className="text-sm text-[color:var(--muted)]">Total Amount</p>
+                  <p className="text-sm text-[color:var(--muted)]">
+                    Total Amount
+                  </p>
                   <p className="text-lg font-bold">₹{tracked.total}</p>
                 </div>
               </div>
@@ -348,11 +363,20 @@ export function AccountDashboard() {
             </div>
             <div className="mt-6 flex items-center gap-4">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-[color:var(--brand)] to-red-600 text-2xl font-bold text-white shadow-lg shadow-red-500/20">
-                {profile.name.slice(0, 1).toUpperCase()}
+                {(profile.firstName || profile.name).slice(0, 1).toUpperCase()}
               </div>
               <div>
-                <p className="text-lg font-bold">{profile.name}</p>
-                <p className="text-sm text-[color:var(--muted)]">{profile.email}</p>
+                <p className="text-lg font-bold">
+                  {profile.name}
+                  {profile.username ? (
+                    <span className="ml-2 text-xs font-medium text-[color:var(--muted)]">
+                      ({profile.username})
+                    </span>
+                  ) : null}
+                </p>
+                <p className="text-sm text-[color:var(--muted)]">
+                  {profile.email}
+                </p>
               </div>
             </div>
             <div className="mt-8 grid gap-4">
@@ -409,7 +433,10 @@ export function AccountDashboard() {
                   placeholder="New password"
                   value={passwordDraft.password}
                   onChange={(e) =>
-                    setPasswordDraft({ ...passwordDraft, password: e.target.value })
+                    setPasswordDraft({
+                      ...passwordDraft,
+                      password: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -422,7 +449,10 @@ export function AccountDashboard() {
                   placeholder="Confirm password"
                   value={passwordDraft.confirm}
                   onChange={(e) =>
-                    setPasswordDraft({ ...passwordDraft, confirm: e.target.value })
+                    setPasswordDraft({
+                      ...passwordDraft,
+                      confirm: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -454,7 +484,11 @@ export function AccountDashboard() {
                 <p className="text-sm text-[color:var(--muted)]">
                   No orders found.
                 </p>
-                <Button variant="outline" className="w-full sm:w-auto" onClick={() => router.push("/products")}>
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  onClick={() => router.push("/products")}
+                >
                   Start Shopping
                 </Button>
               </div>
@@ -564,7 +598,10 @@ export function AccountDashboard() {
                       placeholder="City"
                       value={billingDraft.city ?? ""}
                       onChange={(e) =>
-                        setBillingDraft({ ...billingDraft, city: e.target.value })
+                        setBillingDraft({
+                          ...billingDraft,
+                          city: e.target.value,
+                        })
                       }
                     />
                     <div className="grid grid-cols-2 gap-2">
@@ -572,7 +609,10 @@ export function AccountDashboard() {
                         className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                         value={billingDraft.state ?? ""}
                         onChange={(e) =>
-                          setBillingDraft({ ...billingDraft, state: e.target.value })
+                          setBillingDraft({
+                            ...billingDraft,
+                            state: e.target.value,
+                          })
                         }
                       >
                         <option value="">State</option>
@@ -597,7 +637,10 @@ export function AccountDashboard() {
                       className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                       value={billingDraft.country ?? "IN"}
                       onChange={(e) =>
-                        setBillingDraft({ ...billingDraft, country: e.target.value })
+                        setBillingDraft({
+                          ...billingDraft,
+                          country: e.target.value,
+                        })
                       }
                     >
                       <option value="IN">India</option>
@@ -606,14 +649,18 @@ export function AccountDashboard() {
                       placeholder="Phone"
                       value={billingDraft.phone ?? ""}
                       onChange={(e) =>
-                        setBillingDraft({ ...billingDraft, phone: e.target.value })
+                        setBillingDraft({
+                          ...billingDraft,
+                          phone: e.target.value,
+                        })
                       }
                     />
                   </div>
                 ) : addresses.billing ? (
                   <div className="text-sm text-[color:var(--muted)] space-y-1">
                     <p className="font-medium text-[color:var(--ink)]">
-                      {addresses.billing.first_name} {addresses.billing.last_name}
+                      {addresses.billing.first_name}{" "}
+                      {addresses.billing.last_name}
                     </p>
                     <p>{addresses.billing.address_1}</p>
                     {addresses.billing.address_2 && (
@@ -683,7 +730,10 @@ export function AccountDashboard() {
                       placeholder="City"
                       value={shippingDraft.city ?? ""}
                       onChange={(e) =>
-                        setShippingDraft({ ...shippingDraft, city: e.target.value })
+                        setShippingDraft({
+                          ...shippingDraft,
+                          city: e.target.value,
+                        })
                       }
                     />
                     <div className="grid grid-cols-2 gap-2">
@@ -731,14 +781,18 @@ export function AccountDashboard() {
                       placeholder="Phone"
                       value={shippingDraft.phone ?? ""}
                       onChange={(e) =>
-                        setShippingDraft({ ...shippingDraft, phone: e.target.value })
+                        setShippingDraft({
+                          ...shippingDraft,
+                          phone: e.target.value,
+                        })
                       }
                     />
                   </div>
                 ) : addresses.shipping ? (
                   <div className="text-sm text-[color:var(--muted)] space-y-1">
                     <p className="font-medium text-[color:var(--ink)]">
-                      {addresses.shipping.first_name} {addresses.shipping.last_name}
+                      {addresses.shipping.first_name}{" "}
+                      {addresses.shipping.last_name}
                     </p>
                     <p>{addresses.shipping.address_1}</p>
                     {addresses.shipping.address_2 && (
@@ -789,7 +843,9 @@ export function AccountDashboard() {
             <div className="mt-4 space-y-4">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-[color:var(--muted)]">Status:</span>
-                <span className="font-medium capitalize">{orderDetails.status}</span>
+                <span className="font-medium capitalize">
+                  {orderDetails.status}
+                </span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-[color:var(--muted)]">Total Amount:</span>
