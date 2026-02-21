@@ -348,7 +348,7 @@ export function CategoryPageClient({
                     />
                   ) : null}
                   <div
-                    className="mb-3 flex gap-2"
+                    className="mb-3 flex flex-wrap gap-2"
                     onMouseLeave={() =>
                       setHoverImage((prev) => {
                         const next = { ...prev };
@@ -358,30 +358,31 @@ export function CategoryPageClient({
                     }
                   >
                     {variationSwatches[product.id]?.length
-                      ? variationSwatches[product.id]
-                          .slice(0, 4)
-                          .map((swatch) => (
-                            <button
-                              type="button"
-                              key={swatch.label}
-                              title={swatch.label}
-                              className="h-6 w-6 rounded-full border border-black/10 bg-center bg-no-repeat"
-                              style={{
-                                backgroundImage: swatch.image
-                                  ? `url(${swatch.image})`
-                                  : undefined,
-                                backgroundSize: "cover",
-                              }}
-                              onMouseEnter={() => {
-                                if (swatch.image) {
-                                  setHoverImage((prev) => ({
-                                    ...prev,
-                                    [product.id]: swatch.image as string,
-                                  }));
-                                }
-                              }}
-                            />
-                          ))
+                      ? variationSwatches[product.id].map((swatch) => (
+                          <button
+                            type="button"
+                            key={swatch.label}
+                            title={swatch.label}
+                            className="h-6 w-6 rounded-full border border-black/10 bg-center bg-no-repeat"
+                            style={{
+                              backgroundImage: swatch.image
+                                ? `url(${swatch.image})`
+                                : undefined,
+                              backgroundColor: swatch.image
+                                ? undefined
+                                : colorToHex(swatch.label),
+                              backgroundSize: "cover",
+                            }}
+                            onMouseEnter={() => {
+                              if (swatch.image) {
+                                setHoverImage((prev) => ({
+                                  ...prev,
+                                  [product.id]: swatch.image as string,
+                                }));
+                              }
+                            }}
+                          />
+                        ))
                       : (
                           product.attributes
                             ?.find((attr) => {
@@ -391,7 +392,7 @@ export function CategoryPageClient({
                                 name.includes("colour")
                               );
                             })
-                            ?.options.slice(0, 4) ?? ["Red", "Black", "Grey"]
+                            ?.options ?? ["Red", "Black", "Grey"]
                         ).map((option) => (
                           <span
                             key={option}
