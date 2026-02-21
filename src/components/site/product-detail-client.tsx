@@ -60,6 +60,15 @@ export function ProductDetailClient({
   const [enquiryOpen, setEnquiryOpen] = useState(false);
   const { toast } = useToast();
   const cartIds = useCartIds();
+  const relatedItems = useMemo(() => {
+    if (!related?.length) return [];
+    const minItems = 4;
+    const items = [...related];
+    while (items.length < minItems) {
+      items.push(related[items.length % related.length]);
+    }
+    return items;
+  }, [related]);
   const acfBlocks = [
     // {
     //   label: "Intro Description",
@@ -799,9 +808,9 @@ export function ProductDetailClient({
         </div>
         <div className="mt-6">
           <div className="flex gap-3 overflow-x-auto pb-4 md:grid md:grid-cols-2 md:gap-3 md:overflow-visible md:pb-0 xl:grid-cols-4">
-            {related.map((item) => (
+            {relatedItems.map((item, idx) => (
               <Link
-                key={item.id}
+                key={`${item.id}-${idx}`}
                 href={`/products/${item.slug}`}
                 className="group min-w-[80%] snap-start rounded-[12px] border border-black/5 bg-white/95 p-5 transition hover:-translate-y-1 hover:shadow-lg md:min-w-0"
               >
