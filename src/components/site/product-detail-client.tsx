@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 import { ShareRow } from "@/components/site/share-row";
@@ -58,16 +58,23 @@ export function ProductDetailClient({
   >({ state: "idle" });
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [relatedVariationSwatches, setRelatedVariationSwatches] = useState<
+    Record<string, Array<{ label: string; image?: string }>>
+  >({});
+  const [relatedHoverImage, setRelatedHoverImage] = useState<
+    Record<string, string>
+  >({});
+  const relatedScrollRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
   const cartIds = useCartIds();
   const relatedItems = useMemo(() => {
     if (!related?.length) return [];
-    const minItems = 4;
-    const items = [...related];
-    while (items.length < minItems) {
-      items.push(related[items.length % related.length]);
-    }
-    return items;
+    const seen = new Set<string>();
+    return related.filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
   }, [related]);
   const acfBlocks = [
     // {
@@ -175,6 +182,29 @@ export function ProductDetailClient({
     };
     return map[key] || "#d1d5db";
   };
+
+  useEffect(() => {
+    const ids = Array.from(new Set(relatedItems.map((item) => item.id))).filter(
+      (id) => !relatedVariationSwatches[id],
+    );
+    if (!ids.length) return;
+    const load = async () => {
+      try {
+        const res = await fetch(
+          `/api/products/variations?ids=${encodeURIComponent(ids.join(","))}`,
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as Record<
+          string,
+          Array<{ label: string; image?: string }>
+        >;
+        setRelatedVariationSwatches((prev) => ({ ...prev, ...data }));
+      } catch {
+        return;
+      }
+    };
+    load();
+  }, [relatedItems, relatedVariationSwatches]);
 
   useEffect(() => {
     const stored = localStorage.getItem("wishlist");
@@ -807,17 +837,59 @@ export function ProductDetailClient({
           <h2 className="text-2xl font-semibold">You might be interested</h2>
         </div>
         <div className="mt-6">
-          <div className="flex gap-3 overflow-x-auto pb-4 md:grid md:grid-cols-2 md:gap-3 md:overflow-visible md:pb-0 xl:grid-cols-4">
-            {relatedItems.map((item, idx) => (
+          <div className="relative">
+            {relatedItems.length > 4 ? (
+              <>
+                <button
+                  type="button"
+                  aria-label="Scroll left"
+                  className="absolute -left-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-black/10 bg-white/90 text-[color:var(--ink)] shadow-sm transition hover:bg-white md:flex"
+                  onClick={() => {
+                    relatedScrollRef.current?.scrollBy({
+                      left: -360,
+                      behavior: "smooth",
+                    });
+                  }}
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  aria-label="Scroll right"
+                  className="absolute -right-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-black/10 bg-white/90 text-[color:var(--ink)] shadow-sm transition hover:bg-white md:flex"
+                  onClick={() => {
+                    relatedScrollRef.current?.scrollBy({
+                      left: 360,
+                      behavior: "smooth",
+                    });
+                  }}
+                >
+                  →
+                </button>
+              </>
+            ) : null}
+            <div
+              ref={relatedScrollRef}
+              className={
+                relatedItems.length > 4
+                  ? "flex gap-3 overflow-x-auto pb-4 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                  : "grid gap-3 md:grid-cols-2 xl:grid-cols-4"
+              }
+            >
+            {relatedItems.map((item, idx) => {
+              const relatedImage = relatedHoverImage[item.id] ?? item.image;
+              return (
               <Link
                 key={`${item.id}-${idx}`}
                 href={`/products/${item.slug}`}
-                className="group min-w-[80%] snap-start rounded-[12px] border border-black/5 bg-white/95 p-5 transition hover:-translate-y-1 hover:shadow-lg md:min-w-0"
+                className={`group rounded-[12px] border border-black/5 bg-white/95 p-5 transition hover:-translate-y-1 hover:shadow-lg ${
+                  relatedItems.length > 4 ? "min-w-[80%] snap-start md:min-w-[340px]" : ""
+                }`}
               >
                 <div className="relative h-72 overflow-hidden rounded-[12px] bg-[#f1ece4] md:h-84">
-                  {item.image ? (
+                  {relatedImage ? (
                     <Image
-                      src={item.image}
+                      src={relatedImage}
                       alt={item.name}
                       fill
                       unoptimized
@@ -834,13 +906,53 @@ export function ProductDetailClient({
                 <p className="mt-2 text-sm text-[color:var(--muted)]">
                   {formatPrice(item.price)}
                 </p>
+                {relatedVariationSwatches[item.id]?.length ? (
+                  <div
+                    className="mt-3 flex flex-wrap gap-2"
+                    onMouseLeave={() =>
+                      setRelatedHoverImage((prev) => {
+                        const next = { ...prev };
+                        delete next[item.id];
+                        return next;
+                      })
+                    }
+                  >
+                    {relatedVariationSwatches[item.id].map((swatch) => (
+                      <button
+                        type="button"
+                        key={swatch.label}
+                        title={swatch.label}
+                        className="h-6 w-6 rounded-full border border-black/10 bg-center bg-no-repeat"
+                        style={{
+                          backgroundImage: swatch.image
+                            ? `url(${swatch.image})`
+                            : undefined,
+                          backgroundColor: swatch.image
+                            ? undefined
+                            : colorToHex(swatch.label),
+                          backgroundSize: "cover",
+                        }}
+                        onMouseEnter={() => {
+                          if (swatch.image) {
+                            setRelatedHoverImage((prev) => ({
+                              ...prev,
+                              [item.id]: swatch.image as string,
+                            }));
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : null}
                 <div className="mt-4 flex justify-end">
                   <div className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--brand)] px-4 py-2 text-xs font-semibold text-white transition group-hover:brightness-110 md:w-auto">
                     View details <span aria-hidden>→</span>
                   </div>
                 </div>
               </Link>
-            ))}
+              );
+            })}
+            </div>
           </div>
         </div>
       </section>

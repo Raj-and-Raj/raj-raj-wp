@@ -57,14 +57,25 @@ export default async function ProductPage({
     notFound();
   }
 
-  const allProducts = await getProducts();
-  const related = allProducts
-    .filter((item) => item.slug !== product.slug)
-    .filter((item) => item.categorySlug === product.categorySlug)
-    .slice(0, 3);
-  const fallbackRelated = allProducts
-    .filter((item) => item.slug !== product.slug)
-    .slice(0, 3);
+  const productCategorySlugs = Array.from(
+    new Set(
+      product.categories?.map((cat) => cat.slug).filter(Boolean) ?? [
+        product.categorySlug,
+      ],
+    ),
+  );
+
+  const relatedPools = await Promise.all(
+    productCategorySlugs.map((slug) => getProducts(slug)),
+  );
+  const relatedMap = new Map<string, (typeof relatedPools)[number][number]>();
+  relatedPools.flat().forEach((item) => {
+    if (item.slug === product.slug) return;
+    if (!relatedMap.has(item.id)) {
+      relatedMap.set(item.id, item);
+    }
+  });
+  const related = Array.from(relatedMap.values()).slice(0, 6);
 
   const images = (product.images?.length ? product.images : undefined) ?? [];
   const heroImage =
@@ -83,7 +94,7 @@ export default async function ProductPage({
         heroImage={heroImage}
         secondImage={secondImage}
         images={images.length ? images : [heroImage, secondImage]}
-        related={related.length > 0 ? related : fallbackRelated}
+        related={related}
       />
     </div>
   );
