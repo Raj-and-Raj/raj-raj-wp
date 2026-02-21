@@ -284,7 +284,7 @@ export function SiteHeader() {
 
               <Link
                 href="/wishlist"
-                className={`hidden md:block hover:text-black ${
+                className={`hidden md:block hover:text-black mt-1 ${
                   isHome && !scrolled
                     ? "text-white/80 hover:text-white"
                     : "text-[color:var(--muted)]"

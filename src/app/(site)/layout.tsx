@@ -17,7 +17,8 @@ export default function SiteLayout({
         className="pointer-events-none absolute right-0 top-0 h-96 w-96 translate-x-1/3 rounded-full bg-[#fff] opacity-[0.7] blur-3xl"
       /> */}
       <SiteHeader />
-      <main className="mx-auto w-full px-4 pb-24 md:px-6">{children}</main>
+      {/* <main className="mx-auto w-full px-4 pb-24 md:px-6">{children}</main> */}
+      <main className="mx-auto w-full ">{children}</main>
       <SiteFooter />
     </div>
   );

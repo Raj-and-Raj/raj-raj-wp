@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Loader } from "@/components/ui/loader";
 import { useRouter } from "next/navigation";
@@ -13,12 +14,19 @@ type RowState = {
   checked: boolean;
   quantity: number;
 };
+type VariantSelection = Record<string, string>;
 
 export default function WishlistPage() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [rowState, setRowState] = useState<Record<string, RowState>>({});
+  const [variantSelections, setVariantSelections] = useState<
+    Record<string, VariantSelection>
+  >({});
+  const [imageOverrides, setImageOverrides] = useState<Record<string, string>>(
+    {},
+  );
   const { toast } = useToast();
   const cartIds = useCartIds();
 
@@ -27,7 +35,7 @@ export default function WishlistPage() {
       Object.entries(rowState)
         .filter(([, state]) => state.checked)
         .map(([id]) => id),
-    [rowState]
+    [rowState],
   );
 
   const loadWishlist = async () => {
@@ -50,7 +58,7 @@ export default function WishlistPage() {
     }
     try {
       const res = await fetch(
-        `/api/products/by-ids?ids=${encodeURIComponent(ids.join(","))}`
+        `/api/products/by-ids?ids=${encodeURIComponent(ids.join(","))}`,
       );
       if (!res.ok) {
         setProducts([]);
@@ -101,20 +109,38 @@ export default function WishlistPage() {
 
   const addSelectedToCart = async () => {
     const selected = products.filter((product) =>
-      selectedIds.includes(product.id)
+      selectedIds.includes(product.id),
     );
     if (!selected.length) return;
     for (const product of selected) {
       if (cartIds.includes(product.id)) {
         continue;
       }
+      if (
+        product.type === "variable" &&
+        !hasCompleteSelection(product, variantSelections[product.id] ?? {})
+      ) {
+        toast({
+          title: "Select variant",
+          description: "Please choose a variant before adding to cart.",
+        });
+        continue;
+      }
       const qty = rowState[product.id]?.quantity ?? 1;
+      const selection = variantSelections[product.id] ?? {};
+      const variationPayload = Object.entries(selection).map(
+        ([attribute, value]) => ({ attribute, value }),
+      );
       await fetch("/api/cart/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: Number(product.id),
           quantity: qty,
+          variation:
+            product.type === "variable" && variationPayload.length
+              ? variationPayload
+              : undefined,
         }),
       });
     }
@@ -131,8 +157,41 @@ export default function WishlistPage() {
     router.push("/cart");
   };
 
+  const getVariationAttributes = (product: Product) =>
+    product.attributes?.filter((attr) => attr.variation) ?? [];
+
+  const getAttributeOptions = (product: Product, name: string) => {
+    const fromVariations =
+      product.variations
+        ?.flatMap((variation) =>
+          variation.attributes
+            .filter((attr) => attr.name === name)
+            .map((attr) => attr.option),
+        )
+        .filter(Boolean) ?? [];
+    const fromProduct =
+      product.attributes?.find((attr) => attr.name === name)?.options ?? [];
+    const combined = [...fromVariations, ...fromProduct];
+    return Array.from(new Set(combined));
+  };
+
+  const hasCompleteSelection = (
+    product: Product,
+    selection: VariantSelection,
+  ) => getVariationAttributes(product).every((attr) => selection[attr.name]);
+
+  const findMatchingVariation = (
+    product: Product,
+    selection: VariantSelection,
+  ) =>
+    product.variations?.find((variation) =>
+      variation.attributes.every(
+        (attr) => selection[attr.name] === attr.option,
+      ),
+    );
+
   return (
-    <div className="space-y-8 pt-32">
+    <div className="space-y-8 container mx-auto pt-32">
       <div>
         <h1 className="text-3xl font-semibold text-[color:var(--ink)]">
           Wishlist
@@ -201,9 +260,9 @@ export default function WishlistPage() {
 
                   <div className="flex items-center gap-4">
                     <div className="relative h-16 w-16 overflow-hidden rounded-2xl bg-[#f1ece4]">
-                      {product.image ? (
+                      {imageOverrides[product.id] || product.image ? (
                         <Image
-                          src={product.image}
+                          src={imageOverrides[product.id] || product.image!}
                           alt={product.name}
                           fill
                           unoptimized
@@ -212,12 +271,67 @@ export default function WishlistPage() {
                       ) : null}
                     </div>
                     <div>
-                      <p className="font-semibold text-[color:var(--ink)]">
+                      <Link
+                        href={`/products/${product.slug}`}
+                        className="font-semibold text-[color:var(--ink)] hover:text-[color:var(--brand)]"
+                      >
                         {product.name}
-                      </p>
+                      </Link>
                       <p className="text-xs text-[color:var(--muted)]">
                         {product.category}
                       </p>
+                      {product.type === "variable" &&
+                      getVariationAttributes(product).length ? (
+                        <div className="mt-2 grid gap-2">
+                          {getVariationAttributes(product).map((attr) => (
+                            <label key={attr.name} className="text-xs">
+                              <span className="text-[color:var(--muted)]">
+                                {attr.name}
+                              </span>
+                              <select
+                                className="mt-1 w-full rounded-lg border border-black/10 bg-white px-2 py-1 text-xs"
+                                value={
+                                  variantSelections[product.id]?.[attr.name] ??
+                                  ""
+                                }
+                                onChange={(event) => {
+                                  const value = event.target.value;
+                                  setVariantSelections((prev) => {
+                                    const next = {
+                                      ...(prev[product.id] ?? {}),
+                                      [attr.name]: value,
+                                    };
+                                    return { ...prev, [product.id]: next };
+                                  });
+                                  const selection = {
+                                    ...(variantSelections[product.id] ?? {}),
+                                    [attr.name]: value,
+                                  };
+                                  const match = findMatchingVariation(
+                                    product,
+                                    selection,
+                                  );
+                                  if (match?.image) {
+                                    setImageOverrides((prev) => ({
+                                      ...prev,
+                                      [product.id]: match.image as string,
+                                    }));
+                                  }
+                                }}
+                              >
+                                <option value="">Select {attr.name}</option>
+                                {getAttributeOptions(product, attr.name).map(
+                                  (option) => (
+                                    <option key={option} value={option}>
+                                      {option}
+                                    </option>
+                                  ),
+                                )}
+                              </select>
+                            </label>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 
@@ -262,6 +376,20 @@ export default function WishlistPage() {
                   <div className="flex flex-col gap-2">
                     <button
                       onClick={async () => {
+                        if (
+                          product.type === "variable" &&
+                          !hasCompleteSelection(
+                            product,
+                            variantSelections[product.id] ?? {},
+                          )
+                        ) {
+                          toast({
+                            title: "Select variant",
+                            description:
+                              "Please choose a variant before adding to cart.",
+                          });
+                          return;
+                        }
                         if (cartIds.includes(product.id)) {
                           toast({
                             title: "Already in cart",
@@ -269,12 +397,21 @@ export default function WishlistPage() {
                           });
                           return;
                         }
+                        const selection = variantSelections[product.id] ?? {};
+                        const variationPayload = Object.entries(selection).map(
+                          ([attribute, value]) => ({ attribute, value }),
+                        );
                         await fetch("/api/cart/add", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
                             id: Number(product.id),
                             quantity: state.quantity,
+                            variation:
+                              product.type === "variable" &&
+                              variationPayload.length
+                                ? variationPayload
+                                : undefined,
                           }),
                         });
                         window.dispatchEvent(new Event("cart:updated"));
@@ -285,7 +422,17 @@ export default function WishlistPage() {
                         });
                       }}
                       disabled={cartIds.includes(product.id)}
-                      className="rounded-full border border-black/10 px-3 py-2 text-xs font-semibold text-[color:var(--muted)] hover:border-[color:var(--brand)] hover:text-[color:var(--brand)] disabled:cursor-not-allowed disabled:border-black/5 disabled:text-gray-400 disabled:hover:text-gray-400"
+                      className={`rounded-full border px-3 py-2 text-xs font-semibold ${
+                        cartIds.includes(product.id)
+                          ? "cursor-not-allowed border-black/5 text-gray-400"
+                          : product.type === "variable" &&
+                              !hasCompleteSelection(
+                                product,
+                                variantSelections[product.id] ?? {},
+                              )
+                            ? "border-gray-200 bg-gray-100 text-gray-500"
+                            : "border-black/10 text-[color:var(--muted)] hover:border-[color:var(--brand)] hover:text-[color:var(--brand)]"
+                      }`}
                     >
                       {cartIds.includes(product.id)
                         ? "Already in cart"

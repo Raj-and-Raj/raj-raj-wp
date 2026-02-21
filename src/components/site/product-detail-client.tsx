@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 import { ShareRow } from "@/components/site/share-row";
@@ -58,8 +58,42 @@ export function ProductDetailClient({
   >({ state: "idle" });
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [relatedVariationSwatches, setRelatedVariationSwatches] = useState<
+    Record<string, Array<{ label: string; image?: string }>>
+  >({});
+  const [relatedHoverImage, setRelatedHoverImage] = useState<
+    Record<string, string>
+  >({});
+  const relatedScrollRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
   const cartIds = useCartIds();
+  const relatedItems = useMemo(() => {
+    if (!related?.length) return [];
+    const seen = new Set<string>();
+    return related.filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  }, [related]);
+  const acfBlocks = [
+    // {
+    //   label: "Intro Description",
+    //   value: (product as any).acf?.introDescription,
+    // },
+    {
+      label: "Quality Assurance",
+      value: (product as any).acf?.qualityAssurance,
+    },
+    {
+      label: "Warranty & Support",
+      value: (product as any).acf?.warrantySupport,
+    },
+    // {
+    //   label: "Dimensions & Specifications",
+    //   value: (product as any).acf?.dimensionsSpecifications,
+    // },
+  ].filter((block) => Boolean(block.value));
 
   const variationPayload = useMemo(() => {
     if (!Object.keys(variantSelections).length) return undefined;
@@ -69,14 +103,13 @@ export function ProductDetailClient({
     return entries.length ? entries : undefined;
   }, [variantSelections]);
 
-  const displayPrice =
-    product.salePrice && product.salePrice > 0
-      ? product.salePrice
-      : product.price;
-  const comparePrice =
-    product.regularPrice && product.regularPrice > displayPrice
-      ? product.regularPrice
-      : undefined;
+  const hasSale =
+    typeof product.salePrice === "number" &&
+    typeof product.regularPrice === "number" &&
+    product.salePrice > 0 &&
+    product.regularPrice > product.salePrice;
+  const displayPrice = hasSale ? product.salePrice! : product.price;
+  const comparePrice = hasSale ? product.regularPrice : undefined;
   const stockLabel =
     product.stockStatus === "instock"
       ? "In stock"
@@ -151,6 +184,29 @@ export function ProductDetailClient({
   };
 
   useEffect(() => {
+    const ids = Array.from(new Set(relatedItems.map((item) => item.id))).filter(
+      (id) => !relatedVariationSwatches[id],
+    );
+    if (!ids.length) return;
+    const load = async () => {
+      try {
+        const res = await fetch(
+          `/api/products/variations?ids=${encodeURIComponent(ids.join(","))}`,
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as Record<
+          string,
+          Array<{ label: string; image?: string }>
+        >;
+        setRelatedVariationSwatches((prev) => ({ ...prev, ...data }));
+      } catch {
+        return;
+      }
+    };
+    load();
+  }, [relatedItems, relatedVariationSwatches]);
+
+  useEffect(() => {
     const stored = localStorage.getItem("wishlist");
     if (!stored) return;
     try {
@@ -183,7 +239,7 @@ export function ProductDetailClient({
   };
 
   return (
-    <div className="space-y-4 pt-32">
+    <div className="space-y-4 container mx-auto mb-24 pt-32">
       <div className="text-xs text-[color:var(--muted)]">
         <Link href="/" className="hover:text-[color:var(--brand)]">
           Home
@@ -241,9 +297,9 @@ export function ProductDetailClient({
                   />
                 </motion.div>
               </AnimatePresence>
-              <div className="absolute left-4 top-4 rounded-[12px] bg-white/90 px-3 py-1 text-xs font-semibold">
+              {/* <div className="absolute left-4 top-4 rounded-[12px] bg-white/90 px-3 py-1 text-xs font-semibold">
                 5 years warranty
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -255,7 +311,7 @@ export function ProductDetailClient({
                 <h1 className="text-2xl font-semibold text-[color:var(--ink)] md:text-3xl">
                   {product.name}
                 </h1>
-                <div className="mt-2 text-sm text-[color:var(--muted)]">
+                {/* <div className="mt-2 text-sm text-[color:var(--muted)]">
                   <span>
                     {product.sku ? `SKU: ${product.sku}` : "SKU: N/A"}
                   </span>
@@ -266,7 +322,7 @@ export function ProductDetailClient({
                       ({product.stockQuantity} available)
                     </span>
                   ) : null}
-                </div>
+                </div> */}
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -286,27 +342,38 @@ export function ProductDetailClient({
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <span className="text-2xl font-semibold text-[color:var(--brand)]">
+              <span className="text-4xl font-bold text-[color:var(--brand)]">
                 {formatPrice(displayPrice)}
               </span>
               {comparePrice ? (
-                <span className="text-sm line-through text-[color:var(--muted)]">
-                  {formatPrice(comparePrice)}
-                </span>
-              ) : null}
-              {comparePrice ? (
-                <span className="rounded-[12px] bg-[color:var(--brand)]/10 px-3 py-1 text-xs text-[color:var(--brand)]">
-                  Sale
-                </span>
+                <>
+                  <span className="text-sm line-through text-[color:var(--muted)]">
+                    {formatPrice(comparePrice)}
+                  </span>
+                  <span className="rounded-[12px] bg-[color:var(--brand)]/10 px-3 py-1 text-xs text-[color:var(--brand)]">
+                    SALE!
+                  </span>
+                </>
               ) : null}
             </div>
 
             {product.shortDescription ? (
               <div className="mt-4 rounded-[12px] border border-black/5 bg-[#f4efe8] p-4 text-sm text-[color:var(--muted)]">
-                <p className="text-[color:var(--ink)]">Highlights</p>
+                <h3 className="font-semibold ">Highlights</h3>
                 <div
                   className="mt-2 space-y-2"
                   dangerouslySetInnerHTML={{ __html: product.shortDescription }}
+                />
+              </div>
+            ) : null}
+            {(product as any).acf?.dimensionsSpecifications ? (
+              <div className="mt-3 rounded-[12px] border border-black/5 bg-white/95 p-4 text-sm text-[color:var(--muted)]">
+                <h3 className="font-semibold">Dimensions & Specifications</h3>
+                <div
+                  className="mt-2 space-y-2"
+                  dangerouslySetInnerHTML={{
+                    __html: (product as any).acf.dimensionsSpecifications,
+                  }}
                 />
               </div>
             ) : null}
@@ -381,7 +448,7 @@ export function ProductDetailClient({
                 </div>
               ) : null}
 
-              <div className="rounded-[12px] border border-black/5 bg-white p-4">
+              {/* <div className="rounded-[12px] border border-black/5 bg-white p-4">
                 <p className="text-sm font-semibold text-[color:var(--ink)]">
                   Check delivery & assembly
                 </p>
@@ -463,7 +530,7 @@ export function ProductDetailClient({
                     ) : null}
                   </div>
                 ) : null}
-              </div>
+              </div> */}
 
               {/* <div className="rounded-[12px] border border-black/5 bg-white p-4">
                 <div className="flex items-center justify-between">
@@ -528,7 +595,7 @@ export function ProductDetailClient({
 
               if (isOutOfStock) {
                 return (
-                  <div className="mt-6">
+                  <div className="mt-8 mb-4">
                     <Button
                       className="w-full rounded-[10px] bg-[color:var(--brand)] text-white hover:brightness-110"
                       onClick={() => setEnquiryOpen(true)}
@@ -545,86 +612,50 @@ export function ProductDetailClient({
                     <p className="text-xs text-red-500">{selectionError}</p>
                   ) : null}
                   <div className="grid grid-cols-1 gap-3 items-center sm:grid-cols-3">
-                  <div
-                    className={`flex items-center justify-between rounded-[12px] border border-black/10 px-3 py-2 ${
-                      disableForSelection ? "opacity-50" : ""
-                    }`}
-                  >
-                    <button
-                      onClick={() => setQty(Math.max(1, qty - 1))}
-                      disabled={disableForSelection}
-                      className="h-8 w-8 rounded-[10px] border border-black/10 text-sm disabled:cursor-not-allowed"
+                    <div
+                      className={`flex items-center justify-between rounded-[12px] border border-black/10 px-3 py-2 ${
+                        disableForSelection ? "opacity-50" : ""
+                      }`}
                     >
-                      -
-                    </button>
-                    <span className="px-3 text-sm font-semibold">{qty}</span>
-                    <button
-                      onClick={() => setQty(qty + 1)}
-                      disabled={disableForSelection}
-                      className="h-8 w-8 rounded-[10px] border border-black/10 text-sm disabled:cursor-not-allowed"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <Button
-                    disabled={isInCart}
-                    aria-disabled={disableForSelection}
-                    data-disabled={disableForSelection ? "true" : "false"}
-                    className={`bg-[color:var(--brand)] rounded-[10px] text-white hover:brightness-110 ${
-                      disableForSelection ? "opacity-60" : ""
-                    }`}
-                    onClick={async () => {
-                      if (disableForSelection) {
-                        setSelectionError(
-                          colorAttribute
-                            ? "Please select a colour to continue."
-                            : "Please select all options to continue.",
-                        );
-                        return;
-                      }
-                      if (isInCart) {
-                        toast({
-                          title: "Already in cart",
-                          description: "This item is already in your cart.",
-                        });
-                        return;
-                      }
-                      await fetch("/api/cart/add", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          id: Number(product.id),
-                          quantity: qty,
-                          variation: variationPayload,
-                        }),
-                      });
-                      window.dispatchEvent(new Event("cart:updated"));
-                      toast({
-                        title: "Added to cart",
-                        description: "Item has been added to your cart.",
-                        variant: "success",
-                      });
-                    }}
-                  >
-                    {isInCart ? "Already in cart" : "Add to cart"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className={`rounded-[10px] bg-black border-black/10 text-white hover:border-[color:var(--brand)] hover:bg-[color:var(--brand)] hover:text-white ${
-                      disableForSelection ? "opacity-60" : ""
-                    }`}
-                    aria-disabled={disableForSelection}
-                    data-disabled={disableForSelection ? "true" : "false"}
-                    onClick={async () => {
-                      if (disableForSelection) {
-                        setSelectionError(
-                          colorAttribute
-                            ? "Please select a colour to continue."
-                            : "Please select all options to continue.",
-                        );
-                        return;
-                      }
-                      if (!isInCart) {
+                      <button
+                        onClick={() => setQty(Math.max(1, qty - 1))}
+                        disabled={disableForSelection}
+                        className="h-8 w-8 rounded-[10px] border border-black/10 text-sm disabled:cursor-not-allowed"
+                      >
+                        -
+                      </button>
+                      <span className="px-3 text-sm font-semibold">{qty}</span>
+                      <button
+                        onClick={() => setQty(qty + 1)}
+                        disabled={disableForSelection}
+                        className="h-8 w-8 rounded-[10px] border border-black/10 text-sm disabled:cursor-not-allowed"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <Button
+                      disabled={isInCart}
+                      aria-disabled={disableForSelection}
+                      data-disabled={disableForSelection ? "true" : "false"}
+                      className={`bg-[color:var(--brand)] rounded-[10px] text-white hover:brightness-110 ${
+                        disableForSelection ? "opacity-60" : ""
+                      }`}
+                      onClick={async () => {
+                        if (disableForSelection) {
+                          setSelectionError(
+                            colorAttribute
+                              ? "Please select a colour to continue."
+                              : "Please select all options to continue.",
+                          );
+                          return;
+                        }
+                        if (isInCart) {
+                          toast({
+                            title: "Already in cart",
+                            description: "This item is already in your cart.",
+                          });
+                          return;
+                        }
                         await fetch("/api/cart/add", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
@@ -635,14 +666,50 @@ export function ProductDetailClient({
                           }),
                         });
                         window.dispatchEvent(new Event("cart:updated"));
-                      }
-                      window.location.href = "/checkout";
-                    }}
-                  >
-                    Buy now
-                  </Button>
+                        toast({
+                          title: "Added to cart",
+                          description: "Item has been added to your cart.",
+                          variant: "success",
+                        });
+                      }}
+                    >
+                      {isInCart ? "Already in cart" : "Add to cart"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className={`rounded-[10px] bg-black border-black/10 text-white hover:border-[color:var(--brand)] hover:bg-[color:var(--brand)] hover:text-white ${
+                        disableForSelection ? "opacity-60" : ""
+                      }`}
+                      aria-disabled={disableForSelection}
+                      data-disabled={disableForSelection ? "true" : "false"}
+                      onClick={async () => {
+                        if (disableForSelection) {
+                          setSelectionError(
+                            colorAttribute
+                              ? "Please select a colour to continue."
+                              : "Please select all options to continue.",
+                          );
+                          return;
+                        }
+                        if (!isInCart) {
+                          await fetch("/api/cart/add", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              id: Number(product.id),
+                              quantity: qty,
+                              variation: variationPayload,
+                            }),
+                          });
+                          window.dispatchEvent(new Event("cart:updated"));
+                        }
+                        window.location.href = "/checkout";
+                      }}
+                    >
+                      Buy now
+                    </Button>
+                  </div>
                 </div>
-              </div>
               );
             })()}
 
@@ -654,8 +721,10 @@ export function ProductDetailClient({
       </section>
 
       <section className="grid gap-[10px] lg:grid-cols-[2fr_1fr]">
-        <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
-          <h3 className="text-base font-semibold">Product details</h3>
+        <div className="rounded-[12px] border-t-red-300 border-t-2  border border-black/5 bg-white/95 p-6">
+          <h3 className="text-base font-semibold text-red-700">
+            Product details
+          </h3>
           {product.description ? (
             <div
               className="mt-4 space-y-3 text-sm text-[color:var(--muted)]"
@@ -667,36 +736,29 @@ export function ProductDetailClient({
             </p>
           )}
         </div>
-        <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
-          <h3 className="text-base font-semibold">Specifications</h3>
-          <ul className="mt-4 space-y-2 text-sm text-[color:var(--muted)]">
-            <li>SKU: {product.sku ?? "N/A"}</li>
-            <li>Stock: {stockLabel}</li>
-            {product.weight ? <li>Weight: {product.weight}</li> : null}
-            {product.dimensions ? (
-              <li>
-                Dimensions:{" "}
-                {[
-                  product.dimensions.length,
-                  product.dimensions.width,
-                  product.dimensions.height,
-                ]
-                  .filter(Boolean)
-                  .join(" x ")}
-              </li>
+        <div>
+          <div className="rounded-[12px]">
+            {acfBlocks.length ? (
+              <div className="space-y-3">
+                {acfBlocks.map((block) => (
+                  <div
+                    key={block.label}
+                    className="rounded-[12px] border-t-red-300 border-t-2 border border-black/5 bg-white/95 p-4 text-sm text-[color:var(--muted)]"
+                  >
+                    <h3 className="text-base font-semibold text-red-700">
+                      {block.label}
+                    </h3>
+                    <div
+                      className="mt-2 space-y-2"
+                      dangerouslySetInnerHTML={{
+                        __html: block.value as string,
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             ) : null}
-            {product.categories?.length ? (
-              <li>
-                Categories:{" "}
-                {product.categories.map((cat) => cat.name).join(", ")}
-              </li>
-            ) : null}
-            {product.tagItems?.length ? (
-              <li>
-                Tags: {product.tagItems.map((tag) => tag.name).join(", ")}
-              </li>
-            ) : null}
-          </ul>
+          </div>
         </div>
       </section>
 
@@ -775,17 +837,59 @@ export function ProductDetailClient({
           <h2 className="text-2xl font-semibold">You might be interested</h2>
         </div>
         <div className="mt-6">
-          <div className="flex gap-3 overflow-x-auto pb-4 md:grid md:grid-cols-2 md:gap-3 md:overflow-visible md:pb-0 xl:grid-cols-4">
-            {related.map((item) => (
+          <div className="relative">
+            {relatedItems.length > 4 ? (
+              <>
+                <button
+                  type="button"
+                  aria-label="Scroll left"
+                  className="absolute -left-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-black/10 bg-white/90 text-[color:var(--ink)] shadow-sm transition hover:bg-white md:flex"
+                  onClick={() => {
+                    relatedScrollRef.current?.scrollBy({
+                      left: -360,
+                      behavior: "smooth",
+                    });
+                  }}
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  aria-label="Scroll right"
+                  className="absolute -right-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-black/10 bg-white/90 text-[color:var(--ink)] shadow-sm transition hover:bg-white md:flex"
+                  onClick={() => {
+                    relatedScrollRef.current?.scrollBy({
+                      left: 360,
+                      behavior: "smooth",
+                    });
+                  }}
+                >
+                  →
+                </button>
+              </>
+            ) : null}
+            <div
+              ref={relatedScrollRef}
+              className={
+                relatedItems.length > 4
+                  ? "flex gap-3 overflow-x-auto pb-4 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                  : "grid gap-3 md:grid-cols-2 xl:grid-cols-4"
+              }
+            >
+            {relatedItems.map((item, idx) => {
+              const relatedImage = relatedHoverImage[item.id] ?? item.image;
+              return (
               <Link
-                key={item.id}
+                key={`${item.id}-${idx}`}
                 href={`/products/${item.slug}`}
-                className="group min-w-[80%] snap-start rounded-[12px] border border-black/5 bg-white/95 p-5 transition hover:-translate-y-1 hover:shadow-lg md:min-w-0"
+                className={`group rounded-[12px] border border-black/5 bg-white/95 p-5 transition hover:-translate-y-1 hover:shadow-lg ${
+                  relatedItems.length > 4 ? "min-w-[80%] snap-start md:min-w-[340px]" : ""
+                }`}
               >
                 <div className="relative h-72 overflow-hidden rounded-[12px] bg-[#f1ece4] md:h-84">
-                  {item.image ? (
+                  {relatedImage ? (
                     <Image
-                      src={item.image}
+                      src={relatedImage}
                       alt={item.name}
                       fill
                       unoptimized
@@ -802,13 +906,53 @@ export function ProductDetailClient({
                 <p className="mt-2 text-sm text-[color:var(--muted)]">
                   {formatPrice(item.price)}
                 </p>
+                {relatedVariationSwatches[item.id]?.length ? (
+                  <div
+                    className="mt-3 flex flex-wrap gap-2"
+                    onMouseLeave={() =>
+                      setRelatedHoverImage((prev) => {
+                        const next = { ...prev };
+                        delete next[item.id];
+                        return next;
+                      })
+                    }
+                  >
+                    {relatedVariationSwatches[item.id].map((swatch) => (
+                      <button
+                        type="button"
+                        key={swatch.label}
+                        title={swatch.label}
+                        className="h-6 w-6 rounded-full border border-black/10 bg-center bg-no-repeat"
+                        style={{
+                          backgroundImage: swatch.image
+                            ? `url(${swatch.image})`
+                            : undefined,
+                          backgroundColor: swatch.image
+                            ? undefined
+                            : colorToHex(swatch.label),
+                          backgroundSize: "cover",
+                        }}
+                        onMouseEnter={() => {
+                          if (swatch.image) {
+                            setRelatedHoverImage((prev) => ({
+                              ...prev,
+                              [item.id]: swatch.image as string,
+                            }));
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : null}
                 <div className="mt-4 flex justify-end">
                   <div className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--brand)] px-4 py-2 text-xs font-semibold text-white transition group-hover:brightness-110 md:w-auto">
                     View details <span aria-hidden>→</span>
                   </div>
                 </div>
               </Link>
-            ))}
+              );
+            })}
+            </div>
           </div>
         </div>
       </section>

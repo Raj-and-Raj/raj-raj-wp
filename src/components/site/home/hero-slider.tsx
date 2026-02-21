@@ -55,7 +55,7 @@ export function HeroSlider() {
   }, []);
 
   return (
-    <div className="relative left-1/2 mb-16 mt-6 h-[320px] md:h-[720px] w-screen -translate-x-1/2 overflow-hidden bg-gray-100">
+    <div className="relative left-1/2 mb-16 mt-6 pt-[24px] h-[320px] md:h-[640px] w-screen -translate-x-1/2 overflow-hidden bg-gray-100">
       <AnimatePresence mode="wait">
         <motion.div
           key={current}

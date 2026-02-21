@@ -19,6 +19,8 @@ type CartTotals = {
   subtotal?: number | string;
   total_tax?: number | string;
   total_price?: number | string;
+  discount_total?: number | string;
+  discount_tax?: number | string;
 };
 
 type Cart = {
@@ -33,24 +35,6 @@ type Cart = {
       method_id?: string;
     }>;
   }>;
-};
-
-type AddressBookEntry = {
-  id: string;
-  label: string;
-  address: {
-    first_name?: string;
-    last_name?: string;
-    company?: string;
-    address_1?: string;
-    address_2?: string;
-    city?: string;
-    state?: string;
-    postcode?: string;
-    country?: string;
-    phone?: string;
-    email?: string;
-  };
 };
 
 export default function CheckoutPage() {
@@ -69,6 +53,19 @@ export default function CheckoutPage() {
     postcode: "",
     country: "IN",
   });
+  const [shipping, setShipping] = useState({
+    first_name: "",
+    last_name: "",
+    company: "",
+    address_1: "",
+    address_2: "",
+    city: "",
+    state: "",
+    postcode: "",
+    country: "IN",
+    phone: "",
+  });
+  const [shipToBilling, setShipToBilling] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [shippingMethod, setShippingMethod] = useState("");
   const [isPlacing, setIsPlacing] = useState(false);
@@ -77,10 +74,47 @@ export default function CheckoutPage() {
   const [coupon, setCoupon] = useState("");
   const [couponError, setCouponError] = useState("");
   const [couponSuccess, setCouponSuccess] = useState("");
-  const [savedAddresses, setSavedAddresses] = useState<AddressBookEntry[]>([]);
-  const [selectedAddressId, setSelectedAddressId] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [hasPrefilled, setHasPrefilled] = useState(false);
+  const indiaStates = [
+    { code: "AN", name: "Andaman and Nicobar Islands" },
+    { code: "AP", name: "Andhra Pradesh" },
+    { code: "AR", name: "Arunachal Pradesh" },
+    { code: "AS", name: "Assam" },
+    { code: "BR", name: "Bihar" },
+    { code: "CH", name: "Chandigarh" },
+    { code: "CT", name: "Chhattisgarh" },
+    { code: "DN", name: "Dadra and Nagar Haveli and Daman and Diu" },
+    { code: "DD", name: "Daman and Diu (Legacy)" },
+    { code: "DL", name: "Delhi" },
+    { code: "GA", name: "Goa" },
+    { code: "GJ", name: "Gujarat" },
+    { code: "HR", name: "Haryana" },
+    { code: "HP", name: "Himachal Pradesh" },
+    { code: "JK", name: "Jammu and Kashmir" },
+    { code: "JH", name: "Jharkhand" },
+    { code: "KA", name: "Karnataka" },
+    { code: "KL", name: "Kerala" },
+    { code: "LA", name: "Ladakh" },
+    { code: "LD", name: "Lakshadweep" },
+    { code: "MP", name: "Madhya Pradesh" },
+    { code: "MH", name: "Maharashtra" },
+    { code: "MN", name: "Manipur" },
+    { code: "ML", name: "Meghalaya" },
+    { code: "MZ", name: "Mizoram" },
+    { code: "NL", name: "Nagaland" },
+    { code: "OR", name: "Odisha" },
+    { code: "PY", name: "Puducherry" },
+    { code: "PB", name: "Punjab" },
+    { code: "RJ", name: "Rajasthan" },
+    { code: "SK", name: "Sikkim" },
+    { code: "TN", name: "Tamil Nadu" },
+    { code: "TG", name: "Telangana" },
+    { code: "TR", name: "Tripura" },
+    { code: "UP", name: "Uttar Pradesh" },
+    { code: "UT", name: "Uttarakhand" },
+    { code: "WB", name: "West Bengal" },
+  ];
 
   useEffect(() => {
     const load = async () => {
@@ -96,11 +130,17 @@ export default function CheckoutPage() {
         setCart(data);
         const options =
           data?.shipping_rates
-            ?.flatMap((pkg: { shipping_rates?: Array<{ rate_id?: string; method_id?: string }> }) =>
-              pkg.shipping_rates ?? []
+            ?.flatMap(
+              (pkg: {
+                shipping_rates?: Array<{
+                  rate_id?: string;
+                  method_id?: string;
+                }>;
+              }) => pkg.shipping_rates ?? [],
             )
-            ?.map((rate: { rate_id?: string; method_id?: string }) =>
-              rate.rate_id || rate.method_id
+            ?.map(
+              (rate: { rate_id?: string; method_id?: string }) =>
+                rate.rate_id || rate.method_id,
             )
             ?.filter(Boolean) ?? [];
         if (options.length && !shippingMethod) {
@@ -110,27 +150,32 @@ export default function CheckoutPage() {
         }
       }
       if (!hasPrefilled) {
-        const mergeAddress = (
-          current: typeof billing,
-          incoming?: Partial<typeof billing> | null
+        const mergeAddress = <T extends Record<string, string | undefined>>(
+          current: T,
+          incoming?: Partial<T> | null,
         ) => {
           if (!incoming) return current;
           const next = { ...current };
-          (Object.keys(next) as Array<keyof typeof billing>).forEach((key) => {
+          (Object.keys(next) as Array<keyof T>).forEach((key) => {
             if (!next[key] && incoming[key]) {
-              next[key] = incoming[key] as string;
+              next[key] = incoming[key] as T[keyof T];
             }
           });
           return next;
         };
 
         let nextBilling: typeof billing | null = null;
+        let nextShipping: typeof shipping | null = null;
         const addressRes = await fetch("/api/account/addresses");
         if (addressRes.ok) {
           const data = await addressRes.json();
           nextBilling = mergeAddress(
             nextBilling ?? billing,
-            data?.billing ?? data?.shipping
+            data?.billing ?? data?.shipping,
+          );
+          nextShipping = mergeAddress(
+            nextShipping ?? shipping,
+            data?.shipping ?? data?.billing,
           );
         }
 
@@ -139,12 +184,19 @@ export default function CheckoutPage() {
           const draft = await checkoutRes.json();
           nextBilling = mergeAddress(
             nextBilling ?? billing,
-            draft?.billing_address
+            draft?.billing_address,
+          );
+          nextShipping = mergeAddress(
+            nextShipping ?? shipping,
+            draft?.shipping_address ?? draft?.billing_address,
           );
         }
 
         if (nextBilling) {
           setBilling(nextBilling);
+        }
+        if (nextShipping) {
+          setShipping(nextShipping);
         }
         setHasPrefilled(true);
       }
@@ -153,24 +205,9 @@ export default function CheckoutPage() {
   }, [shippingMethod, router, hasPrefilled]);
 
   useEffect(() => {
-    const stored = localStorage.getItem("addressBook");
-    const defaultId = localStorage.getItem("defaultAddressId");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as AddressBookEntry[];
-        setSavedAddresses(parsed);
-        if (defaultId) {
-          setSelectedAddressId(defaultId);
-          const match = parsed.find((entry) => entry.id === defaultId);
-          if (match) {
-            setBilling((prev) => ({ ...prev, ...match.address }));
-          }
-        }
-      } catch {
-        setSavedAddresses([]);
-      }
-    }
-  }, []);
+    if (!shipToBilling) return;
+    setShipping((prev) => ({ ...prev, ...billing }));
+  }, [billing, shipToBilling]);
 
   useEffect(() => {
     if (!couponSuccess) return;
@@ -193,7 +230,7 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           billing_address: billing,
-          shipping_address: billing,
+          shipping_address: shipToBilling ? billing : shipping,
           shipping_method: shippingMethod ? [shippingMethod] : undefined,
           payment_method: paymentMethod,
           payment_data: [],
@@ -274,26 +311,28 @@ export default function CheckoutPage() {
   const subtotalCents =
     subtotalCentsRaw > 0 ? subtotalCentsRaw : itemsSubtotalCents;
   const couponDiscountFromCoupons =
-    cart?.coupons?.reduce(
-      (sum, entry) => sum + toCents(entry.discount),
-      0,
-    ) ?? 0;
-  const derivedDiscountCents = Math.max(
+    cart?.coupons?.reduce((sum, entry) => sum + toCents(entry.discount), 0) ??
+    0;
+  const couponDiscountFromTotals =
+    toCents(cart?.totals?.discount_total) + toCents(cart?.totals?.discount_tax);
+  const derivedDiscountFromTotals = Math.max(0, subtotalCents - totalsCents);
+  const derivedDiscountFromItems = Math.max(
     0,
     itemsSubtotalCents - subtotalCents,
   );
   const couponDiscountCents =
     couponDiscountFromCoupons > 0
       ? couponDiscountFromCoupons
-      : derivedDiscountCents;
-  const derivedTotalCents = Math.max(
-    0,
-    subtotalCents - couponDiscountCents,
-  );
+      : couponDiscountFromTotals > 0
+        ? couponDiscountFromTotals
+        : derivedDiscountFromTotals > 0
+          ? derivedDiscountFromTotals
+          : derivedDiscountFromItems;
+  const derivedTotalCents = Math.max(0, subtotalCents - couponDiscountCents);
   const shippingRates =
     cart?.shipping_rates?.flatMap((pkg) => pkg.shipping_rates ?? []) ?? [];
   const selectedRate = shippingRates.find(
-    (rate) => (rate.rate_id || rate.method_id) === shippingMethod
+    (rate) => (rate.rate_id || rate.method_id) === shippingMethod,
   );
   const selectedRateCents = selectedRate
     ? typeof selectedRate.price === "number"
@@ -307,37 +346,11 @@ export default function CheckoutPage() {
       : derivedTotalCents + (selectedRateCents || fallbackShippingCents);
 
   return (
-    <div className="mx-auto w-full max-w-[96rem] px-6 pt-32">
+    <div className="mx-auto w-full max-w-[96rem] px-6 mb-24 pt-32">
       <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6">
           <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
-            <h1 className="text-xl font-semibold">Billing &amp; Shipping</h1>
-            {savedAddresses.length ? (
-              <div className="mt-4">
-                <label className="text-xs font-semibold text-[color:var(--muted)]">
-                  Saved address
-                </label>
-                <select
-                  className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
-                  value={selectedAddressId}
-                  onChange={(event) => {
-                    const id = event.target.value;
-                    setSelectedAddressId(id);
-                    const match = savedAddresses.find((entry) => entry.id === id);
-                    if (match) {
-                      setBilling((prev) => ({ ...prev, ...match.address }));
-                    }
-                  }}
-                >
-                  <option value="">Select saved address</option>
-                  {savedAddresses.map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {entry.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : null}
+            <h1 className="text-xl font-semibold">Billing details</h1>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <label className="text-xs font-semibold text-[color:var(--muted)]">
                 First name <span className="text-[color:var(--brand)]">*</span>
@@ -371,17 +384,21 @@ export default function CheckoutPage() {
               />
             </label>
             <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
-              Country / Region <span className="text-[color:var(--brand)]">*</span>
-              <input
+              Country / Region{" "}
+              <span className="text-[color:var(--brand)]">*</span>
+              <select
                 className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                 value={billing.country}
                 onChange={(event) =>
                   setBilling({ ...billing, country: event.target.value })
                 }
-              />
+              >
+                <option value="IN">India</option>
+              </select>
             </label>
             <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
-              Street address <span className="text-[color:var(--brand)]">*</span>
+              Street address{" "}
+              <span className="text-[color:var(--brand)]">*</span>
               <input
                 className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                 placeholder="House number and street name"
@@ -413,19 +430,28 @@ export default function CheckoutPage() {
                 />
               </label>
               <label className="text-xs font-semibold text-[color:var(--muted)]">
-                State / County <span className="text-[color:var(--brand)]">*</span>
-                <input
+                State / County{" "}
+                <span className="text-[color:var(--brand)]">*</span>
+                <select
                   className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                   value={billing.state}
                   onChange={(event) =>
                     setBilling({ ...billing, state: event.target.value })
                   }
-                />
+                >
+                  <option value="">Select state</option>
+                  {indiaStates.map((state) => (
+                    <option key={state.code} value={state.code}>
+                      {state.name}
+                    </option>
+                  ))}
+                </select>
               </label>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <label className="text-xs font-semibold text-[color:var(--muted)]">
-                Postcode / ZIP <span className="text-[color:var(--brand)]">*</span>
+                Postcode / ZIP{" "}
+                <span className="text-[color:var(--brand)]">*</span>
                 <input
                   className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                   value={billing.postcode}
@@ -455,6 +481,16 @@ export default function CheckoutPage() {
                 }
               />
             </label>
+            <div className="mt-6 rounded-[12px] border border-black/5 bg-white/80 p-4">
+              <label className="flex items-center gap-2 text-xs font-semibold text-[color:var(--muted)]">
+                <input
+                  type="checkbox"
+                  checked={shipToBilling}
+                  onChange={(event) => setShipToBilling(event.target.checked)}
+                />
+                Shipping address same as billing
+              </label>
+            </div>
             <label className="mt-6 block text-xs font-semibold text-[color:var(--muted)]">
               Additional information
               <textarea
@@ -466,6 +502,140 @@ export default function CheckoutPage() {
               />
             </label>
           </div>
+
+          {!shipToBilling ? (
+            <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
+              <h2 className="text-lg font-semibold">Shipping details</h2>
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                <label className="text-xs font-semibold text-[color:var(--muted)]">
+                  First name{" "}
+                  <span className="text-[color:var(--brand)]">*</span>
+                  <input
+                    className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                    value={shipping.first_name}
+                    onChange={(event) =>
+                      setShipping({
+                        ...shipping,
+                        first_name: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <label className="text-xs font-semibold text-[color:var(--muted)]">
+                  Last name <span className="text-[color:var(--brand)]">*</span>
+                  <input
+                    className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                    value={shipping.last_name}
+                    onChange={(event) =>
+                      setShipping({
+                        ...shipping,
+                        last_name: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
+                Company name (optional)
+                <input
+                  className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                  value={shipping.company ?? ""}
+                  onChange={(event) =>
+                    setShipping({ ...shipping, company: event.target.value })
+                  }
+                />
+              </label>
+              <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
+                Country / Region{" "}
+                <span className="text-[color:var(--brand)]">*</span>
+                <select
+                  className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                  value={shipping.country}
+                  onChange={(event) =>
+                    setShipping({ ...shipping, country: event.target.value })
+                  }
+                >
+                  <option value="IN">India</option>
+                </select>
+              </label>
+              <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
+                Street address{" "}
+                <span className="text-[color:var(--brand)]">*</span>
+                <input
+                  className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                  placeholder="House number and street name"
+                  value={shipping.address_1}
+                  onChange={(event) =>
+                    setShipping({ ...shipping, address_1: event.target.value })
+                  }
+                />
+              </label>
+              <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
+                Apartment, suite, unit, etc. (optional)
+                <input
+                  className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                  value={shipping.address_2}
+                  onChange={(event) =>
+                    setShipping({ ...shipping, address_2: event.target.value })
+                  }
+                />
+              </label>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <label className="text-xs font-semibold text-[color:var(--muted)]">
+                  Town / City{" "}
+                  <span className="text-[color:var(--brand)]">*</span>
+                  <input
+                    className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                    value={shipping.city}
+                    onChange={(event) =>
+                      setShipping({ ...shipping, city: event.target.value })
+                    }
+                  />
+                </label>
+                <label className="text-xs font-semibold text-[color:var(--muted)]">
+                  State / County{" "}
+                  <span className="text-[color:var(--brand)]">*</span>
+                  <select
+                    className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                    value={shipping.state}
+                    onChange={(event) =>
+                      setShipping({ ...shipping, state: event.target.value })
+                    }
+                  >
+                    <option value="">Select state</option>
+                    {indiaStates.map((state) => (
+                      <option key={state.code} value={state.code}>
+                        {state.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <label className="text-xs font-semibold text-[color:var(--muted)]">
+                  Postcode / ZIP{" "}
+                  <span className="text-[color:var(--brand)]">*</span>
+                  <input
+                    className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                    value={shipping.postcode}
+                    onChange={(event) =>
+                      setShipping({ ...shipping, postcode: event.target.value })
+                    }
+                  />
+                </label>
+                <label className="text-xs font-semibold text-[color:var(--muted)]">
+                  Phone <span className="text-[color:var(--brand)]">*</span>
+                  <input
+                    className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                    value={shipping.phone}
+                    onChange={(event) =>
+                      setShipping({ ...shipping, phone: event.target.value })
+                    }
+                  />
+                </label>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="space-y-6">
@@ -478,13 +648,20 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                 </div>
                 {cart.items?.map((item) => (
-                  <div key={item.key} className="flex items-center justify-between border-b border-black/5 pb-3">
+                  <div
+                    key={item.key}
+                    className="flex items-center justify-between border-b border-black/5 pb-3"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="h-12 w-12 overflow-hidden rounded-[10px] bg-[#f1ece4]">
-                        {item.images?.[0]?.thumbnail || item.images?.[0]?.src ? (
+                        {item.images?.[0]?.thumbnail ||
+                        item.images?.[0]?.src ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={item.images?.[0]?.thumbnail || item.images?.[0]?.src}
+                            src={
+                              item.images?.[0]?.thumbnail ||
+                              item.images?.[0]?.src
+                            }
                             alt={item.name}
                             className="h-full w-full object-cover"
                           />
@@ -497,19 +674,30 @@ export default function CheckoutPage() {
                         </p>
                       </div>
                     </div>
-                    <span>{formatPrice(Number(item.prices?.price ?? 0) / 100)}</span>
+                    <span>
+                      {formatPrice(Number(item.prices?.price ?? 0) / 100)}
+                    </span>
                   </div>
                 ))}
                 <div className="flex justify-between text-sm">
                   <span>Subtotal</span>
                   <span>{formatPrice(itemsSubtotalCents / 100)}</span>
                 </div>
+                {cart.coupons?.length || couponDiscountCents > 0 ? (
+                  <div className="flex justify-between text-sm text-[color:var(--brand)]">
+                    <span>Coupon</span>
+                    <span>-{formatPrice(couponDiscountCents / 100)}</span>
+                  </div>
+                ) : null}
                 {cart.coupons?.length ? (
                   <div className="mt-2 rounded-[10px] border border-black/5 bg-white/80 p-3 text-xs">
                     <p className="mb-2 font-semibold">Applied coupons</p>
                     <div className="space-y-1">
                       {cart.coupons.map((entry) => (
-                        <div key={entry.code} className="flex items-center justify-between">
+                        <div
+                          key={entry.code}
+                          className="flex items-center justify-between"
+                        >
                           <span className="uppercase">{entry.code}</span>
                           <button
                             className="text-[color:var(--brand)]"
@@ -546,7 +734,9 @@ export default function CheckoutPage() {
                   </>
                 ) : null}
                 <div className="mt-3 space-y-2 text-xs">
-                  <p className="font-semibold text-[color:var(--muted)]">Shipping</p>
+                  <p className="font-semibold text-[color:var(--muted)]">
+                    Shipping
+                  </p>
                   {shippingRates.length ? (
                     shippingRates.map((rate) => {
                       const id = rate.rate_id || rate.method_id || "";
@@ -634,7 +824,11 @@ export default function CheckoutPage() {
             {error ? (
               <p className="mt-3 text-sm text-red-500">{error}</p>
             ) : null}
-            <Button onClick={placeOrder} className="mt-6 w-full" disabled={isPlacing}>
+            <Button
+              onClick={placeOrder}
+              className="mt-6 w-full"
+              disabled={isPlacing}
+            >
               {isPlacing ? "Placing order..." : "Place order"}
             </Button>
           </div>

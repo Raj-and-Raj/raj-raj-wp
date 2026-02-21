@@ -57,7 +57,7 @@ export function ShopByCollection() {
   };
 
   return (
-    <div className="container mx-auto relative mb-20 px-4 md:px-8">
+    <div className="mx-auto relative mb-20 px-4 md:px-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">

@@ -9,8 +9,6 @@ import {
   Shield,
   LogOut,
   User,
-  Plus,
-  Trash2,
   Check,
   Edit2,
   Search,
@@ -20,12 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-type AddressBookEntry = {
-  id: string;
-  label: string;
-  address: Address;
-};
 
 type Address = {
   first_name?: string;
@@ -46,6 +38,9 @@ export function AccountDashboard() {
   const [profile, setProfile] = useState<null | {
     name: string;
     email: string;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
   }>(null);
   const [orders, setOrders] = useState<
     Array<{ id: number; status: string; total: string; date_created: string }>
@@ -70,10 +65,6 @@ export function AccountDashboard() {
     confirm: "",
   });
   const [passwordMessage, setPasswordMessage] = useState("");
-  const [addressBook, setAddressBook] = useState<AddressBookEntry[]>([]);
-  const [addressForm, setAddressForm] = useState<Address>({});
-  const [addressLabel, setAddressLabel] = useState("");
-  const [defaultAddressId, setDefaultAddressId] = useState<string | null>(null);
   const [orderDetails, setOrderDetails] = useState<null | {
     id: number;
     status: string;
@@ -86,6 +77,45 @@ export function AccountDashboard() {
       image?: { src?: string };
     }>;
   }>(null);
+  const indiaStates = [
+    { code: "AN", name: "Andaman and Nicobar Islands" },
+    { code: "AP", name: "Andhra Pradesh" },
+    { code: "AR", name: "Arunachal Pradesh" },
+    { code: "AS", name: "Assam" },
+    { code: "BR", name: "Bihar" },
+    { code: "CH", name: "Chandigarh" },
+    { code: "CT", name: "Chhattisgarh" },
+    { code: "DN", name: "Dadra and Nagar Haveli and Daman and Diu" },
+    { code: "DD", name: "Daman and Diu (Legacy)" },
+    { code: "DL", name: "Delhi" },
+    { code: "GA", name: "Goa" },
+    { code: "GJ", name: "Gujarat" },
+    { code: "HR", name: "Haryana" },
+    { code: "HP", name: "Himachal Pradesh" },
+    { code: "JK", name: "Jammu and Kashmir" },
+    { code: "JH", name: "Jharkhand" },
+    { code: "KA", name: "Karnataka" },
+    { code: "KL", name: "Kerala" },
+    { code: "LA", name: "Ladakh" },
+    { code: "LD", name: "Lakshadweep" },
+    { code: "MP", name: "Madhya Pradesh" },
+    { code: "MH", name: "Maharashtra" },
+    { code: "MN", name: "Manipur" },
+    { code: "ML", name: "Meghalaya" },
+    { code: "MZ", name: "Mizoram" },
+    { code: "NL", name: "Nagaland" },
+    { code: "OR", name: "Odisha" },
+    { code: "PY", name: "Puducherry" },
+    { code: "PB", name: "Punjab" },
+    { code: "RJ", name: "Rajasthan" },
+    { code: "SK", name: "Sikkim" },
+    { code: "TN", name: "Tamil Nadu" },
+    { code: "TG", name: "Telangana" },
+    { code: "TR", name: "Tripura" },
+    { code: "UP", name: "Uttar Pradesh" },
+    { code: "UT", name: "Uttarakhand" },
+    { code: "WB", name: "West Bengal" },
+  ];
 
   const loadAll = async () => {
     const res = await fetch("/api/auth/me");
@@ -94,8 +124,19 @@ export function AccountDashboard() {
       return;
     }
     const data = await res.json();
-    setProfile({ name: data.name, email: data.email });
-    setProfileDraft({ name: data.name, email: data.email ?? "" });
+    const firstName = String(data.firstName ?? "").trim();
+    const lastName = String(data.lastName ?? "").trim();
+    const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+    const username = data.username || data.name || "";
+    const fallbackName = fullName || data.name || username || "Customer";
+    setProfile({
+      name: fallbackName,
+      email: data.email,
+      username,
+      firstName,
+      lastName,
+    });
+    setProfileDraft({ name: fallbackName, email: data.email ?? "" });
 
     const ordersRes = await fetch("/api/account/orders");
     if (ordersRes.ok) {
@@ -119,21 +160,6 @@ export function AccountDashboard() {
 
   useEffect(() => {
     loadAll();
-  }, []);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("addressBook");
-    const defaultId = localStorage.getItem("defaultAddressId");
-    if (defaultId) {
-      setDefaultAddressId(defaultId);
-    }
-    if (!stored) return;
-    try {
-      const parsed = JSON.parse(stored) as AddressBookEntry[];
-      setAddressBook(parsed);
-    } catch {
-      setAddressBook([]);
-    }
   }, []);
 
   const handleLogout = async () => {
@@ -197,46 +223,6 @@ export function AccountDashboard() {
     setPasswordDraft({ password: "", confirm: "" });
   };
 
-  const addAddress = () => {
-    if (!addressLabel.trim()) return;
-    const id = `${Date.now()}`;
-    const entry: AddressBookEntry = {
-      id,
-      label: addressLabel.trim(),
-      address: addressForm,
-    };
-    const next = [...addressBook, entry];
-    setAddressBook(next);
-    localStorage.setItem("addressBook", JSON.stringify(next));
-    setAddressForm({});
-    setAddressLabel("");
-  };
-
-  const removeAddress = (id: string) => {
-    const next = addressBook.filter((entry) => entry.id !== id);
-    setAddressBook(next);
-    localStorage.setItem("addressBook", JSON.stringify(next));
-    if (defaultAddressId === id) {
-      setDefaultAddressId(null);
-      localStorage.removeItem("defaultAddressId");
-    }
-  };
-
-  const setDefaultAddress = async (id: string) => {
-    setDefaultAddressId(id);
-    localStorage.setItem("defaultAddressId", id);
-    const entry = addressBook.find((item) => item.id === id);
-    if (!entry) return;
-    setBillingDraft(entry.address);
-    setShippingDraft(entry.address);
-    setAddresses({ billing: entry.address, shipping: entry.address });
-    await fetch("/api/account/addresses", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ billing: entry.address, shipping: entry.address }),
-    });
-  };
-
   const loadOrderDetails = async (id: number) => {
     const res = await fetch(`/api/orders/${id}`);
     if (!res.ok) return;
@@ -248,7 +234,6 @@ export function AccountDashboard() {
       line_items: data.line_items ?? [],
     });
   };
-
 
   const trackOrder = async () => {
     if (!trackId) return;
@@ -287,7 +272,7 @@ export function AccountDashboard() {
         <div>
           <h1 className="text-2xl font-semibold">My account</h1>
           <p className="mt-2 text-sm text-[color:var(--muted)]">
-            Welcome back, {profile.name}
+            Welcome back, {profile.firstName}
           </p>
         </div>
         <Button variant="outline" onClick={handleLogout}>
@@ -358,7 +343,9 @@ export function AccountDashboard() {
                   </span>
                 </div>
                 <div className="pt-3">
-                  <p className="text-sm text-[color:var(--muted)]">Total Amount</p>
+                  <p className="text-sm text-[color:var(--muted)]">
+                    Total Amount
+                  </p>
                   <p className="text-lg font-bold">₹{tracked.total}</p>
                 </div>
               </div>
@@ -376,11 +363,20 @@ export function AccountDashboard() {
             </div>
             <div className="mt-6 flex items-center gap-4">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-[color:var(--brand)] to-red-600 text-2xl font-bold text-white shadow-lg shadow-red-500/20">
-                {profile.name.slice(0, 1).toUpperCase()}
+                {(profile.firstName || profile.name).slice(0, 1).toUpperCase()}
               </div>
               <div>
-                <p className="text-lg font-bold">{profile.name}</p>
-                <p className="text-sm text-[color:var(--muted)]">{profile.email}</p>
+                <p className="text-lg font-bold">
+                  {profile.name}
+                  {profile.username ? (
+                    <span className="ml-2 text-xs font-medium text-[color:var(--muted)]">
+                      ({profile.username})
+                    </span>
+                  ) : null}
+                </p>
+                <p className="text-sm text-[color:var(--muted)]">
+                  {profile.email}
+                </p>
               </div>
             </div>
             <div className="mt-8 grid gap-4">
@@ -437,7 +433,10 @@ export function AccountDashboard() {
                   placeholder="New password"
                   value={passwordDraft.password}
                   onChange={(e) =>
-                    setPasswordDraft({ ...passwordDraft, password: e.target.value })
+                    setPasswordDraft({
+                      ...passwordDraft,
+                      password: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -450,7 +449,10 @@ export function AccountDashboard() {
                   placeholder="Confirm password"
                   value={passwordDraft.confirm}
                   onChange={(e) =>
-                    setPasswordDraft({ ...passwordDraft, confirm: e.target.value })
+                    setPasswordDraft({
+                      ...passwordDraft,
+                      confirm: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -482,7 +484,11 @@ export function AccountDashboard() {
                 <p className="text-sm text-[color:var(--muted)]">
                   No orders found.
                 </p>
-                <Button variant="outline" className="w-full sm:w-auto" onClick={() => router.push("/products")}>
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  onClick={() => router.push("/products")}
+                >
                   Start Shopping
                 </Button>
               </div>
@@ -533,82 +539,6 @@ export function AccountDashboard() {
         </TabsContent>
 
         <TabsContent value="addresses" className="mt-0 space-y-6">
-          <div className="rounded-[24px] border border-black/5 bg-white p-6">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--muted)]">
-                Address Book
-              </p>
-              <MapPin className="h-4 w-4 text-[color:var(--muted)]" />
-            </div>
-            <div className="mt-6">
-                  <div className="flex flex-col gap-2 sm:flex-row">
-                    <Input
-                      placeholder="Label (e.g. Home, Office)"
-                      value={addressLabel}
-                      onChange={(e) => setAddressLabel(e.target.value)}
-                    />
-                    <Button onClick={addAddress} variant="outline" className="w-full sm:w-auto shrink-0">
-                      <Plus className="mr-2 h-4 w-4" /> Add
-                    </Button>
-                  </div>
-
-              {addressBook.length === 0 ? (
-                <p className="mt-6 text-center text-sm text-[color:var(--muted)]">
-                  No saved addresses.
-                </p>
-              ) : (
-                <div className="mt-6 space-y-4">
-                  {addressBook.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="rounded-[16px] border border-black/5 bg-slate-50 p-5"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-bold">{entry.label}</p>
-                          <p className="mt-1 text-sm text-[color:var(--muted)]">
-                            {entry.address.address_1}
-                            {entry.address.address_2 &&
-                              `, ${entry.address.address_2}`}
-                          </p>
-                          <p className="text-sm text-[color:var(--muted)]">
-                            {[
-                              entry.address.city,
-                              entry.address.state,
-                              entry.address.postcode,
-                            ]
-                              .filter(Boolean)
-                              .join(", ")}
-                          </p>
-                        </div>
-                        <button
-                          className="rounded-full p-2 text-red-500 hover:bg-red-50"
-                          onClick={() => removeAddress(entry.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <div className="mt-4 pt-4 border-t border-black/5">
-                        <button
-                          className={`text-xs font-semibold hover:underline ${
-                            defaultAddressId === entry.id
-                              ? "text-[color:var(--brand)]"
-                              : "text-[color:var(--muted)]"
-                          }`}
-                          onClick={() => setDefaultAddress(entry.id)}
-                        >
-                          {defaultAddressId === entry.id
-                            ? "Default Address"
-                            : "Set as Default"}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
           <div className="rounded-xl border border-black/5 bg-white p-6">
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--muted)]">
@@ -668,17 +598,30 @@ export function AccountDashboard() {
                       placeholder="City"
                       value={billingDraft.city ?? ""}
                       onChange={(e) =>
-                        setBillingDraft({ ...billingDraft, city: e.target.value })
+                        setBillingDraft({
+                          ...billingDraft,
+                          city: e.target.value,
+                        })
                       }
                     />
                     <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        placeholder="State"
+                      <select
+                        className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                         value={billingDraft.state ?? ""}
                         onChange={(e) =>
-                          setBillingDraft({ ...billingDraft, state: e.target.value })
+                          setBillingDraft({
+                            ...billingDraft,
+                            state: e.target.value,
+                          })
                         }
-                      />
+                      >
+                        <option value="">State</option>
+                        {indiaStates.map((state) => (
+                          <option key={state.code} value={state.code}>
+                            {state.name}
+                          </option>
+                        ))}
+                      </select>
                       <Input
                         placeholder="Postcode"
                         value={billingDraft.postcode ?? ""}
@@ -690,25 +633,34 @@ export function AccountDashboard() {
                         }
                       />
                     </div>
-                    <Input
-                      placeholder="Country"
-                      value={billingDraft.country ?? ""}
+                    <select
+                      className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                      value={billingDraft.country ?? "IN"}
                       onChange={(e) =>
-                        setBillingDraft({ ...billingDraft, country: e.target.value })
+                        setBillingDraft({
+                          ...billingDraft,
+                          country: e.target.value,
+                        })
                       }
-                    />
+                    >
+                      <option value="IN">India</option>
+                    </select>
                     <Input
                       placeholder="Phone"
                       value={billingDraft.phone ?? ""}
                       onChange={(e) =>
-                        setBillingDraft({ ...billingDraft, phone: e.target.value })
+                        setBillingDraft({
+                          ...billingDraft,
+                          phone: e.target.value,
+                        })
                       }
                     />
                   </div>
                 ) : addresses.billing ? (
                   <div className="text-sm text-[color:var(--muted)] space-y-1">
                     <p className="font-medium text-[color:var(--ink)]">
-                      {addresses.billing.first_name} {addresses.billing.last_name}
+                      {addresses.billing.first_name}{" "}
+                      {addresses.billing.last_name}
                     </p>
                     <p>{addresses.billing.address_1}</p>
                     {addresses.billing.address_2 && (
@@ -778,12 +730,15 @@ export function AccountDashboard() {
                       placeholder="City"
                       value={shippingDraft.city ?? ""}
                       onChange={(e) =>
-                        setShippingDraft({ ...shippingDraft, city: e.target.value })
+                        setShippingDraft({
+                          ...shippingDraft,
+                          city: e.target.value,
+                        })
                       }
                     />
                     <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        placeholder="State"
+                      <select
+                        className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                         value={shippingDraft.state ?? ""}
                         onChange={(e) =>
                           setShippingDraft({
@@ -791,7 +746,14 @@ export function AccountDashboard() {
                             state: e.target.value,
                           })
                         }
-                      />
+                      >
+                        <option value="">State</option>
+                        {indiaStates.map((state) => (
+                          <option key={state.code} value={state.code}>
+                            {state.name}
+                          </option>
+                        ))}
+                      </select>
                       <Input
                         placeholder="Postcode"
                         value={shippingDraft.postcode ?? ""}
@@ -803,28 +765,34 @@ export function AccountDashboard() {
                         }
                       />
                     </div>
-                    <Input
-                      placeholder="Country"
-                      value={shippingDraft.country ?? ""}
+                    <select
+                      className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                      value={shippingDraft.country ?? "IN"}
                       onChange={(e) =>
                         setShippingDraft({
                           ...shippingDraft,
                           country: e.target.value,
                         })
                       }
-                    />
+                    >
+                      <option value="IN">India</option>
+                    </select>
                     <Input
                       placeholder="Phone"
                       value={shippingDraft.phone ?? ""}
                       onChange={(e) =>
-                        setShippingDraft({ ...shippingDraft, phone: e.target.value })
+                        setShippingDraft({
+                          ...shippingDraft,
+                          phone: e.target.value,
+                        })
                       }
                     />
                   </div>
                 ) : addresses.shipping ? (
                   <div className="text-sm text-[color:var(--muted)] space-y-1">
                     <p className="font-medium text-[color:var(--ink)]">
-                      {addresses.shipping.first_name} {addresses.shipping.last_name}
+                      {addresses.shipping.first_name}{" "}
+                      {addresses.shipping.last_name}
                     </p>
                     <p>{addresses.shipping.address_1}</p>
                     {addresses.shipping.address_2 && (
@@ -875,7 +843,9 @@ export function AccountDashboard() {
             <div className="mt-4 space-y-4">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-[color:var(--muted)]">Status:</span>
-                <span className="font-medium capitalize">{orderDetails.status}</span>
+                <span className="font-medium capitalize">
+                  {orderDetails.status}
+                </span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-[color:var(--muted)]">Total Amount:</span>

@@ -14,16 +14,41 @@ export async function POST(request: Request) {
     );
   }
   const body = await request.json();
-  const { email, firstName, lastName, username, password } = body as {
+  const {
+    email,
+    firstName,
+    lastName,
+    username,
+    password,
+    honeypot,
+    formStartedAt,
+  } = body as {
     email: string;
     firstName?: string;
     lastName?: string;
     username?: string;
     password?: string;
+    honeypot?: string;
+    formStartedAt?: number;
   };
 
   if (!email) {
     return NextResponse.json({ error: "Email required" }, { status: 400 });
+  }
+
+  if (honeypot && String(honeypot).trim().length > 0) {
+    return NextResponse.json(
+      { error: "Invalid signup attempt." },
+      { status: 400 }
+    );
+  }
+
+  const startedAt = Number(formStartedAt || 0);
+  if (!startedAt || Date.now() - startedAt < 2000) {
+    return NextResponse.json(
+      { error: "Please wait a moment and try again." },
+      { status: 400 }
+    );
   }
 
   try {

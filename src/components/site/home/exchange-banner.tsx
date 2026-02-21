@@ -6,11 +6,13 @@ import { uploadsUrl } from "@/lib/uploads";
 
 export function ExchangeBanner() {
   return (
-    <div className="container mx-auto mb-20 px-4 md:px-8">
+    <div className="mx-auto mb-20 px-4 md:px-8">
       <div className="flex flex-col bg-[#fdf8f5] md:flex-row">
         <div className="relative h-[400px] w-full overflow-hidden md:h-auto md:w-1/2">
           <img
-            src={uploadsUrl("2026/02/realistic-interior-design-with-furniture-scaled.jpg")}
+            src={uploadsUrl(
+              "2026/02/realistic-interior-design-with-furniture-scaled.jpg",
+            )}
             alt="Bedroom furniture"
             className="h-full w-full object-cover"
           />

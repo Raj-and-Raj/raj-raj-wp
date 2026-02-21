@@ -74,7 +74,7 @@ export function CheckoutSuccessClient() {
   }, [orderId]);
 
   return (
-    <div className="mx-auto w-full max-w-[96rem] px-6 pt-32">
+    <div className="mx-auto w-full max-w-[96rem] mb-24 px-6 pt-32">
       <div className="mb-8 rounded-[16px] border border-black/5 bg-white/95 p-6">
         <h1 className="text-2xl font-semibold">Order received</h1>
         <p className="mt-2 text-sm text-[color:var(--muted)]">

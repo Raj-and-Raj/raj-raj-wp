@@ -5,7 +5,7 @@ import { Send } from "lucide-react";
 
 export function Newsletter() {
   return (
-    <div className="container mx-auto mb-20 overflow-hidden px-4 md:px-8">
+    <div className="mx-auto mb-20 overflow-hidden px-4 md:px-8">
       <div className="relative rounded-3xl bg-black p-8 text-white md:p-20">
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}

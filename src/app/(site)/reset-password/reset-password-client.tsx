@@ -81,7 +81,7 @@ export default function ResetPasswordClient() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center px-4">
+    <div className="min-h-screen w-full flex items-center mb-24 justify-center px-4">
       <div className="w-full max-w-lg space-y-6 rounded-[16px] border border-black/5 bg-white/95 p-8">
         <div>
           <h1 className="text-2xl font-semibold">Reset your password</h1>

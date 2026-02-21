@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 export function StatsBanner() {
   return (
     <div className="relative left-1/2  w-screen -translate-x-1/2 bg-[#DD3333] py-16 md:py-24 text-white">
-      <div className="container mx-auto px-4 md:px-12">
+      <div className="mx-auto px-4 md:px-12">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}

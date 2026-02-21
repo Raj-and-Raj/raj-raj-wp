@@ -6,6 +6,7 @@ export type WooProduct = {
   short_description: string;
   price: string;
   type?: string;
+  meta_data?: Array<{ key: string; value: unknown }>;
   attributes?: Array<{
     id: number;
     name: string;
@@ -19,6 +20,10 @@ export type WooProduct = {
 
 export type WooVariation = {
   id: number;
+  price?: string;
+  regular_price?: string;
+  sale_price?: string;
+  on_sale?: boolean;
   image?: { src?: string };
   attributes: Array<{ name: string; option: string }>;
 };
@@ -114,6 +119,41 @@ async function wooFetch<T>(path: string, params?: URLSearchParams): Promise<T> {
   throw new Error(`WooCommerce request failed: ${res.status}`);
 }
 
+async function wooFetchNoStore<T>(
+  path: string,
+  params?: URLSearchParams
+): Promise<T> {
+  if (!baseUrl) {
+    throw new Error("Missing WOOCOMMERCE_URL env var");
+  }
+
+  const query = params ? `?${withAuth(params).toString()}` : "";
+  const primaryUrl = `${baseUrl}/wp-json/wc/v3/${path}${query}`;
+  const legacyUrl = `${baseUrl}/wc-api/v3/${path}${query}`;
+
+  const res = await fetch(primaryUrl, {
+    cache: "no-store",
+    headers: { ...authHeaders() },
+  });
+
+  if (res.ok) {
+    return res.json() as Promise<T>;
+  }
+
+  if (res.status === 404) {
+    const legacyRes = await fetch(legacyUrl, {
+      cache: "no-store",
+      headers: { ...authHeaders() },
+    });
+    if (legacyRes.ok) {
+      return legacyRes.json() as Promise<T>;
+    }
+    throw new Error(`WooCommerce request failed: ${legacyRes.status}`);
+  }
+
+  throw new Error(`WooCommerce request failed: ${res.status}`);
+}
+
 async function wooPost<T>(path: string, body: unknown): Promise<T> {
   if (!baseUrl) {
     throw new Error("Missing WOOCOMMERCE_URL env var");
@@ -127,6 +167,32 @@ async function wooPost<T>(path: string, body: unknown): Promise<T> {
     `${baseUrl}/wp-json/wc/v3/${path}?${params.toString()}`,
     {
       method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`WooCommerce request failed: ${res.status} ${text}`);
+  }
+
+  return res.json() as Promise<T>;
+}
+
+async function wooPut<T>(path: string, body: unknown): Promise<T> {
+  if (!baseUrl) {
+    throw new Error("Missing WOOCOMMERCE_URL env var");
+  }
+  if (!consumerKey || !consumerSecret) {
+    throw new Error("Missing WooCommerce API keys");
+  }
+
+  const params = withAuth(new URLSearchParams());
+  const res = await fetch(
+    `${baseUrl}/wp-json/wc/v3/${path}?${params.toString()}`,
+    {
+      method: "PUT",
       headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify(body),
     }
@@ -187,7 +253,7 @@ export async function fetchCategoryBySlug(slug: string) {
 
 export async function fetchCustomerByEmail(email: string) {
   const query = new URLSearchParams({ email });
-  const items = await wooFetch<WooCustomer[]>("customers", query);
+  const items = await wooFetchNoStore<WooCustomer[]>("customers", query);
   return items[0];
 }
 
@@ -257,7 +323,7 @@ export async function updateCustomer(
     shipping?: WooCustomer["shipping"];
   }
 ) {
-  return wooPost<WooCustomer>(`customers/${customerId}`, input);
+  return wooPut<WooCustomer>(`customers/${customerId}`, input);
 }
 
 export async function createCustomer(input: {

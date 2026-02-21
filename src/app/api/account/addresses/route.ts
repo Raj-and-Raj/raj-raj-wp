@@ -79,9 +79,25 @@ export async function PUT(request: Request) {
   }
 
   const body = await request.json();
-  const updated = await updateCustomer(customer.id, body);
-  return NextResponse.json({
-    billing: updated.billing ?? null,
-    shipping: updated.shipping ?? null,
-  });
+  const normalizedBody = { ...body };
+  if (normalizedBody?.billing) {
+    const nextBilling = { ...normalizedBody.billing };
+    if (!nextBilling.email && email) {
+      nextBilling.email = email;
+    }
+    if (!nextBilling.email) {
+      delete nextBilling.email;
+    }
+    normalizedBody.billing = nextBilling;
+  }
+  try {
+    const updated = await updateCustomer(customer.id, normalizedBody);
+    return NextResponse.json({
+      billing: updated.billing ?? null,
+      shipping: updated.shipping ?? null,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Update failed";
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
 }
