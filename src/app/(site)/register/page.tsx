@@ -1,4 +1,16 @@
+import { Suspense } from "react";
 import { RegisterForm } from "@/components/auth/register-form";
+
+function RegisterFallback() {
+  return (
+    <div className="min-h-[360px] w-full flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4 text-sm text-[color:var(--muted)]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-black/10 border-t-[color:var(--brand)]" />
+        <p>Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 export default function RegisterPage() {
   return (
@@ -11,7 +23,9 @@ export default function RegisterPage() {
           Register to save your favorites and manage your orders.
         </p>
       </div>
-      <RegisterForm />
+      <Suspense fallback={<RegisterFallback />}>
+        <RegisterForm />
+      </Suspense>
     </div>
   );
 }

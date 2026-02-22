@@ -36,6 +36,7 @@ export type WooCustomer = {
   billing?: {
     first_name?: string;
     last_name?: string;
+    email?: string;
     company?: string;
     address_1?: string;
     address_2?: string;
