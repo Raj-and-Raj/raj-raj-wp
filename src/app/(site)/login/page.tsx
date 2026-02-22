@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { LogIn, UserPlus, KeyRound } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
-import { RegisterForm } from "@/components/auth/register-form";
-import { ResetPasswordForm } from "@/components/auth/reset-form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
@@ -17,7 +15,14 @@ export default function LoginPage() {
       try {
         const res = await fetch("/api/auth/me");
         if (res.ok) {
-          router.replace("/account");
+          const redirectParam = searchParams.get("redirect");
+          const safeRedirect =
+            redirectParam &&
+            redirectParam.startsWith("/") &&
+            !redirectParam.startsWith("//")
+              ? redirectParam
+              : "/account";
+          router.replace(safeRedirect);
           return;
         }
       } finally {
@@ -48,46 +53,17 @@ export default function LoginPage() {
             Welcome back
           </h1>
           <p className="mt-2 text-sm text-[color:var(--muted)]">
-            Sign in to access your account or create a new one.
+            Sign in to access your account.
           </p>
         </div>
 
-        <Tabs defaultValue="login" className="w-full">
-          <TabsList className="mb-8 grid w-full grid-cols-3 gap-1 bg-black/5 p-1">
-            <TabsTrigger
-              value="login"
-              className="flex items-center justify-center gap-2 py-2.5 data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm"
-            >
-              <LogIn className="h-4 w-4" />
-              <span className="text-xs font-semibold sm:text-sm">Login</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="register"
-              className="flex items-center justify-center gap-2 py-2.5 data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm"
-            >
-              <UserPlus className="h-4 w-4" />
-              <span className="text-xs font-semibold sm:text-sm">Join</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="reset"
-              className="flex items-center justify-center gap-2 py-2.5 data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm"
-            >
-              <KeyRound className="h-4 w-4" />
-              <span className="text-xs font-semibold sm:text-sm">Reset</span>
-            </TabsTrigger>
-          </TabsList>
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Tabs defaultValue="login" className="w-full">
             <TabsContent value="login" className="mt-0">
               <LoginForm />
             </TabsContent>
-            <TabsContent value="register" className="mt-0">
-              <RegisterForm />
-            </TabsContent>
-            <TabsContent value="reset" className="mt-0">
-              <ResetPasswordForm />
-            </TabsContent>
-          </div>
-        </Tabs>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

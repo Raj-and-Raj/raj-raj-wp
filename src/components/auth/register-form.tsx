@@ -1,15 +1,16 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { User, Mail, Lock, MoveRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 
-export function RegisterForm() {
+export function RegisterForm({ redirectTo }: { redirectTo?: string } = {}) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formStartedAt, setFormStartedAt] = useState(0);
@@ -155,7 +156,14 @@ export function RegisterForm() {
       title: "Account created",
       description: "You can sign in now.",
     });
-    router.push("/account");
+    const redirectParam = redirectTo || searchParams.get("redirect");
+    const safeRedirect =
+      redirectParam &&
+      redirectParam.startsWith("/") &&
+      !redirectParam.startsWith("//")
+        ? redirectParam
+        : "/account";
+    router.push(safeRedirect);
   };
 
   return (

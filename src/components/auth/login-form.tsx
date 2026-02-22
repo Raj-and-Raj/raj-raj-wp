@@ -1,15 +1,16 @@
 ﻿"use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { User, Lock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 
-export function LoginForm() {
+export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -93,7 +94,14 @@ export function LoginForm() {
       description: "Welcome back.",
     });
     window.dispatchEvent(new Event("auth:updated"));
-    router.push("/account");
+    const redirectParam = redirectTo || searchParams.get("redirect");
+    const safeRedirect =
+      redirectParam &&
+      redirectParam.startsWith("/") &&
+      !redirectParam.startsWith("//")
+        ? redirectParam
+        : "/account";
+    router.push(safeRedirect);
   };
 
   return (
