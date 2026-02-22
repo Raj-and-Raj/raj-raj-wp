@@ -10,6 +10,7 @@ export default async function ProductsPage() {
       displayName="All Products"
       products={products}
       categories={categories}
+      subcategories={[]}
     />
   );
 }

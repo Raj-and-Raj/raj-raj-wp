@@ -192,6 +192,35 @@ export async function getParentCategories() {
   return items.map((item) => ({ name: item.name, slug: item.slug }));
 }
 
+export async function getCategoryTree() {
+  if (!hasWoo) {
+    return fallbackCategories.map((item) => ({ ...item, children: [] as Array<{ name: string; slug: string }> }));
+  }
+  const items = await fetchCategories({ perPage: 100 });
+  const nodeMap = new Map<
+    number,
+    { id: number; name: string; slug: string; parent: number; children: Array<{ name: string; slug: string }> }
+  >();
+  items.forEach((item) => {
+    nodeMap.set(item.id, {
+      id: item.id,
+      name: item.name,
+      slug: item.slug,
+      parent: item.parent,
+      children: [],
+    });
+  });
+  const roots: Array<{ name: string; slug: string; children: Array<{ name: string; slug: string }> }> = [];
+  nodeMap.forEach((node) => {
+    if (node.parent && nodeMap.has(node.parent)) {
+      nodeMap.get(node.parent)!.children.push({ name: node.name, slug: node.slug });
+    } else {
+      roots.push({ name: node.name, slug: node.slug, children: node.children });
+    }
+  });
+  return roots;
+}
+
 export async function getProductsByIds(ids: string[]) {
   if (!ids.length) return [];
   if (!hasWoo) {
