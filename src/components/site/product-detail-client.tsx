@@ -58,6 +58,21 @@ export function ProductDetailClient({
   >({ state: "idle" });
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [enquirySubmitting, setEnquirySubmitting] = useState(false);
+  const [enquiryNotice, setEnquiryNotice] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+  const [enquiryErrors, setEnquiryErrors] = useState({
+    name: "",
+    email: "",
+    mobile: "",
+  });
+  const [enquiryValues, setEnquiryValues] = useState({
+    name: "",
+    email: "",
+    mobile: "",
+  });
   const [relatedVariationSwatches, setRelatedVariationSwatches] = useState<
     Record<string, Array<{ label: string; image?: string }>>
   >({});
@@ -236,6 +251,120 @@ export function ProductDetailClient({
     }
     localStorage.setItem("wishlist", JSON.stringify(ids));
     window.dispatchEvent(new Event("wishlist:updated"));
+  };
+
+  const getEnquiryErrors = (values: {
+    name: string;
+    email: string;
+    mobile: string;
+  }) => {
+    const errors = { name: "", email: "", mobile: "" };
+    const name = values.name.trim();
+    const email = values.email.trim();
+    const mobile = values.mobile.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const mobileOk = /^(?:\+?91[\s-]?)?[6-9]\d{9}$/.test(
+      mobile.replace(/[()\s.-]/g, "")
+    );
+
+    if (!name) errors.name = "Please enter your full name.";
+    if (!email) errors.email = "Please enter your email address.";
+    else if (!emailOk) errors.email = "Please enter a valid email address.";
+    if (!mobile) errors.mobile = "Please enter your mobile number.";
+    else if (!mobileOk) errors.mobile = "Please enter a valid Indian number.";
+
+    return errors;
+  };
+
+  const formatIndianMobile = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    const normalized = digits.startsWith("91") ? digits.slice(2) : digits;
+    const trimmed = normalized.slice(0, 10);
+    if (!trimmed) return "";
+    const part1 = trimmed.slice(0, 5);
+    const part2 = trimmed.slice(5);
+    return part2 ? `+91 ${part1} ${part2}` : `+91 ${part1}`;
+  };
+
+  const extractConfirmationMessage = (payload: any) => {
+    const confirmation = payload?.data?.data?.confirmation;
+    if (typeof confirmation !== "string") return "";
+    const text = confirmation.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+    return text.trim();
+  };
+
+  const submitEnquiry = async () => {
+    if (enquirySubmitting) return;
+    const name = enquiryValues.name.trim();
+    const email = enquiryValues.email.trim();
+    const mobile = enquiryValues.mobile.trim();
+    const errors = getEnquiryErrors({ name, email, mobile });
+    setEnquiryErrors(errors);
+
+    if (errors.name || errors.email || errors.mobile) {
+      toast({
+        title: "Missing details",
+        description: "Please enter your name, email, and mobile number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setEnquirySubmitting(true);
+    setEnquiryNotice(null);
+    try {
+      const res = await fetch("/api/wpforms/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          mobile,
+          productName: product.name,
+          productId: product.id,
+          productSlug: product.slug,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setEnquiryNotice({
+          type: "error",
+          message: data?.error || "Unable to submit your enquiry right now.",
+        });
+        toast({
+          title: "Enquiry failed",
+          description:
+            data?.error || "Unable to submit your enquiry right now.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "Enquiry sent",
+        description: "We will contact you shortly.",
+        variant: "success",
+      });
+      const confirmationMessage = extractConfirmationMessage(data);
+      setEnquiryNotice({
+        type: "success",
+        message:
+          confirmationMessage || "Thanks for contacting us! We will be in touch with you shortly.",
+      });
+      setEnquiryValues({ name: "", email: "", mobile: "" });
+      setEnquiryErrors({ name: "", email: "", mobile: "" });
+    } catch {
+      setEnquiryNotice({
+        type: "error",
+        message: "Unable to submit your enquiry right now.",
+      });
+      toast({
+        title: "Enquiry failed",
+        description: "Unable to submit your enquiry right now.",
+        variant: "destructive",
+      });
+    } finally {
+      setEnquirySubmitting(false);
+    }
   };
 
   return (
@@ -973,22 +1102,86 @@ export function ProductDetailClient({
               This item is currently out of stock. Leave your details and we’ll
               contact you when it’s available.
             </p>
-            <div className="mt-4 grid gap-3">
+            {enquiryNotice ? (
+              <div
+                className={`mt-3 rounded-[10px] px-3 py-2 text-sm ${
+                  enquiryNotice.type === "success"
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-rose-50 text-rose-700"
+                }`}
+              >
+                {enquiryNotice.message}
+              </div>
+            ) : null}
+            <div className="mt-4 grid gap-2">
               <input
                 placeholder="Full name"
+                value={enquiryValues.name}
+                onChange={(event) => {
+                  const next = {
+                    ...enquiryValues,
+                    name: event.target.value,
+                  };
+                  setEnquiryValues(next);
+                  setEnquiryErrors(getEnquiryErrors(next));
+                }}
                 className="rounded-[12px] border border-black/10 px-3 py-2 text-sm"
               />
+              {enquiryErrors.name ? (
+                <p className="-mt-1 text-xs text-rose-600">
+                  {enquiryErrors.name}
+                </p>
+              ) : null}
               <input
-                placeholder="Phone number"
+                placeholder="Mobile number"
+                value={enquiryValues.mobile}
+                onChange={(event) => {
+                  const next = {
+                    ...enquiryValues,
+                    mobile: event.target.value,
+                  };
+                  setEnquiryValues(next);
+                  setEnquiryErrors(getEnquiryErrors(next));
+                }}
+                onBlur={() => {
+                  const formatted = formatIndianMobile(enquiryValues.mobile);
+                  const next = {
+                    ...enquiryValues,
+                    mobile: formatted,
+                  };
+                  setEnquiryValues(next);
+                  setEnquiryErrors(getEnquiryErrors(next));
+                }}
                 className="rounded-[12px] border border-black/10 px-3 py-2 text-sm"
               />
+              {enquiryErrors.mobile ? (
+                <p className="-mt-1 text-xs text-rose-600">
+                  {enquiryErrors.mobile}
+                </p>
+              ) : null}
               <input
                 placeholder="Email address"
+                type="email"
+                value={enquiryValues.email}
+                onChange={(event) => {
+                  const next = {
+                    ...enquiryValues,
+                    email: event.target.value,
+                  };
+                  setEnquiryValues(next);
+                  setEnquiryErrors(getEnquiryErrors(next));
+                }}
                 className="rounded-[12px] border border-black/10 px-3 py-2 text-sm"
               />
-              <textarea
-                placeholder="Message"
-                rows={4}
+              {enquiryErrors.email ? (
+                <p className="-mt-1 text-xs text-rose-600">
+                  {enquiryErrors.email}
+                </p>
+              ) : null}
+              <input
+                placeholder="Product name"
+                value={product.name}
+                readOnly
                 className="rounded-[12px] border border-black/10 px-3 py-2 text-sm"
               />
             </div>
@@ -1001,9 +1194,10 @@ export function ProductDetailClient({
               </button>
               <button
                 className="w-full rounded-[12px] bg-[color:var(--brand)] px-4 py-2 text-sm font-semibold text-white"
-                onClick={() => setEnquiryOpen(false)}
+                onClick={submitEnquiry}
+                disabled={enquirySubmitting}
               >
-                Submit enquiry
+                {enquirySubmitting ? "Submitting..." : "Submit enquiry"}
               </button>
             </div>
           </div>
