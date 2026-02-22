@@ -13,10 +13,37 @@ export function RegisterForm() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formStartedAt, setFormStartedAt] = useState(0);
+  const [values, setValues] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+  });
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+  });
 
   useEffect(() => {
     setFormStartedAt(Date.now());
   }, []);
+
+  const validate = (nextValues: typeof values) => {
+    const nextErrors = { email: "", password: "" };
+    const email = nextValues.email.trim();
+    const password = nextValues.password;
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      nextErrors.email = "Enter a valid email address.";
+    }
+    if (password && password.length < 6) {
+      nextErrors.password = "Use at least 6 characters.";
+    }
+    return nextErrors;
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -24,13 +51,13 @@ export function RegisterForm() {
 
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const email = String(formData.get("email") ?? "").trim();
-    const password = String(formData.get("password") ?? "");
+    const email = values.email.trim();
+    const password = values.password;
     const honeypot = String(formData.get("company") ?? "").trim();
     const startedAt = Number(formData.get("formStartedAt") ?? 0);
     const now = Date.now();
-    const firstName = String(formData.get("firstName") ?? "").trim();
-    const lastName = String(formData.get("lastName") ?? "").trim();
+    const firstName = values.firstName.trim();
+    const lastName = values.lastName.trim();
 
     if (!email || !password) {
       setLoading(false);
@@ -79,6 +106,14 @@ export function RegisterForm() {
         title: "Weak password",
         description: "Use at least 6 characters.",
       });
+      return;
+    }
+
+    const currentErrors = validate(values);
+    if (currentErrors.email || currentErrors.password) {
+      setErrors(currentErrors);
+      setTouched({ email: true, password: true });
+      setLoading(false);
       return;
     }
 
@@ -145,57 +180,97 @@ export function RegisterForm() {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="register-first-name">First name</Label>
-          <div className="relative">
-            <User className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
-            <Input
-              id="register-first-name"
-              name="firstName"
-              placeholder="First"
-              className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="register-last-name">Last name</Label>
-          <div className="relative">
-            <User className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
-            <Input
-              id="register-last-name"
-              name="lastName"
-              placeholder="Last"
-              className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
-            />
-          </div>
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="register-email">Email</Label>
         <div className="relative">
-          <Mail className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
+          <User className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
           <Input
-            id="register-email"
-            name="email"
-            type="email"
-            placeholder="you@email.com"
-            required
+            id="register-first-name"
+            name="firstName"
+            placeholder="First"
+            value={values.firstName}
+            onChange={(event) => {
+              const next = { ...values, firstName: event.target.value };
+              setValues(next);
+            }}
             className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
           />
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="register-password">Password</Label>
+        <Label htmlFor="register-last-name">Last name</Label>
         <div className="relative">
-          <Lock className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
+          <User className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
           <Input
-            id="register-password"
-            name="password"
-            type="password"
-            placeholder="••••••••"
-            required
+            id="register-last-name"
+            name="lastName"
+            placeholder="Last"
+            value={values.lastName}
+            onChange={(event) => {
+              const next = { ...values, lastName: event.target.value };
+              setValues(next);
+            }}
             className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
           />
         </div>
       </div>
+    </div>
+    <div className="space-y-2">
+      <Label htmlFor="register-email">Email</Label>
+      <div className="relative">
+        <Mail className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
+        <Input
+          id="register-email"
+          name="email"
+          type="email"
+          placeholder="you@email.com"
+          required
+          value={values.email}
+          onChange={(event) => {
+            const next = { ...values, email: event.target.value };
+            setValues(next);
+            if (touched.email) {
+              setErrors(validate(next));
+            }
+          }}
+          onBlur={() => {
+            setTouched((prev) => ({ ...prev, email: true }));
+            setErrors(validate(values));
+          }}
+          className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
+        />
+      </div>
+      {touched.email && errors.email ? (
+        <p className="text-xs text-rose-600">{errors.email}</p>
+      ) : null}
+    </div>
+    <div className="space-y-2">
+      <Label htmlFor="register-password">Password</Label>
+      <div className="relative">
+        <Lock className="absolute left-3 top-3 h-4 w-4 text-[color:var(--muted)]/60" />
+        <Input
+          id="register-password"
+          name="password"
+          type="password"
+          placeholder="••••••••"
+          required
+          value={values.password}
+          onChange={(event) => {
+            const next = { ...values, password: event.target.value };
+            setValues(next);
+            if (touched.password) {
+              setErrors(validate(next));
+            }
+          }}
+          onBlur={() => {
+            setTouched((prev) => ({ ...prev, password: true }));
+            setErrors(validate(values));
+          }}
+          className="pl-9 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
+        />
+      </div>
+      {touched.password && errors.password ? (
+        <p className="text-xs text-rose-600">{errors.password}</p>
+      ) : null}
+    </div>
       <Button
         type="submit"
         className="w-full bg-linear-to-r from-[color:var(--brand)] to-red-600 font-bold text-white shadow-lg shadow-red-500/20 transition-all hover:scale-[1.02] hover:brightness-110"

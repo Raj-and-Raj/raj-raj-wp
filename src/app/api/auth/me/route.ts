@@ -55,10 +55,12 @@ export async function GET() {
     try {
       const customer = await fetchCustomerByEmail(email);
       customerFirst =
+        customer?.first_name ||
         customer?.billing?.first_name ||
         customer?.shipping?.first_name ||
         "";
       customerLast =
+        customer?.last_name ||
         customer?.billing?.last_name || customer?.shipping?.last_name || "";
     } catch {
       // ignore customer lookup failures
