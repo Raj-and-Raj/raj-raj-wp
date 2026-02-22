@@ -58,6 +58,15 @@ export async function POST(request: Request) {
       last_name: lastName,
       username,
       password,
+      billing: {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+      },
+      shipping: {
+        first_name: firstName,
+        last_name: lastName,
+      },
     });
 
     const authRes = await fetch(jwtEndpoint, {

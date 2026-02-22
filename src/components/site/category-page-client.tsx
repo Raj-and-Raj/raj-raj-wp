@@ -17,6 +17,7 @@ type CategoryPageClientProps = {
   displayName: string;
   products: Product[];
   categories: Array<{ name: string; slug: string }>;
+  subcategories: Array<{ name: string; slug: string }>;
   currentCategorySlug?: string;
 };
 
@@ -24,6 +25,7 @@ export function CategoryPageClient({
   displayName,
   products,
   categories,
+  subcategories,
   currentCategorySlug,
 }: CategoryPageClientProps) {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -36,6 +38,9 @@ export function CategoryPageClient({
   const [priceCap, setPriceCap] = useState(maxPrice || 0);
   const [sort, setSort] = useState("default");
   const [visibleCount, setVisibleCount] = useState(10);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>(
+    [],
+  );
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [variationSwatches, setVariationSwatches] = useState<
@@ -52,6 +57,10 @@ export function CategoryPageClient({
   useEffect(() => {
     setVisibleCount(10);
   }, [priceCap, sort, products]);
+
+  useEffect(() => {
+    setSelectedSubcategories([]);
+  }, [currentCategorySlug]);
 
   useEffect(() => {
     const stored = localStorage.getItem("wishlist");
@@ -81,13 +90,20 @@ export function CategoryPageClient({
 
   const filteredProducts = useMemo(() => {
     let next = products.filter((product) => product.price <= priceCap);
+    if (selectedSubcategories.length) {
+      next = next.filter((product) =>
+        product.categories?.some((cat) =>
+          selectedSubcategories.includes(cat.slug),
+        ),
+      );
+    }
     if (sort === "price-asc") {
       next = [...next].sort((a, b) => a.price - b.price);
     } else if (sort === "price-desc") {
       next = [...next].sort((a, b) => b.price - a.price);
     }
     return next;
-  }, [products, priceCap, sort]);
+  }, [products, priceCap, sort, selectedSubcategories]);
 
   const visibleProducts = filteredProducts.slice(0, visibleCount);
   const totalVisible = Math.min(
@@ -228,6 +244,45 @@ export function CategoryPageClient({
                 );
               })}
             </div>
+            {subcategories.length ? (
+              <div className="mt-5 border-t border-gray-100 pt-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Subcategories
+                </p>
+                <div className="space-y-2">
+                  {subcategories.map((sub) => {
+                    const active = selectedSubcategories.includes(sub.slug);
+                    return (
+                      <button
+                        key={sub.slug}
+                        type="button"
+                        onClick={() =>
+                          setSelectedSubcategories((prev) =>
+                            prev.includes(sub.slug)
+                              ? prev.filter((item) => item !== sub.slug)
+                              : [...prev, sub.slug],
+                          )
+                        }
+                        className={`flex w-full items-center gap-3 rounded-lg px-2 py-1 text-sm transition ${
+                          active
+                            ? "bg-[color:var(--brand)]/10 text-[color:var(--brand)]"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        <span
+                          className={`h-2.5 w-2.5 rounded-full border ${
+                            active
+                              ? "border-[color:var(--brand)] bg-[color:var(--brand)]"
+                              : "border-gray-300"
+                          }`}
+                        />
+                        {sub.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="mb-8">
@@ -263,6 +318,11 @@ export function CategoryPageClient({
           <div className="mb-6 flex flex-col items-center justify-between pb-2 md:flex-row">
             <p className="mb-4 text-sm text-gray-600 md:mb-0">
               Showing 1-{totalVisible} of {filteredProducts.length} results
+              {selectedSubcategories.length ? (
+                <span className="ml-2 rounded-full bg-[color:var(--brand)]/10 px-2 py-0.5 text-xs text-[color:var(--brand)]">
+                  {selectedSubcategories.length} selected
+                </span>
+              ) : null}
             </p>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Sort by:</span>
@@ -480,6 +540,43 @@ export function CategoryPageClient({
                     );
                   })}
                 </div>
+                {subcategories.length ? (
+                  <div className="mt-5 space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Subcategories
+                    </p>
+                    {subcategories.map((sub) => {
+                      const active = selectedSubcategories.includes(sub.slug);
+                      return (
+                        <button
+                          key={sub.slug}
+                          type="button"
+                          onClick={() =>
+                            setSelectedSubcategories((prev) =>
+                              prev.includes(sub.slug)
+                                ? prev.filter((item) => item !== sub.slug)
+                                : [...prev, sub.slug],
+                            )
+                          }
+                          className={`flex w-full items-center gap-3 rounded-lg px-2 py-1 text-sm ${
+                            active
+                              ? "bg-[color:var(--brand)]/10 text-[color:var(--brand)]"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <span
+                            className={`h-2.5 w-2.5 rounded-full border ${
+                              active
+                                ? "border-[color:var(--brand)] bg-[color:var(--brand)]"
+                                : "border-gray-300"
+                            }`}
+                          />
+                          {sub.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
               <div>
                 <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-700">

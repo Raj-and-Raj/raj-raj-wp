@@ -31,9 +31,12 @@ export type WooVariation = {
 export type WooCustomer = {
   id: number;
   email: string;
+  first_name?: string;
+  last_name?: string;
   billing?: {
     first_name?: string;
     last_name?: string;
+    email?: string;
     company?: string;
     address_1?: string;
     address_2?: string;
@@ -332,6 +335,8 @@ export async function createCustomer(input: {
   last_name?: string;
   username?: string;
   password?: string;
+  billing?: WooCustomer["billing"];
+  shipping?: WooCustomer["shipping"];
 }) {
   return wooPost<{ id: number; email: string }>("customers", input);
 }

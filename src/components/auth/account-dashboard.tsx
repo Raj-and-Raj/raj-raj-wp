@@ -272,7 +272,7 @@ export function AccountDashboard() {
         <div>
           <h1 className="text-2xl font-semibold">My account</h1>
           <p className="mt-2 text-sm text-[color:var(--muted)]">
-            Welcome back, {profile.firstName}
+            Welcome back, {profile.firstName || profile.name}
           </p>
         </div>
         <Button variant="outline" onClick={handleLogout}>

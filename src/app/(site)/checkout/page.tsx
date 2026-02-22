@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 import { useRouter } from "next/navigation";
@@ -75,7 +75,16 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState("");
   const [couponSuccess, setCouponSuccess] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [hasPrefilled, setHasPrefilled] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginValues, setLoginValues] = useState({
+    username: "",
+    password: "",
+  });
+  const [loginSubmitting, setLoginSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [emailWarning, setEmailWarning] = useState("");
   const indiaStates = [
     { code: "AN", name: "Andaman and Nicobar Islands" },
     { code: "AP", name: "Andhra Pradesh" },
@@ -116,14 +125,15 @@ export default function CheckoutPage() {
     { code: "WB", name: "West Bengal" },
   ];
 
-  useEffect(() => {
-    const load = async () => {
+  const load = useCallback(async () => {
       const authRes = await fetch("/api/auth/me");
       if (!authRes.ok) {
-        router.replace("/login?redirect=/checkout");
-        return;
+        setIsAuthed(false);
+        setAuthChecked(true);
+      } else {
+        setIsAuthed(true);
+        setAuthChecked(true);
       }
-      setIsAuthed(true);
       const res = await fetch("/api/cart");
       if (res.ok) {
         const data = await res.json();
@@ -149,7 +159,7 @@ export default function CheckoutPage() {
           setShippingMethod("free");
         }
       }
-      if (!hasPrefilled) {
+      if (!hasPrefilled && authRes.ok) {
         const mergeAddress = <T extends Record<string, string | undefined>>(
           current: T,
           incoming?: Partial<T> | null,
@@ -200,9 +210,59 @@ export default function CheckoutPage() {
         }
         setHasPrefilled(true);
       }
-    };
+    }, [billing, hasPrefilled, shipping, shippingMethod]);
+
+  useEffect(() => {
     load();
-  }, [shippingMethod, router, hasPrefilled]);
+  }, [load]);
+
+  useEffect(() => {
+    const handleAuthUpdated = () => {
+      setHasPrefilled(false);
+      load();
+    };
+    window.addEventListener("auth:updated", handleAuthUpdated);
+    return () => window.removeEventListener("auth:updated", handleAuthUpdated);
+  }, [load]);
+
+  useEffect(() => {
+    if (isAuthed) return;
+    const email = billing.email.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!email || !emailOk) {
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const res = await fetch("/api/auth/check-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.exists) {
+          setEmailWarning(
+            "This email already has an account. Please log in."
+          );
+          setShowLoginModal(true);
+          setLoginValues((prev) => ({
+            ...prev,
+            username: email,
+          }));
+        }
+      } catch (err: unknown) {
+        if ((err as { name?: string })?.name === "AbortError") return;
+      }
+    }, 500);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [billing.email, isAuthed]);
 
   useEffect(() => {
     if (!shipToBilling) return;
@@ -218,10 +278,6 @@ export default function CheckoutPage() {
   }, [couponSuccess]);
 
   const placeOrder = async () => {
-    if (!isAuthed) {
-      router.replace("/login?redirect=/checkout");
-      return;
-    }
     setIsPlacing(true);
     setError("");
     try {
@@ -235,6 +291,7 @@ export default function CheckoutPage() {
           payment_method: paymentMethod,
           payment_data: [],
           customer_note: orderNotes,
+          ...(isAuthed ? {} : { create_account: true }),
         }),
       });
       const processed = await createRes.json();
@@ -251,6 +308,35 @@ export default function CheckoutPage() {
       setError(err instanceof Error ? err.message : "Checkout failed.");
     } finally {
       setIsPlacing(false);
+    }
+  };
+
+  const handleInlineLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (loginSubmitting) return;
+    setLoginSubmitting(true);
+    setLoginError("");
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: loginValues.username.trim(),
+          password: loginValues.password,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setLoginError(data?.error || "Invalid credentials.");
+        return;
+      }
+      window.dispatchEvent(new Event("auth:updated"));
+      setShowLoginModal(false);
+      setLoginValues({ username: "", password: "" });
+    } catch (err: unknown) {
+      setLoginError(err instanceof Error ? err.message : "Unable to sign in.");
+    } finally {
+      setLoginSubmitting(false);
     }
   };
 
@@ -345,12 +431,31 @@ export default function CheckoutPage() {
       ? totalsCents
       : derivedTotalCents + (selectedRateCents || fallbackShippingCents);
 
+  if (!authChecked) {
+    return (
+      <div className="mx-auto w-full max-w-[96rem] px-6 mb-24 pt-32">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-[96rem] px-6 mb-24 pt-32">
       <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6">
           <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
-            <h1 className="text-xl font-semibold">Billing details</h1>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h1 className="text-xl font-semibold">Billing details</h1>
+              {!isAuthed ? (
+                <button
+                  type="button"
+                  onClick={() => setShowLoginModal(true)}
+                  className="text-sm font-semibold text-[color:var(--brand)] hover:underline"
+                >
+                  Already have an account?
+                </button>
+              ) : null}
+            </div>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <label className="text-xs font-semibold text-[color:var(--muted)]">
                 First name <span className="text-[color:var(--brand)]">*</span>
@@ -476,11 +581,15 @@ export default function CheckoutPage() {
               <input
                 className="mt-2 w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
                 value={billing.email}
-                onChange={(event) =>
-                  setBilling({ ...billing, email: event.target.value })
-                }
+                onChange={(event) => {
+                  setBilling({ ...billing, email: event.target.value });
+                  setEmailWarning("");
+                }}
               />
             </label>
+            {emailWarning ? (
+              <p className="mt-2 text-xs text-amber-600">{emailWarning}</p>
+            ) : null}
             <div className="mt-6 rounded-[12px] border border-black/5 bg-white/80 p-4">
               <label className="flex items-center gap-2 text-xs font-semibold text-[color:var(--muted)]">
                 <input
@@ -831,9 +940,82 @@ export default function CheckoutPage() {
             >
               {isPlacing ? "Placing order..." : "Place order"}
             </Button>
+            {!isAuthed ? (
+              <p className="mt-3 text-xs text-[color:var(--muted)]">
+                We’ll create your account after checkout and email you a
+                password setup link.
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
+      {showLoginModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-[16px] bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Sign in</h3>
+              <button
+                type="button"
+                onClick={() => setShowLoginModal(false)}
+                className="text-sm text-[color:var(--muted)]"
+              >
+                Close
+              </button>
+            </div>
+            <form onSubmit={handleInlineLogin} className="mt-4 space-y-4">
+              {loginError ? (
+                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {loginError}
+                </div>
+              ) : null}
+              <div>
+                <label className="mb-2 block text-xs font-semibold text-[color:var(--muted)]">
+                  Email or username
+                </label>
+                <input
+                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                  value={loginValues.username}
+                  onChange={(event) =>
+                    setLoginValues((prev) => ({
+                      ...prev,
+                      username: event.target.value,
+                    }))
+                  }
+                  required
+                />
+              </div>
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="text-xs font-semibold text-[color:var(--muted)]">
+                    Password
+                  </label>
+                  <a
+                    href="/forgot-password"
+                    className="text-xs font-semibold text-[color:var(--brand)] hover:underline"
+                  >
+                    Forgot password?
+                  </a>
+                </div>
+                <input
+                  className="w-full rounded-[12px] border border-black/10 px-3 py-2 text-sm"
+                  type="password"
+                  value={loginValues.password}
+                  onChange={(event) =>
+                    setLoginValues((prev) => ({
+                      ...prev,
+                      password: event.target.value,
+                    }))
+                  }
+                  required
+                />
+              </div>
+              <Button className="w-full" disabled={loginSubmitting}>
+                {loginSubmitting ? "Signing in..." : "Sign in"}
+              </Button>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
