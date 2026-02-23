@@ -19,6 +19,14 @@ export default function ResetPasswordClient() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    const action = searchParams.get("action") || "";
+    if (action === "newaccount") {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("action", "rp");
+      router.replace(`/reset-password?${params.toString()}`);
+      return;
+    }
+
     const nextLogin =
       searchParams.get("login") || searchParams.get("rp_login") || "";
     const nextKey = searchParams.get("key") || searchParams.get("rp_key") || "";
