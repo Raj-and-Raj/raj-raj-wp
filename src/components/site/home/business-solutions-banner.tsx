@@ -20,13 +20,16 @@ export function BusinessSolutionsBanner() {
             viewport={{ once: true }}
             className="mb-6 text-3xl font-bold leading-tight text-gray-900 md:text-4xl"
           >
-            Steel furniture for modern businesses <br />
+            Steel furniture for modern businesses
+            <br />
             in Eastern India
           </motion.h2>
           <p className="mb-8 leading-relaxed text-gray-600">
-            We design and supply durable steel furniture solutions for offices,
-            institutions, and commercial spaces across West Bengal, Odisha, and
-            Jharkhand—built for performance, reliability, and everyday use.
+            We manufacture and supply high-quality steel furniture for offices,
+            institutions, warehouses, and commercial spaces across West Bengal
+            and Jharkhand. Built with heavy-gauge steel, smart storage design,
+            and long-lasting finishes, Raj & Raj products are made for
+            reliability, safety, and everyday performance.
           </p>
 
           <div className="flex flex-col gap-4 sm:flex-row">

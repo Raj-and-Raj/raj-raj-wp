@@ -26,7 +26,8 @@ export function SiteFooter() {
                   Business Solutions
                 </p>
                 <h3 className="mt-2 text-2xl font-semibold text-white">
-                  Enterprise-grade steel furniture for offices & institutions.
+                  Enterprise-grade steel furniture for offices & industrial
+                  spaces
                 </h3>
               </div>
               <Link
@@ -41,33 +42,27 @@ export function SiteFooter() {
                 <p className="text-xs font-semibold text-white/50 uppercase">
                   Projects
                 </p>
-                <p className="mt-2 text-xl font-bold text-white">
-                  10k+
-                </p>
+                <p className="mt-2 text-xl font-bold text-white">10k+</p>
                 <p className="mt-1 text-xs text-white/60">
-                  Corporate & public sector
+                  Corporate & industrial installations
                 </p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <p className="text-xs font-semibold text-white/50 uppercase">
                   Coverage
                 </p>
-                <p className="mt-2 text-xl font-bold text-white">
-                  2+ States
-                </p>
+                <p className="mt-2 text-xl font-bold text-white">2+ States</p>
                 <p className="mt-1 text-xs text-white/60">
-                  WB & Jharkhand
+                  West Bengal & Jharkhand
                 </p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <p className="text-xs font-semibold text-white/50 uppercase">
-                  Lead Time
+                  CLIENT TYPES
                 </p>
-                <p className="mt-2 text-xl font-bold text-white">
-                  7-14 Days
-                </p>
+                <p className="mt-2 text-xl font-bold text-white">100+</p>
                 <p className="mt-1 text-xs text-white/60">
-                  Bulk-ready production
+                  Offices • Industrial Units • Commercial Spaces
                 </p>
               </div>
             </div>
@@ -166,15 +161,17 @@ export function SiteFooter() {
               />
             </Link>
             <p className="text-white/70 text-sm leading-relaxed max-w-xs">
-              Trusted manufacturer of premium steel storage solutions for
-              enterprises, institutions, and modern homes.
+              Trusted manufacturer of premium steel storage solutions <br />
+              Built for enterprises, industrial spaces, and modern homes, Raj &
+              Raj delivers steel storage furniture designed for strength,
+              functionality, and long-term use.
             </p>
             <div className="flex items-start gap-3 text-sm text-white/70">
               <MapPin className="w-5 h-5 text-[color:var(--brand)] shrink-0 mt-0.5 drop-shadow-[0_0_8px_rgba(221,51,51,0.7)]" />
               <span className="leading-relaxed">
                 Headquartered in Kolkata, West Bengal.
                 <br />
-                Serving across WB and Jharkhand.
+                Serving customers across West Bengal & Jharkhand
               </span>
             </div>
           </div>
@@ -190,7 +187,7 @@ export function SiteFooter() {
                 className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10"
               >
                 <Mail className="h-4 w-4 text-white/70" />
-                sales@rajandraj.co
+                help@rajandraj.co
               </a>
               <a
                 href="tel:+913348000018"
