@@ -1090,9 +1090,6 @@ export function AccountDashboard() {
               </div>
             </div>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <Button onClick={() => window.print()} className="w-full">
-                Print Invoice
-              </Button>
               <Button
                 variant="outline"
                 className="w-full"
