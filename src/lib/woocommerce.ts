@@ -209,9 +209,13 @@ async function wooPut<T>(path: string, body: unknown): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export async function fetchProducts(params?: { category?: string }) {
+export async function fetchProducts(params?: {
+  category?: string;
+  perPage?: number;
+}) {
   const query = new URLSearchParams();
   if (params?.category) query.set("category", params.category);
+  query.set("per_page", String(params?.perPage ?? 100));
   return wooFetch<WooProduct[]>("products", query);
 }
 
