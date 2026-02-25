@@ -18,6 +18,7 @@ export function Toaster() {
         <Toast
           key={toast.id}
           variant={toast.variant}
+          className={toast.position === "left" ? "self-start" : "self-end"}
           onOpenChange={(open) => {
             if (!open) dismiss(toast.id);
           }}

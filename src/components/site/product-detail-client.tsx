@@ -242,7 +242,8 @@ export function ProductDetailClient({
         ids = [];
       }
     }
-    if (ids.includes(product.id)) {
+    const exists = ids.includes(product.id);
+    if (exists) {
       ids = ids.filter((id) => id !== product.id);
       setIsWishlisted(false);
     } else {
@@ -251,6 +252,14 @@ export function ProductDetailClient({
     }
     localStorage.setItem("wishlist", JSON.stringify(ids));
     window.dispatchEvent(new Event("wishlist:updated"));
+    toast({
+      title: exists ? "Removed from wishlist" : "Added to wishlist",
+      description: exists
+        ? "Item removed from your wishlist."
+        : "Item saved to your wishlist.",
+      variant: "success",
+      position: "left",
+    });
   };
 
   const getEnquiryErrors = (values: {
@@ -782,6 +791,7 @@ export function ProductDetailClient({
                           toast({
                             title: "Already in cart",
                             description: "This item is already in your cart.",
+                            position: "left",
                           });
                           return;
                         }
@@ -799,6 +809,7 @@ export function ProductDetailClient({
                           title: "Added to cart",
                           description: "Item has been added to your cart.",
                           variant: "success",
+                          position: "left",
                         });
                       }}
                     >

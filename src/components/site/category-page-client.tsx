@@ -138,13 +138,20 @@ export function CategoryPageClient({
   };
 
   const toggleWishlist = (id: string) => {
-    setWishlistIds((prev) => {
-      const next = prev.includes(id)
-        ? prev.filter((item) => item !== id)
-        : [...prev, id];
-      localStorage.setItem("wishlist", JSON.stringify(next));
-      window.dispatchEvent(new Event("wishlist:updated"));
-      return next;
+    const exists = wishlistIds.includes(id);
+    const next = exists
+      ? wishlistIds.filter((item) => item !== id)
+      : [...wishlistIds, id];
+    setWishlistIds(next);
+    localStorage.setItem("wishlist", JSON.stringify(next));
+    window.dispatchEvent(new Event("wishlist:updated"));
+    toast({
+      title: exists ? "Removed from wishlist" : "Added to wishlist",
+      description: exists
+        ? "Item removed from your wishlist."
+        : "Item saved to your wishlist.",
+      variant: "success",
+      position: "left",
     });
   };
 
@@ -153,6 +160,7 @@ export function CategoryPageClient({
       toast({
         title: "Already in cart",
         description: "This item is already in your cart.",
+        position: "left",
       });
       return;
     }
@@ -166,6 +174,7 @@ export function CategoryPageClient({
       title: "Added to cart",
       description: "Item has been added to your cart.",
       variant: "success",
+      position: "left",
     });
   };
 
