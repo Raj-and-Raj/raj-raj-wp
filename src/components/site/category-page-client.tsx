@@ -254,10 +254,7 @@ export function CategoryPageClient({
               })}
             </div>
             {subcategories.length ? (
-              <div className="mt-5 border-t border-gray-100 pt-4">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Subcategories
-                </p>
+              <div className="mt-4 space-y-2">
                 <div className="space-y-2">
                   {subcategories.map((sub) => {
                     const active = selectedSubcategories.includes(sub.slug);
@@ -272,20 +269,18 @@ export function CategoryPageClient({
                               : [...prev, sub.slug],
                           )
                         }
-                        className={`flex w-full items-center gap-3 rounded-lg px-2 py-1 text-sm transition ${
-                          active
-                            ? "bg-[color:var(--brand)]/10 text-[color:var(--brand)]"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
+                        className="group flex w-full items-center gap-3 rounded-lg px-2 py-1 text-sm transition "
                       >
-                        <span
-                          className={`h-2.5 w-2.5 rounded-full border ${
-                            active
-                              ? "border-[color:var(--brand)] bg-[color:var(--brand)]"
-                              : "border-gray-300"
-                          }`}
+                        <input
+                          type="checkbox"
+                          className="peer sr-only"
+                          checked={active}
+                          readOnly
                         />
-                        {sub.name}
+                        <span className="brand-checkbox" />
+                        <span className="text-gray-700 transition-colors group-hover:text-[#DA3234]">
+                          {sub.name}
+                        </span>
                       </button>
                     );
                   })}
@@ -312,7 +307,6 @@ export function CategoryPageClient({
               </div>
             </div>
           </div>
-
         </div>
 
         <div className="mb-6 lg:hidden">
@@ -548,10 +542,7 @@ export function CategoryPageClient({
                   })}
                 </div>
                 {subcategories.length ? (
-                  <div className="mt-5 space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Subcategories
-                    </p>
+                  <div className="mt-4 space-y-2">
                     {subcategories.map((sub) => {
                       const active = selectedSubcategories.includes(sub.slug);
                       return (
@@ -565,20 +556,16 @@ export function CategoryPageClient({
                                 : [...prev, sub.slug],
                             )
                           }
-                          className={`flex w-full items-center gap-3 rounded-lg px-2 py-1 text-sm ${
-                            active
-                              ? "bg-[color:var(--brand)]/10 text-[color:var(--brand)]"
-                              : "text-gray-700"
-                          }`}
+                          className="group flex w-full items-center gap-3 rounded-lg px-2 py-1 text-sm"
                         >
-                          <span
-                            className={`h-2.5 w-2.5 rounded-full border ${
-                              active
-                                ? "border-[color:var(--brand)] bg-[color:var(--brand)]"
-                                : "border-gray-300"
-                            }`}
+                          <input
+                            type="checkbox"
+                            className="peer sr-only"
+                            checked={active}
+                            readOnly
                           />
-                          {sub.name}
+                          <span className="brand-checkbox" />
+                          <span className="text-gray-700">{sub.name}</span>
                         </button>
                       );
                     })}
