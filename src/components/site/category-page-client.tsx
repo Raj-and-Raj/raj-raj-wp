@@ -218,13 +218,13 @@ export function CategoryPageClient({
 
       <div className="container mx-auto flex flex-col gap-12 px-4 md:px-8 lg:flex-row">
         <div className="hidden w-64 flex-shrink-0 lg:block">
-          <div className="mb-6 border-b border-gray-200 pb-4">
+          {/* <div className="mb-6 border-b border-gray-200 pb-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold uppercase tracking-wide">
                 Clear All
               </h3>
             </div>
-          </div>
+          </div> */}
 
           <div className="mb-8">
             <h3 className="mb-4 flex cursor-pointer items-center justify-between text-lg font-bold">
@@ -312,6 +312,7 @@ export function CategoryPageClient({
               </div>
             </div>
           </div>
+
         </div>
 
         <div className="mb-6 lg:hidden">
@@ -453,15 +454,12 @@ export function CategoryPageClient({
                           />
                         ))
                       : (
-                          product.attributes
-                            ?.find((attr) => {
-                              const name = attr.name.toLowerCase();
-                              return (
-                                name.includes("color") ||
-                                name.includes("colour")
-                              );
-                            })
-                            ?.options ?? ["Red", "Black", "Grey"]
+                          product.attributes?.find((attr) => {
+                            const name = attr.name.toLowerCase();
+                            return (
+                              name.includes("color") || name.includes("colour")
+                            );
+                          })?.options ?? ["Red", "Black", "Grey"]
                         ).map((option) => (
                           <span
                             key={option}

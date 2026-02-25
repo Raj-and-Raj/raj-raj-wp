@@ -15,6 +15,7 @@ export type Product = {
   shortDescription?: string;
   category: string;
   categorySlug: string;
+  dateCreated?: string;
   price: number;
   regularPrice?: number;
   salePrice?: number;
@@ -291,6 +292,7 @@ function mapWooProduct(item: {
   slug: string;
   description: string;
   short_description: string;
+  date_created?: string;
   price: string;
   regular_price?: string;
   sale_price?: string;
@@ -323,6 +325,7 @@ function mapWooProduct(item: {
     shortDescription: item.short_description,
     category: category?.name || "Collection",
     categorySlug: category?.slug || "collection",
+    dateCreated: item.date_created,
     price: Number(item.price || item.sale_price || item.regular_price || 0),
     regularPrice: item.regular_price ? Number(item.regular_price) : undefined,
     salePrice: item.sale_price ? Number(item.sale_price) : undefined,

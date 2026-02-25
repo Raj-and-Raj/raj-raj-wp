@@ -40,15 +40,20 @@ export async function GET() {
   }
 
   const customer = await fetchCustomerByEmail(email);
-  if (!customer) {
-    const ordersByEmail = await fetchOrdersByEmail(email);
-    return NextResponse.json({ orders: ordersByEmail });
-  }
+  const [ordersByCustomer, ordersByEmail] = await Promise.all([
+    customer ? fetchOrdersByCustomer(customer.id) : Promise.resolve([]),
+    fetchOrdersByEmail(email),
+  ]);
 
-  const orders = await fetchOrdersByCustomer(customer.id);
-  if (orders.length === 0) {
-    const ordersByEmail = await fetchOrdersByEmail(email);
-    return NextResponse.json({ orders: ordersByEmail });
-  }
-  return NextResponse.json({ orders });
+  const merged = new Map<number, (typeof ordersByEmail)[number]>();
+  ordersByCustomer.forEach((order) => merged.set(order.id, order));
+  ordersByEmail.forEach((order) => merged.set(order.id, order));
+
+  return NextResponse.json({
+    orders: Array.from(merged.values()).sort(
+      (a, b) =>
+        new Date(b.date_created).getTime() -
+        new Date(a.date_created).getTime()
+    ),
+  });
 }

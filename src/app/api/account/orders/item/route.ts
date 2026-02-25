@@ -46,19 +46,16 @@ export async function GET(request: Request) {
   }
 
   const customer = await fetchCustomerByEmail(email);
-  let orders: Array<{
-    id: number;
-    status: string;
-    total: string;
-    date_created: string;
-  }> = [];
-  if (customer) {
-    orders = await fetchOrdersByCustomer(customer.id);
-  }
-  if (!orders.length) {
-    orders = await fetchOrdersByEmail(email);
-  }
-  const order = orders.find((item) => String(item.id) === orderId);
+  const [ordersByCustomer, ordersByEmail] = await Promise.all([
+    customer ? fetchOrdersByCustomer(customer.id) : Promise.resolve([]),
+    fetchOrdersByEmail(email),
+  ]);
+  const merged = new Map<number, (typeof ordersByEmail)[number]>();
+  ordersByCustomer.forEach((order) => merged.set(order.id, order));
+  ordersByEmail.forEach((order) => merged.set(order.id, order));
+  const order = Array.from(merged.values()).find(
+    (item) => String(item.id) === orderId
+  );
 
   if (!order) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
