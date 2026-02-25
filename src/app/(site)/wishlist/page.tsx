@@ -105,6 +105,12 @@ export default function WishlistPage() {
       delete next[productId];
       return next;
     });
+    toast({
+      title: "Removed from wishlist",
+      description: "Item removed from your wishlist.",
+      variant: "success",
+      position: "left",
+    });
   };
 
   const addSelectedToCart = async () => {
@@ -123,6 +129,7 @@ export default function WishlistPage() {
         toast({
           title: "Select variant",
           description: "Please choose a variant before adding to cart.",
+          position: "left",
         });
         continue;
       }
@@ -149,6 +156,7 @@ export default function WishlistPage() {
       title: "Added to cart",
       description: "Selected items have been added to your cart.",
       variant: "success",
+      position: "left",
     });
   };
 
@@ -394,6 +402,7 @@ export default function WishlistPage() {
                           toast({
                             title: "Already in cart",
                             description: "This item is already in your cart.",
+                            position: "left",
                           });
                           return;
                         }
@@ -419,6 +428,7 @@ export default function WishlistPage() {
                           title: "Added to cart",
                           description: "Item has been added to your cart.",
                           variant: "success",
+                          position: "left",
                         });
                       }}
                       disabled={cartIds.includes(product.id)}

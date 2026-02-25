@@ -61,6 +61,7 @@ export function ProductCard({ product }: { product: Product }) {
               toast({
                 title: "Already in cart",
                 description: "This item is already in your cart.",
+                position: "left",
               });
               return;
             }
@@ -77,6 +78,7 @@ export function ProductCard({ product }: { product: Product }) {
               title: "Added to cart",
               description: "Item has been added to your cart.",
               variant: "success",
+              position: "left",
             });
           }}
         >

@@ -3,11 +3,13 @@
 import * as React from "react";
 
 type ToastVariant = "default" | "destructive" | "success";
+type ToastPosition = "left" | "right";
 
 type ToastOptions = {
   title?: string;
   description?: string;
   variant?: ToastVariant;
+  position?: ToastPosition;
 };
 
 type ToastItem = ToastOptions & {

@@ -6,60 +6,140 @@ import { motion, useAnimation, useInView } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const reviews = [
-  {
-    id: 1,
-    name: "Prabha Shenoy",
-    date: "1 month ago",
-    rating: 5,
-    text: "Congratulations on great work. Helpful staff and responsive service throughout the process. The finish is exactly what we were looking for.",
-    initial: "P",
-    bg: "bg-emerald-600",
-  },
+  // {
+  //   id: 1,
+  //   name: "Anand Chakraborty",
+  //   rating: 5,
+  //   text: "Raj and Raj MD, Mr. Nilesh Gupta is a very nice person. I purchased an almirah from his shop. I lost the invoice and after 5 years he replaced the lock due to an issue, free of cost. This truly shows the brand value of Raj and Raj. Thanks.",
+  //   initial: "A",
+  //   bg: "bg-emerald-600",
+  // },
   {
     id: 2,
-    name: "Anitha Rajagopal",
-    date: "1 month ago",
+    name: "Prothit Das",
     rating: 5,
-    text: "Very good service and on-time delivery. Great support from the team. The attention to detail in the craftsmanship is truly commendable.",
-    initial: "A",
-    bg: "bg-rose-600",
+    text: "Awesome collection and excellent staff behaviour.",
+    initial: "P",
+    bg: "bg-sky-600",
   },
   {
     id: 3,
-    name: "Mahesh B M",
-    date: "2 months ago",
+    name: "Upendra Chaudhary",
     rating: 5,
-    text: "Good service and good infrastructure. I was impressed by the wide variety of options available and the knowledgeable staff.",
-    initial: "M",
-    bg: "bg-violet-600",
+    text: "Variety of products with elite design and colours available at affordable price ranges. Best place to buy wardrobes and furniture.",
+    initial: "U",
+    bg: "bg-indigo-600",
   },
   {
     id: 4,
-    name: "Sneha Gupta",
-    date: "1 week ago",
+    name: "Arunkant Singh",
     rating: 4,
-    text: "The best furniture store in town. Innovative designs and durable builds. Highly recommended for anyone looking for premium furniture.",
-    initial: "S",
-    bg: "bg-amber-600",
+    text: "Good place to buy steel wardrobes.",
+    initial: "A",
+    bg: "bg-violet-600",
   },
   {
     id: 5,
-    name: "Rahul Verma",
+    name: "Varun Yadav",
     rating: 5,
-    date: "1 month ago",
-    text: "Great experience shopping with Raj & Raj. Premium quality and sturdy finishing. Will definitely visit again for more purchases.",
-    initial: "R",
-    bg: "bg-blue-600",
+    text: "Best furniture store. No compromise in quality and affordable pricing.",
+    initial: "V",
+    bg: "bg-rose-600",
   },
   {
     id: 6,
-    name: "Vikram Singh",
+    name: "Mayank Gautam",
     rating: 5,
-    date: "3 weeks ago",
-    text: "Exceptional quality and service. The team went above and beyond to ensure our requirements were met. Fantastic experience!",
-    initial: "V",
-    bg: "bg-indigo-600",
+    text: "Too good with sales as well as after-sales service.",
+    initial: "M",
+    bg: "bg-teal-600",
   },
+  {
+    id: 7,
+    name: "Nirbhay Beniwal",
+    rating: 4,
+    text: "Best quality products. Strong and durable. Good one, keep it up.",
+    initial: "N",
+    bg: "bg-orange-600",
+  },
+  {
+    id: 8,
+    name: "Ashesh Agrawal",
+    rating: 5,
+    text: "Wide range of products. I especially liked the locker collection.",
+    initial: "A",
+    bg: "bg-cyan-600",
+  },
+  {
+    id: 9,
+    name: "Mrinal Agarwalla",
+    rating: 5,
+    text: "Excellent range of printed wardrobes with nice finishing at a very competitive price. Almirah means Raj & Raj.",
+    initial: "M",
+    bg: "bg-lime-600",
+  },
+  {
+    id: 10,
+    name: "Ankit Kumar Singh",
+    rating: 5,
+    text: "Multiple choices of prints and designs. One of the oldest almirah manufacturers in Kolkata.",
+    initial: "A",
+    bg: "bg-fuchsia-600",
+  },
+  // {
+  //   id: 1,
+  //   name: "Prabha Shenoy",
+  //   date: "1 month ago",
+  //   rating: 5,
+  //   text: "Congratulations on great work. Helpful staff and responsive service throughout the process. The finish is exactly what we were looking for.",
+  //   initial: "P",
+  //   bg: "bg-emerald-600",
+  // },
+  // {
+  //   id: 2,
+  //   name: "Anitha Rajagopal",
+  //   date: "1 month ago",
+  //   rating: 5,
+  //   text: "Very good service and on-time delivery. Great support from the team. The attention to detail in the craftsmanship is truly commendable.",
+  //   initial: "A",
+  //   bg: "bg-rose-600",
+  // },
+  // {
+  //   id: 3,
+  //   name: "Mahesh B M",
+  //   date: "2 months ago",
+  //   rating: 5,
+  //   text: "Good service and good infrastructure. I was impressed by the wide variety of options available and the knowledgeable staff.",
+  //   initial: "M",
+  //   bg: "bg-violet-600",
+  // },
+  // {
+  //   id: 4,
+  //   name: "Sneha Gupta",
+  //   date: "1 week ago",
+  //   rating: 4,
+  //   text: "The best furniture store in town. Innovative designs and durable builds. Highly recommended for anyone looking for premium furniture.",
+  //   initial: "S",
+  //   bg: "bg-amber-600",
+  // },
+  // {
+  //   id: 5,
+  //   name: "Rahul Verma",
+  //   rating: 5,
+  //   date: "1 month ago",
+  //   text: "Great experience shopping with Raj & Raj. Premium quality and sturdy finishing. Will definitely visit again for more purchases.",
+  //   initial: "R",
+  //   bg: "bg-blue-600",
+  // },
+  // {
+  //   id: 6,
+  //   name: "Vikram Singh",
+  //   rating: 5,
+  //   date: "3 weeks ago",
+  //   text: "Exceptional quality and service. The team went above and beyond to ensure our requirements were met. Fantastic experience!",
+  //   initial: "V",
+  //   bg: "bg-indigo-600",
+  // },
 ];
 
 export function GoogleReviews() {
@@ -115,7 +195,7 @@ export function GoogleReviews() {
             <h2 className="text-3xl md:text-3xl font-bold text-slate-900 leading-tight mb-4">
               Loved by{" "}
               <span className="text-[color:var(--brand)] relative inline-block">
-                Thousands
+                Our Customers
                 <svg
                   className="absolute w-full h-2 -bottom-1 left-0 text-[color:var(--brand)]/20"
                   viewBox="0 0 100 10"
@@ -124,13 +204,13 @@ export function GoogleReviews() {
                   <path
                     d="M0 5 Q 50 10 100 5"
                     stroke="currentColor"
-                    strokeWidth="8"
+                    strokeWidth="6"
                     fill="none"
                   />
                 </svg>
               </span>
             </h2>
-            <div className="flex items-center gap-3 text-slate-500 text-sm">
+            {/* <div className="flex items-center gap-3 text-slate-500 text-sm">
               <div className="flex items-center gap-1">
                 <span className="text-lg font-bold text-slate-900">4.9</span>
                 <div className="flex text-yellow-500">
@@ -146,7 +226,7 @@ export function GoogleReviews() {
                 </span>
                 <span className="text-xs text-slate-400">(1128+ Reviews)</span>
               </div>
-            </div>
+            </div> */}
           </motion.div>
 
           {/* Navigation Buttons */}
@@ -201,9 +281,9 @@ export function GoogleReviews() {
                     <h3 className="font-bold text-slate-900 text-sm">
                       {review.name}
                     </h3>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wide font-medium">
+                    {/* <p className="text-[10px] text-slate-400 uppercase tracking-wide font-medium">
                       {review.date}
-                    </p>
+                    </p> */}
                   </div>
                 </div>
 

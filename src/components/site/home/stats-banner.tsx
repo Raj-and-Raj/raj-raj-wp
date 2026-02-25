@@ -17,7 +17,7 @@ export function StatsBanner() {
             Steel Furniture for Eastern India
           </h2>
           <p className="text-sm font-medium tracking-wide opacity-90 md:text-base">
-            Built for strength, function, and modern spaces
+            Engineered for strength, precision, and long-lasting performance
           </p>
         </motion.div>
 
@@ -38,9 +38,12 @@ export function StatsBanner() {
             }}
             className="px-4 py-4 md:py-0"
           >
-            <div className="mb-2 text-5xl font-bold md:text-6xl">30+</div>
+            <div className="mb-2 text-3xl font-bold md:text-4xl">
+              30+ Products
+            </div>
             <p className="text-sm font-medium opacity-90">
-              Steel furniture products across storage, office, and home
+              Premium steel furniture across storage, office, institutional, and
+              industrial needs — designed for durability and daily use.
             </p>
           </motion.div>
 
@@ -51,9 +54,10 @@ export function StatsBanner() {
             }}
             className="px-4 py-4 md:py-0"
           >
-            <div className="mb-2 text-5xl font-bold md:text-6xl">2+ States</div>
+            <div className="mb-2 text-3xl font-bold md:text-4xl">2+ States</div>
             <p className="text-sm font-medium opacity-90">
-              Serving West Bengal, Odisha & Jharkhand
+              Proudly serving West Bengal and Jharkhand with reliable
+              manufacturing and timely delivery.
             </p>
           </motion.div>
 
@@ -64,9 +68,12 @@ export function StatsBanner() {
             }}
             className="px-4 py-4 md:py-0"
           >
-            <div className="mb-2 text-5xl font-bold md:text-6xl">1000+</div>
+            <div className="mb-2 text-3xl font-bold md:text-4xl">
+              10,000+ Customers
+            </div>
             <p className="text-sm font-medium opacity-90">
-              By homes, offices, institutions, and industries
+              Trusted by homes, offices, schools, hospitals, warehouses, and
+              industries for quality steel solutions.
             </p>
           </motion.div>
         </motion.div>

@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -45,6 +45,10 @@ export function AccountDashboard() {
   const [orders, setOrders] = useState<
     Array<{ id: number; status: string; total: string; date_created: string }>
   >([]);
+  const [orderPage, setOrderPage] = useState(1);
+  const [orderPerPage, setOrderPerPage] = useState(5);
+  const [orderYear, setOrderYear] = useState<string>("all");
+  const [orderMonth, setOrderMonth] = useState<string>("all");
   const [addresses, setAddresses] = useState<{
     billing: null | Address;
     shipping: null | Address;
@@ -117,6 +121,73 @@ export function AccountDashboard() {
     { code: "WB", name: "West Bengal" },
   ];
 
+  const orderMonthOptions = [
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
+
+  const orderYearOptions = useMemo(() => {
+    const years = new Set<string>();
+    orders.forEach((order) => {
+      const date = new Date(order.date_created);
+      if (Number.isNaN(date.getTime())) return;
+      years.add(String(date.getFullYear()));
+    });
+    return Array.from(years).sort((a, b) => Number(b) - Number(a));
+  }, [orders]);
+
+  const filteredOrders = useMemo(() => {
+    if (orderYear === "all" && orderMonth === "all") return orders;
+    return orders.filter((order) => {
+      const date = new Date(order.date_created);
+      if (Number.isNaN(date.getTime())) return false;
+      const year = String(date.getFullYear());
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      if (orderYear !== "all" && year !== orderYear) return false;
+      if (orderMonth !== "all" && month !== orderMonth) return false;
+      return true;
+    });
+  }, [orders, orderYear, orderMonth]);
+
+  const orderTotalPages = Math.max(
+    1,
+    Math.ceil(filteredOrders.length / orderPerPage)
+  );
+  const orderSafePage = Math.min(orderPage, orderTotalPages);
+  const orderStartIndex = (orderSafePage - 1) * orderPerPage;
+  const orderEndIndex = orderStartIndex + orderPerPage;
+  const visibleOrders = filteredOrders.slice(orderStartIndex, orderEndIndex);
+
+  const orderPageNumbers = useMemo(() => {
+    if (orderTotalPages <= 7) {
+      return Array.from({ length: orderTotalPages }, (_, i) => i + 1);
+    }
+    const pages = new Set<number>([
+      1,
+      2,
+      3,
+      orderTotalPages - 2,
+      orderTotalPages - 1,
+      orderTotalPages,
+    ]);
+    pages.add(orderSafePage);
+    pages.add(orderSafePage - 1);
+    pages.add(orderSafePage + 1);
+    return Array.from(pages)
+      .filter((n) => n >= 1 && n <= orderTotalPages)
+      .sort((a, b) => a - b);
+  }, [orderSafePage, orderTotalPages]);
+
   const loadAll = async () => {
     const res = await fetch("/api/auth/me");
     if (!res.ok) {
@@ -161,6 +232,10 @@ export function AccountDashboard() {
   useEffect(() => {
     loadAll();
   }, []);
+
+  useEffect(() => {
+    setOrderPage(1);
+  }, [orderYear, orderMonth, orderPerPage]);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -494,7 +569,75 @@ export function AccountDashboard() {
               </div>
             ) : (
               <div className="mt-6 space-y-4">
-                {orders.map((order) => (
+                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-[color:var(--muted)]">
+                        Year
+                      </span>
+                      <select
+                        value={orderYear}
+                        onChange={(e) => {
+                          setOrderYear(e.target.value);
+                          setOrderMonth("all");
+                        }}
+                        className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm"
+                      >
+                        <option value="all">All</option>
+                        {orderYearOptions.map((year) => (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-[color:var(--muted)]">
+                        Month
+                      </span>
+                      <select
+                        value={orderMonth}
+                        onChange={(e) => setOrderMonth(e.target.value)}
+                        className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm"
+                        disabled={orderYear === "all"}
+                      >
+                        <option value="all">All</option>
+                        {orderMonthOptions.map((month) => (
+                          <option key={month.value} value={month.value}>
+                            {month.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-[color:var(--muted)]">
+                        Show
+                      </span>
+                      <select
+                        value={orderPerPage}
+                        onChange={(e) => setOrderPerPage(Number(e.target.value))}
+                        className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm"
+                      >
+                        {[5, 10, 20, 50].map((size) => (
+                          <option key={size} value={size}>
+                            {size}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-xs text-[color:var(--muted)]">
+                    Showing {visibleOrders.length} of {filteredOrders.length}
+                  </p>
+                </div>
+                {filteredOrders.length === 0 ? (
+                  <div className="flex min-h-[160px] flex-col items-center justify-center gap-3 text-center">
+                    <p className="text-sm text-[color:var(--muted)]">
+                      No orders for the selected filters.
+                    </p>
+                  </div>
+                ) : null}
+                {visibleOrders.map((order) => (
                   <div
                     key={order.id}
                     className="flex flex-col gap-4 rounded-[16px] border border-black/5 bg-slate-50 p-5 transition-colors hover:border-black/10 hover:bg-slate-100 sm:flex-row sm:items-center sm:justify-between"
@@ -533,6 +676,63 @@ export function AccountDashboard() {
                     </div>
                   </div>
                 ))}
+                {filteredOrders.length > 0 ? (
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <p className="text-xs text-[color:var(--muted)]">
+                      Page {orderSafePage} of {orderTotalPages}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOrderPage((prev) => Math.max(1, prev - 1))
+                        }
+                        disabled={orderSafePage === 1}
+                        className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-[color:var(--muted)] transition hover:border-[color:var(--brand)] hover:text-[color:var(--brand)] disabled:cursor-not-allowed disabled:border-black/5 disabled:text-gray-400 disabled:hover:text-gray-400"
+                      >
+                        Previous
+                      </button>
+                      <div className="flex items-center gap-2">
+                        {orderPageNumbers.map((num, index) => {
+                          const prev = orderPageNumbers[index - 1];
+                          const showGap = prev && num - prev > 1;
+                          return (
+                            <div key={num} className="flex items-center gap-2">
+                              {showGap ? (
+                                <span className="text-xs text-gray-400">
+                                  …
+                                </span>
+                              ) : null}
+                              <button
+                                type="button"
+                                onClick={() => setOrderPage(num)}
+                                className={`h-8 min-w-[32px] rounded-full border px-3 text-xs font-semibold transition ${
+                                  orderSafePage === num
+                                    ? "border-[color:var(--brand)] bg-[color:var(--brand)] text-white"
+                                    : "border-black/10 text-[color:var(--muted)] hover:border-[color:var(--brand)] hover:text-[color:var(--brand)]"
+                                }`}
+                              >
+                                {num}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOrderPage((prev) =>
+                            Math.min(orderTotalPages, prev + 1)
+                          )
+                        }
+                        disabled={orderSafePage === orderTotalPages}
+                        className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-[color:var(--muted)] transition hover:border-[color:var(--brand)] hover:text-[color:var(--brand)] disabled:cursor-not-allowed disabled:border-black/5 disabled:text-gray-400 disabled:hover:text-gray-400"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             )}
           </div>
@@ -890,9 +1090,6 @@ export function AccountDashboard() {
               </div>
             </div>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <Button onClick={() => window.print()} className="w-full">
-                Print Invoice
-              </Button>
               <Button
                 variant="outline"
                 className="w-full"

@@ -66,8 +66,9 @@ export function InstagramFeed() {
               Follow us on Instagram
             </h2>
             <p className="mt-3 text-base text-slate-600 max-w-lg">
-              Join our community of design enthusiasts. Get inspired by our
-              latest projects, behind-the-scenes content, and styling tips.
+              Join our growing community and stay updated with new steel
+              furniture designs, factory insights, real installations, and
+              product highlights from Raj & Raj.
             </p>
           </motion.div>
 

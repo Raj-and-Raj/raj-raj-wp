@@ -242,7 +242,8 @@ export function ProductDetailClient({
         ids = [];
       }
     }
-    if (ids.includes(product.id)) {
+    const exists = ids.includes(product.id);
+    if (exists) {
       ids = ids.filter((id) => id !== product.id);
       setIsWishlisted(false);
     } else {
@@ -251,6 +252,14 @@ export function ProductDetailClient({
     }
     localStorage.setItem("wishlist", JSON.stringify(ids));
     window.dispatchEvent(new Event("wishlist:updated"));
+    toast({
+      title: exists ? "Removed from wishlist" : "Added to wishlist",
+      description: exists
+        ? "Item removed from your wishlist."
+        : "Item saved to your wishlist.",
+      variant: "success",
+      position: "left",
+    });
   };
 
   const getEnquiryErrors = (values: {
@@ -264,7 +273,7 @@ export function ProductDetailClient({
     const mobile = values.mobile.trim();
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const mobileOk = /^(?:\+?91[\s-]?)?[6-9]\d{9}$/.test(
-      mobile.replace(/[()\s.-]/g, "")
+      mobile.replace(/[()\s.-]/g, ""),
     );
 
     if (!name) errors.name = "Please enter your full name.";
@@ -348,7 +357,8 @@ export function ProductDetailClient({
       setEnquiryNotice({
         type: "success",
         message:
-          confirmationMessage || "Thanks for contacting us! We will be in touch with you shortly.",
+          confirmationMessage ||
+          "Thanks for contacting us! We will be in touch with you shortly.",
       });
       setEnquiryValues({ name: "", email: "", mobile: "" });
       setEnquiryErrors({ name: "", email: "", mobile: "" });
@@ -782,6 +792,7 @@ export function ProductDetailClient({
                           toast({
                             title: "Already in cart",
                             description: "This item is already in your cart.",
+                            position: "left",
                           });
                           return;
                         }
@@ -799,6 +810,7 @@ export function ProductDetailClient({
                           title: "Added to cart",
                           description: "Item has been added to your cart.",
                           variant: "success",
+                          position: "left",
                         });
                       }}
                     >
@@ -1005,82 +1017,84 @@ export function ProductDetailClient({
                   : "grid gap-3 md:grid-cols-2 xl:grid-cols-4"
               }
             >
-            {relatedItems.map((item, idx) => {
-              const relatedImage = relatedHoverImage[item.id] ?? item.image;
-              return (
-              <Link
-                key={`${item.id}-${idx}`}
-                href={`/products/${item.slug}`}
-                className={`group rounded-[12px] border border-black/5 bg-white/95 p-5 transition hover:-translate-y-1 hover:shadow-lg ${
-                  relatedItems.length > 4 ? "min-w-[80%] snap-start md:min-w-[340px]" : ""
-                }`}
-              >
-                <div className="relative h-72 overflow-hidden rounded-[12px] bg-[#f1ece4] md:h-84">
-                  {relatedImage ? (
-                    <Image
-                      src={relatedImage}
-                      alt={item.name}
-                      fill
-                      unoptimized
-                      className="object-cover"
-                    />
-                  ) : null}
-                </div>
-                <p className="mt-4 text-sm text-[color:var(--muted)]">
-                  {item.category}
-                </p>
-                <p className="mt-2 text-lg font-semibold group-hover:text-[color:var(--brand)] transition-colors">
-                  {item.name}
-                </p>
-                <p className="mt-2 text-sm text-[color:var(--muted)]">
-                  {formatPrice(item.price)}
-                </p>
-                {relatedVariationSwatches[item.id]?.length ? (
-                  <div
-                    className="mt-3 flex flex-wrap gap-2"
-                    onMouseLeave={() =>
-                      setRelatedHoverImage((prev) => {
-                        const next = { ...prev };
-                        delete next[item.id];
-                        return next;
-                      })
-                    }
+              {relatedItems.map((item, idx) => {
+                const relatedImage = relatedHoverImage[item.id] ?? item.image;
+                return (
+                  <Link
+                    key={`${item.id}-${idx}`}
+                    href={`/products/${item.slug}`}
+                    className={`group rounded-[12px] border border-black/5 bg-white/95 p-5 transition hover:-translate-y-1 hover:shadow-lg ${
+                      relatedItems.length > 4
+                        ? "min-w-[80%] snap-start md:min-w-[340px]"
+                        : ""
+                    }`}
                   >
-                    {relatedVariationSwatches[item.id].map((swatch) => (
-                      <button
-                        type="button"
-                        key={swatch.label}
-                        title={swatch.label}
-                        className="h-6 w-6 rounded-full border border-black/10 bg-center bg-no-repeat"
-                        style={{
-                          backgroundImage: swatch.image
-                            ? `url(${swatch.image})`
-                            : undefined,
-                          backgroundColor: swatch.image
-                            ? undefined
-                            : colorToHex(swatch.label),
-                          backgroundSize: "cover",
-                        }}
-                        onMouseEnter={() => {
-                          if (swatch.image) {
-                            setRelatedHoverImage((prev) => ({
-                              ...prev,
-                              [item.id]: swatch.image as string,
-                            }));
-                          }
-                        }}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-                <div className="mt-4 flex justify-end">
-                  <div className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--brand)] px-4 py-2 text-xs font-semibold text-white transition group-hover:brightness-110 md:w-auto">
-                    View details <span aria-hidden>→</span>
-                  </div>
-                </div>
-              </Link>
-              );
-            })}
+                    <div className="relative h-72 overflow-hidden rounded-[12px] bg-[#f1ece4] md:h-84">
+                      {relatedImage ? (
+                        <Image
+                          src={relatedImage}
+                          alt={item.name}
+                          fill
+                          unoptimized
+                          className="object-cover"
+                        />
+                      ) : null}
+                    </div>
+                    <p className="mt-4 text-sm text-[color:var(--muted)]">
+                      {item.category}
+                    </p>
+                    <p className="mt-2 text-lg font-semibold group-hover:text-[color:var(--brand)] transition-colors">
+                      {item.name}
+                    </p>
+                    <p className="mt-2 text-sm text-[color:var(--muted)]">
+                      {formatPrice(item.price)}
+                    </p>
+                    {relatedVariationSwatches[item.id]?.length ? (
+                      <div
+                        className="mt-3 flex flex-wrap gap-2"
+                        onMouseLeave={() =>
+                          setRelatedHoverImage((prev) => {
+                            const next = { ...prev };
+                            delete next[item.id];
+                            return next;
+                          })
+                        }
+                      >
+                        {relatedVariationSwatches[item.id].map((swatch) => (
+                          <button
+                            type="button"
+                            key={swatch.label}
+                            title={swatch.label}
+                            className="h-6 w-6 rounded-full border border-black/10 bg-center bg-no-repeat"
+                            style={{
+                              backgroundImage: swatch.image
+                                ? `url(${swatch.image})`
+                                : undefined,
+                              backgroundColor: swatch.image
+                                ? undefined
+                                : colorToHex(swatch.label),
+                              backgroundSize: "cover",
+                            }}
+                            onMouseEnter={() => {
+                              if (swatch.image) {
+                                setRelatedHoverImage((prev) => ({
+                                  ...prev,
+                                  [item.id]: swatch.image as string,
+                                }));
+                              }
+                            }}
+                          />
+                        ))}
+                      </div>
+                    ) : null}
+                    <div className="mt-4 flex justify-end">
+                      <div className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--brand)] px-4 py-2 text-xs font-semibold text-white transition group-hover:brightness-110 md:w-auto">
+                        View details <span aria-hidden>→</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -1099,8 +1113,7 @@ export function ProductDetailClient({
               </button>
             </div>
             <p className="mt-2 text-sm text-[color:var(--muted)]">
-              This item is currently out of stock. Leave your details and we’ll
-              contact you when it’s available.
+              Share your details and we’ll contact you.
             </p>
             {enquiryNotice ? (
               <div

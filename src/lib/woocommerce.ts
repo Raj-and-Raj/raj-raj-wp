@@ -4,6 +4,7 @@ export type WooProduct = {
   slug: string;
   description: string;
   short_description: string;
+  date_created?: string;
   price: string;
   type?: string;
   meta_data?: Array<{ key: string; value: unknown }>;
@@ -209,9 +210,13 @@ async function wooPut<T>(path: string, body: unknown): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export async function fetchProducts(params?: { category?: string }) {
+export async function fetchProducts(params?: {
+  category?: string;
+  perPage?: number;
+}) {
   const query = new URLSearchParams();
   if (params?.category) query.set("category", params.category);
+  query.set("per_page", String(params?.perPage ?? 100));
   return wooFetch<WooProduct[]>("products", query);
 }
 
@@ -269,7 +274,10 @@ export async function fetchShippingZoneLocations(zoneId: number) {
 }
 
 export async function fetchOrdersByCustomer(customerId: number) {
-  const query = new URLSearchParams({ customer: String(customerId) });
+  const query = new URLSearchParams({
+    customer: String(customerId),
+    per_page: "100",
+  });
   return wooFetch<
     Array<{
       id: number;
@@ -283,7 +291,7 @@ export async function fetchOrdersByCustomer(customerId: number) {
 export async function fetchOrdersByEmail(email: string) {
   const query = new URLSearchParams();
   query.set("search", email);
-  query.set("per_page", "20");
+  query.set("per_page", "100");
   // Some Woo setups accept email as a filter; harmless if ignored.
   query.set("email", email);
   return wooFetch<

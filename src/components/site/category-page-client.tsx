@@ -138,13 +138,20 @@ export function CategoryPageClient({
   };
 
   const toggleWishlist = (id: string) => {
-    setWishlistIds((prev) => {
-      const next = prev.includes(id)
-        ? prev.filter((item) => item !== id)
-        : [...prev, id];
-      localStorage.setItem("wishlist", JSON.stringify(next));
-      window.dispatchEvent(new Event("wishlist:updated"));
-      return next;
+    const exists = wishlistIds.includes(id);
+    const next = exists
+      ? wishlistIds.filter((item) => item !== id)
+      : [...wishlistIds, id];
+    setWishlistIds(next);
+    localStorage.setItem("wishlist", JSON.stringify(next));
+    window.dispatchEvent(new Event("wishlist:updated"));
+    toast({
+      title: exists ? "Removed from wishlist" : "Added to wishlist",
+      description: exists
+        ? "Item removed from your wishlist."
+        : "Item saved to your wishlist.",
+      variant: "success",
+      position: "left",
     });
   };
 
@@ -153,6 +160,7 @@ export function CategoryPageClient({
       toast({
         title: "Already in cart",
         description: "This item is already in your cart.",
+        position: "left",
       });
       return;
     }
@@ -166,6 +174,7 @@ export function CategoryPageClient({
       title: "Added to cart",
       description: "Item has been added to your cart.",
       variant: "success",
+      position: "left",
     });
   };
 
@@ -209,13 +218,13 @@ export function CategoryPageClient({
 
       <div className="container mx-auto flex flex-col gap-12 px-4 md:px-8 lg:flex-row">
         <div className="hidden w-64 flex-shrink-0 lg:block">
-          <div className="mb-6 border-b border-gray-200 pb-4">
+          {/* <div className="mb-6 border-b border-gray-200 pb-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold uppercase tracking-wide">
                 Clear All
               </h3>
             </div>
-          </div>
+          </div> */}
 
           <div className="mb-8">
             <h3 className="mb-4 flex cursor-pointer items-center justify-between text-lg font-bold">
@@ -245,10 +254,7 @@ export function CategoryPageClient({
               })}
             </div>
             {subcategories.length ? (
-              <div className="mt-5 border-t border-gray-100 pt-4">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Subcategories
-                </p>
+              <div className="mt-4 space-y-2">
                 <div className="space-y-2">
                   {subcategories.map((sub) => {
                     const active = selectedSubcategories.includes(sub.slug);
@@ -263,20 +269,18 @@ export function CategoryPageClient({
                               : [...prev, sub.slug],
                           )
                         }
-                        className={`flex w-full items-center gap-3 rounded-lg px-2 py-1 text-sm transition ${
-                          active
-                            ? "bg-[color:var(--brand)]/10 text-[color:var(--brand)]"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
+                        className="group flex w-full items-center gap-3 rounded-lg px-2 py-1 text-sm transition "
                       >
-                        <span
-                          className={`h-2.5 w-2.5 rounded-full border ${
-                            active
-                              ? "border-[color:var(--brand)] bg-[color:var(--brand)]"
-                              : "border-gray-300"
-                          }`}
+                        <input
+                          type="checkbox"
+                          className="peer sr-only"
+                          checked={active}
+                          readOnly
                         />
-                        {sub.name}
+                        <span className="brand-checkbox" />
+                        <span className="text-gray-700 transition-colors group-hover:text-[#DA3234]">
+                          {sub.name}
+                        </span>
                       </button>
                     );
                   })}
@@ -444,15 +448,12 @@ export function CategoryPageClient({
                           />
                         ))
                       : (
-                          product.attributes
-                            ?.find((attr) => {
-                              const name = attr.name.toLowerCase();
-                              return (
-                                name.includes("color") ||
-                                name.includes("colour")
-                              );
-                            })
-                            ?.options ?? ["Red", "Black", "Grey"]
+                          product.attributes?.find((attr) => {
+                            const name = attr.name.toLowerCase();
+                            return (
+                              name.includes("color") || name.includes("colour")
+                            );
+                          })?.options ?? ["Red", "Black", "Grey"]
                         ).map((option) => (
                           <span
                             key={option}
@@ -541,10 +542,7 @@ export function CategoryPageClient({
                   })}
                 </div>
                 {subcategories.length ? (
-                  <div className="mt-5 space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Subcategories
-                    </p>
+                  <div className="mt-4 space-y-2">
                     {subcategories.map((sub) => {
                       const active = selectedSubcategories.includes(sub.slug);
                       return (
@@ -558,20 +556,16 @@ export function CategoryPageClient({
                                 : [...prev, sub.slug],
                             )
                           }
-                          className={`flex w-full items-center gap-3 rounded-lg px-2 py-1 text-sm ${
-                            active
-                              ? "bg-[color:var(--brand)]/10 text-[color:var(--brand)]"
-                              : "text-gray-700"
-                          }`}
+                          className="group flex w-full items-center gap-3 rounded-lg px-2 py-1 text-sm"
                         >
-                          <span
-                            className={`h-2.5 w-2.5 rounded-full border ${
-                              active
-                                ? "border-[color:var(--brand)] bg-[color:var(--brand)]"
-                                : "border-gray-300"
-                            }`}
+                          <input
+                            type="checkbox"
+                            className="peer sr-only"
+                            checked={active}
+                            readOnly
                           />
-                          {sub.name}
+                          <span className="brand-checkbox" />
+                          <span className="text-gray-700">{sub.name}</span>
                         </button>
                       );
                     })}
