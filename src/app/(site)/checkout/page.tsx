@@ -1,6 +1,11 @@
 "use client";
 
 import { normalizeStateCode, useIndiaStates } from "@/lib/india-states";
+import {
+  NEW_ADDRESS,
+  SavedAddressPicker,
+} from "@/components/checkout/saved-address-picker";
+import type { AddressBook, SavedAddress } from "@/lib/address-book-types";
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
@@ -82,6 +87,22 @@ function checkoutErrorMessage(response: CheckoutResponse) {
   return stripHtml(response.message);
 }
 
+// Address fields shared by checkout's billing/shipping state and the book.
+function addressFields(address: SavedAddress) {
+  return {
+    first_name: address.first_name,
+    last_name: address.last_name,
+    company: address.company,
+    address_1: address.address_1,
+    address_2: address.address_2,
+    city: address.city,
+    state: address.state,
+    postcode: address.postcode,
+    country: address.country || "IN",
+    phone: address.phone,
+  };
+}
+
 function stripHtml(value?: string) {
   if (!value) return "";
   const text = value.replace(/<[^>]*>/g, "");
@@ -135,6 +156,11 @@ export default function CheckoutPage() {
     phone: "",
   });
   const [shipToBilling, setShipToBilling] = useState(true);
+  const [addressBook, setAddressBook] = useState<AddressBook | null>(null);
+  const [billingChoice, setBillingChoice] = useState<string>(NEW_ADDRESS);
+  const [shippingChoice, setShippingChoice] = useState<string>(NEW_ADDRESS);
+  const [saveNewBilling, setSaveNewBilling] = useState(true);
+  const [saveNewShipping, setSaveNewShipping] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [shippingMethod, setShippingMethod] = useState("");
   const [isPlacing, setIsPlacing] = useState(false);
@@ -171,6 +197,10 @@ export default function CheckoutPage() {
       } else {
         setIsAuthed(true);
         setAuthChecked(true);
+        const me = (await authRes.json().catch(() => null)) as { email?: string } | null;
+        if (me?.email) {
+          setBilling((prev) => (prev.email ? prev : { ...prev, email: me.email! }));
+        }
       }
       const res = await fetch("/api/cart");
       if (res.ok) {
@@ -256,6 +286,26 @@ export default function CheckoutPage() {
             state: normalizeStateCode(nextShipping.state),
           });
         }
+        const bookRes = await fetch("/api/account/address-book");
+        if (bookRes.ok) {
+          const book: AddressBook = await bookRes.json();
+          setAddressBook(book);
+          const defaultBilling = book.addresses.find((a) => a.id === book.defaultBilling);
+          const defaultShipping = book.addresses.find((a) => a.id === book.defaultShipping);
+          if (defaultBilling) {
+            setBilling((prev) => ({ ...prev, ...addressFields(defaultBilling) }));
+            setBillingChoice(defaultBilling.id);
+            setSaveNewBilling(false);
+          }
+          if (defaultShipping) {
+            setShipping((prev) => ({ ...prev, ...addressFields(defaultShipping) }));
+            setShippingChoice(defaultShipping.id);
+            setSaveNewShipping(false);
+            if (defaultBilling && defaultShipping.id !== defaultBilling.id) {
+              setShipToBilling(false);
+            }
+          }
+        }
         setHasPrefilled(true);
       }
     }, [billing, hasPrefilled, shipping, shippingMethod]);
@@ -336,6 +386,62 @@ export default function CheckoutPage() {
     if (fallback) setPaymentMethod(fallback);
   }, [onlinePaymentEnabled, paymentMethod, cart?.payment_methods]);
 
+  const savedAddresses = isAuthed ? (addressBook?.addresses ?? []) : [];
+  const showBillingForm = savedAddresses.length === 0 || billingChoice === NEW_ADDRESS;
+  const showShippingForm = savedAddresses.length === 0 || shippingChoice === NEW_ADDRESS;
+
+  const blankAddress = {
+    company: "",
+    address_1: "",
+    address_2: "",
+    city: "",
+    state: "",
+    postcode: "",
+  };
+
+  const selectBillingAddress = (id: string) => {
+    setBillingChoice(id);
+    const saved = savedAddresses.find((a) => a.id === id);
+    if (saved) {
+      setBilling((prev) => ({ ...prev, ...addressFields(saved) }));
+    } else {
+      setBilling((prev) => ({ ...prev, ...blankAddress }));
+      setSaveNewBilling(true);
+    }
+  };
+
+  const selectShippingAddress = (id: string) => {
+    setShippingChoice(id);
+    const saved = savedAddresses.find((a) => a.id === id);
+    if (saved) {
+      setShipping((prev) => ({ ...prev, ...addressFields(saved) }));
+    } else {
+      setShipping((prev) => ({ ...prev, ...blankAddress }));
+      setSaveNewShipping(true);
+    }
+  };
+
+  // Adds addresses typed in at checkout to the customer's address book.
+  const saveNewAddresses = async () => {
+    if (!isAuthed) return;
+    const pending: Array<{ address: typeof shipping; label: string }> = [];
+    if (billingChoice === NEW_ADDRESS && saveNewBilling) {
+      const { email: _email, ...address } = billing;
+      void _email;
+      pending.push({ address, label: savedAddresses.length ? "Other" : "Home" });
+    }
+    if (!shipToBilling && shippingChoice === NEW_ADDRESS && saveNewShipping) {
+      pending.push({ address: shipping, label: "Other" });
+    }
+    for (const { address, label } of pending) {
+      await fetch("/api/account/address-book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: { ...address, label } }),
+      }).catch(() => undefined);
+    }
+  };
+
   const successUrlFor = (orderId?: number, orderKey?: string) =>
     orderId
       ? `/checkout/success?order_id=${orderId}${
@@ -402,6 +508,7 @@ export default function CheckoutPage() {
           );
         }
         window.dispatchEvent(new Event("cart:updated"));
+        await saveNewAddresses();
 
         if (paymentMethod !== "razorpay" || !processed.order_id || !processed.order_key) {
           redirecting = true;
@@ -572,6 +679,18 @@ export default function CheckoutPage() {
                 </button>
               ) : null}
             </div>
+            {savedAddresses.length ? (
+              <SavedAddressPicker
+                name="billing-address"
+                addresses={savedAddresses}
+                selected={billingChoice}
+                defaultId={addressBook?.defaultBilling}
+                states={indiaStates}
+                onSelect={selectBillingAddress}
+              />
+            ) : null}
+            {showBillingForm ? (
+              <>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <label className="text-xs font-semibold text-[color:var(--muted)]">
                 First name <span className="text-[color:var(--brand)]">*</span>
@@ -692,6 +811,18 @@ export default function CheckoutPage() {
                 />
               </label>
             </div>
+              {isAuthed ? (
+                <label className="mt-4 flex items-center gap-2 text-xs font-semibold text-[color:var(--muted)]">
+                  <input
+                    type="checkbox"
+                    checked={saveNewBilling}
+                    onChange={(event) => setSaveNewBilling(event.target.checked)}
+                  />
+                  Save this address to my address book
+                </label>
+              ) : null}
+              </>
+            ) : null}
             <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
               Email address <span className="text-[color:var(--brand)]">*</span>
               <input
@@ -713,7 +844,7 @@ export default function CheckoutPage() {
                   checked={shipToBilling}
                   onChange={(event) => setShipToBilling(event.target.checked)}
                 />
-                Shipping address same as billing
+                Ship to the same address
               </label>
             </div>
             <label className="mt-6 block text-xs font-semibold text-[color:var(--muted)]">
@@ -731,6 +862,18 @@ export default function CheckoutPage() {
           {!shipToBilling ? (
             <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
               <h2 className="text-lg font-semibold">Shipping details</h2>
+              {savedAddresses.length ? (
+                <SavedAddressPicker
+                  name="shipping-address"
+                  addresses={savedAddresses}
+                  selected={shippingChoice}
+                  defaultId={addressBook?.defaultShipping}
+                  states={indiaStates}
+                  onSelect={selectShippingAddress}
+                />
+              ) : null}
+              {showShippingForm ? (
+                <>
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 <label className="text-xs font-semibold text-[color:var(--muted)]">
                   First name{" "}
@@ -859,6 +1002,18 @@ export default function CheckoutPage() {
                   />
                 </label>
               </div>
+                  {isAuthed ? (
+                    <label className="mt-4 flex items-center gap-2 text-xs font-semibold text-[color:var(--muted)]">
+                      <input
+                        type="checkbox"
+                        checked={saveNewShipping}
+                        onChange={(event) => setSaveNewShipping(event.target.checked)}
+                      />
+                      Save this address to my address book
+                    </label>
+                  ) : null}
+                </>
+              ) : null}
             </div>
           ) : null}
         </div>

@@ -31,6 +31,7 @@ export type WooVariation = {
 
 export type WooCustomer = {
   id: number;
+  meta_data?: Array<{ key: string; value: unknown }>;
   email: string;
   first_name?: string;
   last_name?: string;
@@ -361,6 +362,7 @@ export async function updateCustomer(
   input: {
     billing?: WooCustomer["billing"];
     shipping?: WooCustomer["shipping"];
+    meta_data?: Array<{ key: string; value: string }>;
   }
 ) {
   return wooPut<WooCustomer>(`customers/${customerId}`, input);

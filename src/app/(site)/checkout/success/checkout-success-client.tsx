@@ -485,7 +485,7 @@ export function CheckoutSuccessClient() {
         </Link>
         <Link
           href="/account"
-          className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-6 py-3 text-sm font-semibold text-[color:var(--ink)] transition hover:border-black/25"
+          className="inline-flex items-center gap-2 rounded-full border-2 border-[color:var(--brand)] bg-white px-6 py-2.5 text-sm font-semibold text-[color:var(--brand)] transition hover:bg-[color:var(--brand)] hover:text-white"
         >
           View my orders
         </Link>
