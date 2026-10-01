@@ -19,7 +19,7 @@ export default function Home() {
       <ShopByCollection />
       <ExchangeBanner />
       <StatsBanner />
-      <StoreLocatorBanner />
+      {/* <StoreLocatorBanner /> */}
       <BusinessSolutionsBanner />
       <GoogleReviews />
       <InstagramFeed />

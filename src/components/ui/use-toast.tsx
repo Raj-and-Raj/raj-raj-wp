@@ -28,6 +28,15 @@ const ToastContext = React.createContext<ToastContextValue | undefined>(
 
 const TOAST_LIMIT = 3;
 
+let toastCount = 0;
+
+// crypto.randomUUID only exists in secure contexts (HTTPS / localhost), so it
+// throws when the site is opened over plain http, e.g. via a LAN IP.
+function createToastId() {
+  toastCount = (toastCount + 1) % Number.MAX_SAFE_INTEGER;
+  return `${Date.now().toString(36)}-${toastCount}`;
+}
+
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = React.useState<ToastItem[]>([]);
 
@@ -36,7 +45,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toast = React.useCallback((options: ToastOptions) => {
-    const id = crypto.randomUUID();
+    const id = createToastId();
     setToasts((current) => [
       { id, ...options },
       ...current.slice(0, TOAST_LIMIT - 1),

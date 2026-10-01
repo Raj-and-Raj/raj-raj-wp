@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { normalizeStateCode, useIndiaStates } from "@/lib/india-states";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -81,45 +82,7 @@ export function AccountDashboard() {
       image?: { src?: string };
     }>;
   }>(null);
-  const indiaStates = [
-    { code: "AN", name: "Andaman and Nicobar Islands" },
-    { code: "AP", name: "Andhra Pradesh" },
-    { code: "AR", name: "Arunachal Pradesh" },
-    { code: "AS", name: "Assam" },
-    { code: "BR", name: "Bihar" },
-    { code: "CH", name: "Chandigarh" },
-    { code: "CT", name: "Chhattisgarh" },
-    { code: "DN", name: "Dadra and Nagar Haveli and Daman and Diu" },
-    { code: "DD", name: "Daman and Diu (Legacy)" },
-    { code: "DL", name: "Delhi" },
-    { code: "GA", name: "Goa" },
-    { code: "GJ", name: "Gujarat" },
-    { code: "HR", name: "Haryana" },
-    { code: "HP", name: "Himachal Pradesh" },
-    { code: "JK", name: "Jammu and Kashmir" },
-    { code: "JH", name: "Jharkhand" },
-    { code: "KA", name: "Karnataka" },
-    { code: "KL", name: "Kerala" },
-    { code: "LA", name: "Ladakh" },
-    { code: "LD", name: "Lakshadweep" },
-    { code: "MP", name: "Madhya Pradesh" },
-    { code: "MH", name: "Maharashtra" },
-    { code: "MN", name: "Manipur" },
-    { code: "ML", name: "Meghalaya" },
-    { code: "MZ", name: "Mizoram" },
-    { code: "NL", name: "Nagaland" },
-    { code: "OR", name: "Odisha" },
-    { code: "PY", name: "Puducherry" },
-    { code: "PB", name: "Punjab" },
-    { code: "RJ", name: "Rajasthan" },
-    { code: "SK", name: "Sikkim" },
-    { code: "TN", name: "Tamil Nadu" },
-    { code: "TG", name: "Telangana" },
-    { code: "TR", name: "Tripura" },
-    { code: "UP", name: "Uttar Pradesh" },
-    { code: "UT", name: "Uttarakhand" },
-    { code: "WB", name: "West Bengal" },
-  ];
+  const indiaStates = useIndiaStates();
 
   const orderMonthOptions = [
     { value: "01", label: "January" },
@@ -222,8 +185,24 @@ export function AccountDashboard() {
         billing: addressData.billing,
         shipping: addressData.shipping,
       });
-      setBillingDraft(addressData.billing ?? {});
-      setShippingDraft(addressData.shipping ?? {});
+      // Older saves used state codes WooCommerce rejects (e.g. TG); convert
+      // them so the next save stores the valid code.
+      setBillingDraft(
+        addressData.billing
+          ? {
+              ...addressData.billing,
+              state: normalizeStateCode(addressData.billing.state),
+            }
+          : {},
+      );
+      setShippingDraft(
+        addressData.shipping
+          ? {
+              ...addressData.shipping,
+              state: normalizeStateCode(addressData.shipping.state),
+            }
+          : {},
+      );
     }
 
     setLoading(false);
