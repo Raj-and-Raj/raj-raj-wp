@@ -132,14 +132,6 @@ export function SiteFooter() {
                 </li>
                 <li>
                   <Link
-                    href="/franchise"
-                    className="hover:text-[color:var(--brand)] transition-colors"
-                  >
-                    Franchise
-                  </Link>
-                </li>
-                <li>
-                  <Link
                     href="/business"
                     className="hover:text-[color:var(--brand)] transition-colors"
                   >
@@ -217,35 +209,35 @@ export function SiteFooter() {
             {[
               {
                 Icon: Facebook,
-                href: "#",
+                href: "https://www.facebook.com/rajandrajofficial",
                 label: "Facebook",
                 color:
                   "hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2]",
               },
               {
                 Icon: Instagram,
-                href: "https://instagram.com",
+                href: "https://www.instagram.com/rajandrajofficial/",
                 label: "Instagram",
                 color:
                   "hover:bg-[#E4405F] hover:text-white hover:border-[#E4405F]",
               },
               {
                 Icon: Twitter,
-                href: "#",
+                href: "https://twitter.com/rajandrajhome",
                 label: "Twitter",
                 color:
                   "hover:bg-[#1DA1F2] hover:text-white hover:border-[#1DA1F2]",
               },
               {
                 Icon: Linkedin,
-                href: "#",
+                href: "https://www.linkedin.com/company/rajandrajofficial",
                 label: "LinkedIn",
                 color:
                   "hover:bg-[#0A66C2] hover:text-white hover:border-[#0A66C2]",
               },
               {
                 Icon: Youtube,
-                href: "#",
+                href: "https://www.youtube.com/channel/UCv1zhLmoe3OH2kommS1u3_Q",
                 label: "Youtube",
                 color:
                   "hover:bg-[#FF0000] hover:text-white hover:border-[#FF0000]",
@@ -255,6 +247,8 @@ export function SiteFooter() {
                 key={idx}
                 href={social.href}
                 aria-label={social.label}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={`w-10 h-10 rounded-lg bg-white/5 border border-white/15 flex items-center justify-center text-white/70 transition-all duration-300 ${social.color}`}
               >
                 <social.Icon className="w-4 h-4" />

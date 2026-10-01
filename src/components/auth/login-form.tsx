@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { User, Lock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 
 export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -88,12 +88,6 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
       return;
     }
 
-    toast({
-      variant: "success",
-      title: "Signed in",
-      description: "Welcome back.",
-    });
-    window.dispatchEvent(new Event("auth:updated"));
     const redirectParam = redirectTo || searchParams.get("redirect");
     const safeRedirect =
       redirectParam &&
@@ -101,7 +95,17 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
       !redirectParam.startsWith("//")
         ? redirectParam
         : "/account";
-    router.push(safeRedirect);
+    setRedirecting(true);
+    toast({
+      variant: "success",
+      title: "Signed in",
+      description: "Welcome back. Redirecting…",
+    });
+    window.dispatchEvent(new Event("auth:updated"));
+    // Full navigation so the new auth cookie is used everywhere; a client
+    // router push can replay the cached "/account -> /login" redirect from
+    // when the visitor was signed out.
+    window.location.assign(safeRedirect);
   };
 
   return (
@@ -122,6 +126,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
             <Input
               id="login-username"
               name="username"
+              autoComplete="username"
               placeholder="you@email.com"
               required
               className="pl-9 transition-all focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-1"
@@ -144,6 +149,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
               id="login-password"
               name="password"
               type="password"
+              autoComplete="current-password"
               placeholder="••••••••"
               required
               className="pl-9 transition-all focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-1"
@@ -153,9 +159,11 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
         <Button
           type="submit"
           className="w-full bg-linear-to-r from-[color:var(--brand)] to-red-600 font-bold text-white shadow-lg shadow-red-500/20 transition-all hover:scale-[1.02] hover:brightness-110"
-          disabled={loading}
+          disabled={loading || redirecting}
         >
-          {loading ? (
+          {redirecting ? (
+            "Redirecting..."
+          ) : loading ? (
             "Signing in..."
           ) : (
             <>

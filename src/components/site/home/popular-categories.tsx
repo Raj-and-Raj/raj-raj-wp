@@ -33,8 +33,10 @@ function CategoryCard({
   showButton = false,
 }: CategoryCardProps) {
   return (
-    <div
-      className={`${bgColor} ${className} group rounded-lg relative h-full min-h-[280px] overflow-hidden p-8 transition-transform duration-300 hover:-translate-y-1`}
+    <Link
+      href={productLink}
+      aria-label={`Shop ${title}`}
+      className={`${bgColor} ${className} group rounded-lg relative block h-full min-h-[280px] overflow-hidden p-8 transition-transform duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-2`}
     >
       <div className="relative z-10 flex h-full flex-col items-start">
         <span
@@ -46,12 +48,10 @@ function CategoryCard({
         {/* <p className={`max-w-xs text-sm text-white/80 ${bodyColor}"`}>{body}</p> */}
 
         {showButton ? (
-          <Link
-            href={`${productLink}`}
-            className="mt-auto inline-flex items-center gap-1 rounded bg-(--link) text-sm font-medium  text-white"
-          >
-            Shop Now <ArrowRight className="h-3 w-3" />
-          </Link>
+          <span className="mt-auto inline-flex items-center gap-1 rounded bg-(--link) text-sm font-medium text-white">
+            Shop Now{" "}
+            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+          </span>
         ) : null}
       </div>
 
@@ -63,7 +63,7 @@ function CategoryCard({
         />
       </div>
       <div className="pointer-events-none absolute inset-0 rounded-[36px] border border-white/20" />
-    </div>
+    </Link>
   );
 }
 
@@ -110,7 +110,7 @@ export function PopularCategories() {
             textColor="text-white"
             subTitleColor="text-[#7B3F00]"
             bodyColor="text-[#7B3F00]"
-            productLink="/category/file-cabinets"
+            productLink="/category/wardrobes"
             showButton
           />
         </motion.div>
@@ -129,7 +129,7 @@ export function PopularCategories() {
             bgColor="bg-[linear-gradient(135deg,#ffd7d2,#4B2E2A)]"
             textColor="text-[#fff]"
             subTitleColor="text-[#4B2E2A]"
-            productLink="/category/file-cabinets"
+            productLink="/category/dressing-tables"
             showButton
           />
         </motion.div>
@@ -148,7 +148,7 @@ export function PopularCategories() {
             bgColor="bg-[linear-gradient(135deg,#ffd7d2,#4B0082)]"
             textColor="text-[#fff]"
             subTitleColor="text-[#4B0082]"
-            productLink="/category/file-cabinets"
+            productLink="/category/shoe-racks"
             showButton
           />
         </motion.div>
@@ -167,7 +167,7 @@ export function PopularCategories() {
             bgColor="bg-[linear-gradient(135deg,#007FD520,#007FD5)]"
             textColor="text-[#fff]"
             subTitleColor="text-[#007FD5]"
-            productLink="/category/dressing-tables"
+            productLink="/category/office-work-tables"
             showButton
           />
         </motion.div>
@@ -186,7 +186,7 @@ export function PopularCategories() {
             bgColor="bg-[linear-gradient(135deg,#ffd7d2,#9b214e)]"
             textColor="text-[#fff]"
             subTitleColor="text-[#9b214e]"
-            productLink="/category/file-cabinets"
+            productLink="/category/first-aid-box"
             showButton
           />
         </motion.div>
@@ -205,7 +205,7 @@ export function PopularCategories() {
             bgColor="bg-[linear-gradient(135deg,#ffd7d2,#da4a7f)]"
             textColor="text-[#fff]"
             subTitleColor="text-[#da4a7f]"
-            productLink="/category/file-cabinets"
+            productLink="/category/lockers"
             showButton
           />
         </motion.div>

@@ -31,6 +31,7 @@ export type WooVariation = {
 
 export type WooCustomer = {
   id: number;
+  meta_data?: Array<{ key: string; value: unknown }>;
   email: string;
   first_name?: string;
   last_name?: string;
@@ -305,12 +306,22 @@ export async function fetchOrdersByEmail(email: string) {
 }
 
 export async function fetchOrderById(orderId: number) {
-  return wooFetch<{
+  // Uncached: order/payment status changes as soon as a payment completes.
+  return wooFetchNoStore<{
     id: number;
     status: string;
     total: string;
     currency: string;
     date_created: string;
+    order_key?: string;
+    customer_id?: number;
+    payment_method?: string;
+    payment_method_title?: string;
+    payment_url?: string;
+    needs_payment?: boolean;
+    date_paid?: string | null;
+    transaction_id?: string;
+    meta_data?: Array<{ key: string; value: unknown }>;
     billing: WooCustomer["billing"];
     shipping: WooCustomer["shipping"];
     line_items: Array<{
@@ -327,11 +338,31 @@ export async function fetchOrderById(orderId: number) {
   }>(`orders/${orderId}`);
 }
 
+export async function updateOrder(
+  orderId: number,
+  input: {
+    set_paid?: boolean;
+    transaction_id?: string;
+    status?: string;
+    meta_data?: Array<{ key: string; value: string }>;
+  }
+) {
+  return wooPut<{ id: number; status: string }>(`orders/${orderId}`, input);
+}
+
+export async function addOrderNote(orderId: number, note: string) {
+  return wooPost<{ id: number }>(`orders/${orderId}/notes`, {
+    note,
+    customer_note: false,
+  });
+}
+
 export async function updateCustomer(
   customerId: number,
   input: {
     billing?: WooCustomer["billing"];
     shipping?: WooCustomer["shipping"];
+    meta_data?: Array<{ key: string; value: string }>;
   }
 ) {
   return wooPut<WooCustomer>(`customers/${customerId}`, input);
@@ -347,4 +378,11 @@ export async function createCustomer(input: {
   shipping?: WooCustomer["shipping"];
 }) {
   return wooPost<{ id: number; email: string }>("customers", input);
+}
+
+export async function fetchCountryStates(countryCode: string) {
+  const data = await wooFetch<{
+    states?: Array<{ code: string; name: string }>;
+  }>(`data/countries/${countryCode.toLowerCase()}`);
+  return data.states ?? [];
 }

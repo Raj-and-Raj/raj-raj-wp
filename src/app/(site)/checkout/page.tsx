@@ -1,10 +1,19 @@
 "use client";
 
+import { normalizeStateCode, useIndiaStates } from "@/lib/india-states";
+import {
+  NEW_ADDRESS,
+  SavedAddressPicker,
+} from "@/components/checkout/saved-address-picker";
+import type { AddressBook, SavedAddress } from "@/lib/address-book-types";
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
-import { useRouter } from "next/navigation";
 import { Loader } from "@/components/ui/loader";
+import {
+  isOnlinePaymentEnabled,
+  payOrderWithRazorpay,
+} from "@/lib/razorpay-client";
 
 type CartItem = {
   key: string;
@@ -23,8 +32,90 @@ type CartTotals = {
   discount_tax?: number | string;
 };
 
+type CheckoutResponse = {
+  order_id?: number;
+  order_key?: string;
+  status?: string;
+  message?: string;
+  data?: { params?: Record<string, string> };
+  payment_result?: {
+    payment_status?: "success" | "pending" | "failure" | "error";
+    payment_details?: Array<{ key?: string; value?: string }>;
+    redirect_url?: string;
+  };
+};
+
+// Labels for the gateways enabled in WooCommerce; unknown ids fall back to a
+// readable version of the id so newly enabled gateways still show up.
+const PAYMENT_METHOD_LABELS: Record<string, { title: string; description?: string }> = {
+  razorpay: {
+    title: "Pay online",
+    description: "UPI, cards, net banking and wallets via Razorpay.",
+  },
+  cod: { title: "Cash on delivery", description: "Pay when your order arrives." },
+  bacs: { title: "Direct bank transfer" },
+  cheque: { title: "Cheque payment" },
+};
+
+function paymentMethodLabel(id: string) {
+  return (
+    PAYMENT_METHOD_LABELS[id] ?? {
+      title: id.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    }
+  );
+}
+
+const PARAM_LABELS: Record<string, string> = {
+  billing_address: "Billing address",
+  shipping_address: "Shipping address",
+  payment_method: "Payment method",
+};
+
+// WooCommerce's generic "Invalid parameter(s): billing_address" hides the
+// real reason, which it puts in data.params per field.
+function checkoutErrorMessage(response: CheckoutResponse) {
+  const params = response.data?.params;
+  if (params && Object.keys(params).length) {
+    const reasons = new Set(
+      Object.entries(params).map(([field, reason]) => {
+        const text = stripHtml(reason).split(" Must be one of")[0];
+        return `${PARAM_LABELS[field] ?? field}: ${text}`;
+      }),
+    );
+    return Array.from(reasons).join(" ");
+  }
+  return stripHtml(response.message);
+}
+
+// Address fields shared by checkout's billing/shipping state and the book.
+function addressFields(address: SavedAddress) {
+  return {
+    first_name: address.first_name,
+    last_name: address.last_name,
+    company: address.company,
+    address_1: address.address_1,
+    address_2: address.address_2,
+    city: address.city,
+    state: address.state,
+    postcode: address.postcode,
+    country: address.country || "IN",
+    phone: address.phone,
+  };
+}
+
+function stripHtml(value?: string) {
+  if (!value) return "";
+  const text = value.replace(/<[^>]*>/g, "");
+  if (typeof document === "undefined") return text.trim();
+  const el = document.createElement("textarea");
+  el.innerHTML = text;
+  return el.value.trim();
+}
+
 type Cart = {
   items?: CartItem[];
+  payment_methods?: string[];
+  needs_payment?: boolean;
   totals?: CartTotals;
   coupons?: Array<{ code?: string; discount?: string | number }>;
   shipping_rates?: Array<{
@@ -38,7 +129,6 @@ type Cart = {
 };
 
 export default function CheckoutPage() {
-  const router = useRouter();
   const [cart, setCart] = useState<Cart | null>(null);
   const [billing, setBilling] = useState({
     first_name: "",
@@ -66,9 +156,21 @@ export default function CheckoutPage() {
     phone: "",
   });
   const [shipToBilling, setShipToBilling] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [addressBook, setAddressBook] = useState<AddressBook | null>(null);
+  const [billingChoice, setBillingChoice] = useState<string>(NEW_ADDRESS);
+  const [shippingChoice, setShippingChoice] = useState<string>(NEW_ADDRESS);
+  const [saveNewBilling, setSaveNewBilling] = useState(true);
+  const [saveNewShipping, setSaveNewShipping] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [shippingMethod, setShippingMethod] = useState("");
   const [isPlacing, setIsPlacing] = useState(false);
+  const [onlinePaymentEnabled, setOnlinePaymentEnabled] = useState<
+    boolean | null
+  >(null);
+  const [pendingOrder, setPendingOrder] = useState<{
+    id: number;
+    key: string;
+  } | null>(null);
   const [error, setError] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
   const [coupon, setCoupon] = useState("");
@@ -85,45 +187,7 @@ export default function CheckoutPage() {
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [emailWarning, setEmailWarning] = useState("");
-  const indiaStates = [
-    { code: "AN", name: "Andaman and Nicobar Islands" },
-    { code: "AP", name: "Andhra Pradesh" },
-    { code: "AR", name: "Arunachal Pradesh" },
-    { code: "AS", name: "Assam" },
-    { code: "BR", name: "Bihar" },
-    { code: "CH", name: "Chandigarh" },
-    { code: "CT", name: "Chhattisgarh" },
-    { code: "DN", name: "Dadra and Nagar Haveli and Daman and Diu" },
-    { code: "DD", name: "Daman and Diu (Legacy)" },
-    { code: "DL", name: "Delhi" },
-    { code: "GA", name: "Goa" },
-    { code: "GJ", name: "Gujarat" },
-    { code: "HR", name: "Haryana" },
-    { code: "HP", name: "Himachal Pradesh" },
-    { code: "JK", name: "Jammu and Kashmir" },
-    { code: "JH", name: "Jharkhand" },
-    { code: "KA", name: "Karnataka" },
-    { code: "KL", name: "Kerala" },
-    { code: "LA", name: "Ladakh" },
-    { code: "LD", name: "Lakshadweep" },
-    { code: "MP", name: "Madhya Pradesh" },
-    { code: "MH", name: "Maharashtra" },
-    { code: "MN", name: "Manipur" },
-    { code: "ML", name: "Meghalaya" },
-    { code: "MZ", name: "Mizoram" },
-    { code: "NL", name: "Nagaland" },
-    { code: "OR", name: "Odisha" },
-    { code: "PY", name: "Puducherry" },
-    { code: "PB", name: "Punjab" },
-    { code: "RJ", name: "Rajasthan" },
-    { code: "SK", name: "Sikkim" },
-    { code: "TN", name: "Tamil Nadu" },
-    { code: "TG", name: "Telangana" },
-    { code: "TR", name: "Tripura" },
-    { code: "UP", name: "Uttar Pradesh" },
-    { code: "UT", name: "Uttarakhand" },
-    { code: "WB", name: "West Bengal" },
-  ];
+  const indiaStates = useIndiaStates();
 
   const load = useCallback(async () => {
       const authRes = await fetch("/api/auth/me");
@@ -133,11 +197,19 @@ export default function CheckoutPage() {
       } else {
         setIsAuthed(true);
         setAuthChecked(true);
+        const me = (await authRes.json().catch(() => null)) as { email?: string } | null;
+        if (me?.email) {
+          setBilling((prev) => (prev.email ? prev : { ...prev, email: me.email! }));
+        }
       }
       const res = await fetch("/api/cart");
       if (res.ok) {
         const data = await res.json();
         setCart(data);
+        const gateways: string[] = data?.payment_methods ?? [];
+        setPaymentMethod((current) =>
+          current && gateways.includes(current) ? current : (gateways[0] ?? ""),
+        );
         const options =
           data?.shipping_rates
             ?.flatMap(
@@ -203,10 +275,36 @@ export default function CheckoutPage() {
         }
 
         if (nextBilling) {
-          setBilling(nextBilling);
+          setBilling({
+            ...nextBilling,
+            state: normalizeStateCode(nextBilling.state),
+          });
         }
         if (nextShipping) {
-          setShipping(nextShipping);
+          setShipping({
+            ...nextShipping,
+            state: normalizeStateCode(nextShipping.state),
+          });
+        }
+        const bookRes = await fetch("/api/account/address-book");
+        if (bookRes.ok) {
+          const book: AddressBook = await bookRes.json();
+          setAddressBook(book);
+          const defaultBilling = book.addresses.find((a) => a.id === book.defaultBilling);
+          const defaultShipping = book.addresses.find((a) => a.id === book.defaultShipping);
+          if (defaultBilling) {
+            setBilling((prev) => ({ ...prev, ...addressFields(defaultBilling) }));
+            setBillingChoice(defaultBilling.id);
+            setSaveNewBilling(false);
+          }
+          if (defaultShipping) {
+            setShipping((prev) => ({ ...prev, ...addressFields(defaultShipping) }));
+            setShippingChoice(defaultShipping.id);
+            setSaveNewShipping(false);
+            if (defaultBilling && defaultShipping.id !== defaultBilling.id) {
+              setShipToBilling(false);
+            }
+          }
         }
         setHasPrefilled(true);
       }
@@ -277,37 +375,162 @@ export default function CheckoutPage() {
     return () => window.clearTimeout(timer);
   }, [couponSuccess]);
 
-  const placeOrder = async () => {
-    setIsPlacing(true);
-    setError("");
-    try {
-      const createRes = await fetch("/api/checkout", {
+  useEffect(() => {
+    isOnlinePaymentEnabled().then(setOnlinePaymentEnabled);
+  }, []);
+
+  // Don't preselect online payment when it can't be used.
+  useEffect(() => {
+    if (onlinePaymentEnabled !== false || paymentMethod !== "razorpay") return;
+    const fallback = cart?.payment_methods?.find((m) => m !== "razorpay");
+    if (fallback) setPaymentMethod(fallback);
+  }, [onlinePaymentEnabled, paymentMethod, cart?.payment_methods]);
+
+  const savedAddresses = isAuthed ? (addressBook?.addresses ?? []) : [];
+  const showBillingForm = savedAddresses.length === 0 || billingChoice === NEW_ADDRESS;
+  const showShippingForm = savedAddresses.length === 0 || shippingChoice === NEW_ADDRESS;
+
+  const blankAddress = {
+    company: "",
+    address_1: "",
+    address_2: "",
+    city: "",
+    state: "",
+    postcode: "",
+  };
+
+  const selectBillingAddress = (id: string) => {
+    setBillingChoice(id);
+    const saved = savedAddresses.find((a) => a.id === id);
+    if (saved) {
+      setBilling((prev) => ({ ...prev, ...addressFields(saved) }));
+    } else {
+      setBilling((prev) => ({ ...prev, ...blankAddress }));
+      setSaveNewBilling(true);
+    }
+  };
+
+  const selectShippingAddress = (id: string) => {
+    setShippingChoice(id);
+    const saved = savedAddresses.find((a) => a.id === id);
+    if (saved) {
+      setShipping((prev) => ({ ...prev, ...addressFields(saved) }));
+    } else {
+      setShipping((prev) => ({ ...prev, ...blankAddress }));
+      setSaveNewShipping(true);
+    }
+  };
+
+  // Adds addresses typed in at checkout to the customer's address book.
+  const saveNewAddresses = async () => {
+    if (!isAuthed) return;
+    const pending: Array<{ address: typeof shipping; label: string }> = [];
+    if (billingChoice === NEW_ADDRESS && saveNewBilling) {
+      const { email: _email, ...address } = billing;
+      void _email;
+      pending.push({ address, label: savedAddresses.length ? "Other" : "Home" });
+    }
+    if (!shipToBilling && shippingChoice === NEW_ADDRESS && saveNewShipping) {
+      pending.push({ address: shipping, label: "Other" });
+    }
+    for (const { address, label } of pending) {
+      await fetch("/api/account/address-book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          billing_address: billing,
-          shipping_address: shipToBilling ? billing : shipping,
-          shipping_method: shippingMethod ? [shippingMethod] : undefined,
-          payment_method: paymentMethod,
-          payment_data: [],
-          customer_note: orderNotes,
-          ...(isAuthed ? {} : { create_account: true }),
-        }),
-      });
-      const processed = await createRes.json();
-      if (!createRes.ok) {
-        throw new Error(processed?.message || "Payment failed.");
+        body: JSON.stringify({ address: { ...address, label } }),
+      }).catch(() => undefined);
+    }
+  };
+
+  const successUrlFor = (orderId?: number, orderKey?: string) =>
+    orderId
+      ? `/checkout/success?order_id=${orderId}${
+          orderKey ? `&key=${encodeURIComponent(orderKey)}` : ""
+        }`
+      : "/checkout/success";
+
+  const placeOrder = async () => {
+    if (cart?.needs_payment !== false && !paymentMethod) {
+      setError("Please choose a payment method.");
+      return;
+    }
+    if (
+      paymentMethod === "razorpay" &&
+      !pendingOrder &&
+      onlinePaymentEnabled === false
+    ) {
+      setError(
+        "Online payment is temporarily unavailable. Please choose Cash on delivery.",
+      );
+      return;
+    }
+    setIsPlacing(true);
+    setError("");
+    let redirecting = false;
+    try {
+      // An order already created for online payment is retried as-is so a
+      // failed or cancelled payment never creates a duplicate order.
+      let order = pendingOrder;
+      if (!order) {
+        const createRes = await fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            billing_address: billing,
+            shipping_address: shipToBilling ? billing : shipping,
+            shipping_method: shippingMethod ? [shippingMethod] : undefined,
+            payment_method: paymentMethod,
+            payment_data: [],
+            customer_note: orderNotes,
+            ...(isAuthed ? {} : { create_account: true }),
+          }),
+        });
+        const processed: CheckoutResponse = await createRes
+          .json()
+          .catch(() => ({}));
+        if (!createRes.ok) {
+          throw new Error(
+            checkoutErrorMessage(processed) || "Unable to place your order.",
+          );
+        }
+
+        const result = processed.payment_result;
+        if (
+          result?.payment_status === "failure" ||
+          result?.payment_status === "error"
+        ) {
+          const detail = result.payment_details?.find(
+            (entry) => entry.key === "message" || entry.key === "errorMessage",
+          )?.value;
+          throw new Error(
+            stripHtml(detail) ||
+              "Payment could not be processed. Please try again.",
+          );
+        }
+        window.dispatchEvent(new Event("cart:updated"));
+        await saveNewAddresses();
+
+        if (paymentMethod !== "razorpay" || !processed.order_id || !processed.order_key) {
+          redirecting = true;
+          window.location.href = successUrlFor(
+            processed.order_id,
+            processed.order_key,
+          );
+          return;
+        }
+        order = { id: processed.order_id, key: processed.order_key };
+        setPendingOrder(order);
       }
-      const orderId = processed?.order_id || processed?.id;
-      if (orderId) {
-        window.location.href = `/checkout/success?order_id=${orderId}`;
-        return;
-      }
-      window.location.href = "/checkout/success";
+
+      // Razorpay runs on this page (instead of WordPress's payment page) so
+      // any payment problem is shown here and the customer can retry.
+      await payOrderWithRazorpay({ orderId: order.id, orderKey: order.key });
+      redirecting = true;
+      window.location.href = successUrlFor(order.id, order.key);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Checkout failed.");
     } finally {
-      setIsPlacing(false);
+      if (!redirecting) setIsPlacing(false);
     }
   };
 
@@ -456,6 +679,18 @@ export default function CheckoutPage() {
                 </button>
               ) : null}
             </div>
+            {savedAddresses.length ? (
+              <SavedAddressPicker
+                name="billing-address"
+                addresses={savedAddresses}
+                selected={billingChoice}
+                defaultId={addressBook?.defaultBilling}
+                states={indiaStates}
+                onSelect={selectBillingAddress}
+              />
+            ) : null}
+            {showBillingForm ? (
+              <>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <label className="text-xs font-semibold text-[color:var(--muted)]">
                 First name <span className="text-[color:var(--brand)]">*</span>
@@ -576,6 +811,18 @@ export default function CheckoutPage() {
                 />
               </label>
             </div>
+              {isAuthed ? (
+                <label className="mt-4 flex items-center gap-2 text-xs font-semibold text-[color:var(--muted)]">
+                  <input
+                    type="checkbox"
+                    checked={saveNewBilling}
+                    onChange={(event) => setSaveNewBilling(event.target.checked)}
+                  />
+                  Save this address to my address book
+                </label>
+              ) : null}
+              </>
+            ) : null}
             <label className="mt-4 block text-xs font-semibold text-[color:var(--muted)]">
               Email address <span className="text-[color:var(--brand)]">*</span>
               <input
@@ -597,7 +844,7 @@ export default function CheckoutPage() {
                   checked={shipToBilling}
                   onChange={(event) => setShipToBilling(event.target.checked)}
                 />
-                Shipping address same as billing
+                Ship to the same address
               </label>
             </div>
             <label className="mt-6 block text-xs font-semibold text-[color:var(--muted)]">
@@ -615,6 +862,18 @@ export default function CheckoutPage() {
           {!shipToBilling ? (
             <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
               <h2 className="text-lg font-semibold">Shipping details</h2>
+              {savedAddresses.length ? (
+                <SavedAddressPicker
+                  name="shipping-address"
+                  addresses={savedAddresses}
+                  selected={shippingChoice}
+                  defaultId={addressBook?.defaultShipping}
+                  states={indiaStates}
+                  onSelect={selectShippingAddress}
+                />
+              ) : null}
+              {showShippingForm ? (
+                <>
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 <label className="text-xs font-semibold text-[color:var(--muted)]">
                   First name{" "}
@@ -743,6 +1002,18 @@ export default function CheckoutPage() {
                   />
                 </label>
               </div>
+                  {isAuthed ? (
+                    <label className="mt-4 flex items-center gap-2 text-xs font-semibold text-[color:var(--muted)]">
+                      <input
+                        type="checkbox"
+                        checked={saveNewShipping}
+                        onChange={(event) => setSaveNewShipping(event.target.checked)}
+                      />
+                      Save this address to my address book
+                    </label>
+                  ) : null}
+                </>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -911,34 +1182,89 @@ export default function CheckoutPage() {
           <div className="rounded-[12px] border border-black/5 bg-white/95 p-6">
             <h3 className="text-sm font-semibold">Payment</h3>
             <div className="mt-3 space-y-3 text-sm">
-              <label className="flex items-center gap-2 rounded-[10px] border border-black/10 px-3 py-2">
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === "cod"}
-                  onChange={() => setPaymentMethod("cod")}
-                />
-                Cash on delivery
-              </label>
-              <label className="flex items-center gap-2 rounded-[10px] border border-black/10 px-3 py-2">
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === "razorpay"}
-                  onChange={() => setPaymentMethod("razorpay")}
-                />
-                Razorpay
-              </label>
+              {cart?.payment_methods?.length ? (
+                cart.payment_methods.map((method) => {
+                  const label = paymentMethodLabel(method);
+                  const unavailable =
+                    method === "razorpay" && onlinePaymentEnabled === false;
+                  const locked = !!pendingOrder && method !== paymentMethod;
+                  const disabled = unavailable || locked;
+                  return (
+                    <label
+                      key={method}
+                      className={`flex items-start gap-2 rounded-[10px] border px-3 py-2 ${
+                        disabled
+                          ? "cursor-not-allowed opacity-60"
+                          : "cursor-pointer"
+                      } ${
+                        paymentMethod === method
+                          ? "border-[color:var(--brand)]"
+                          : "border-black/10"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        className="mt-1"
+                        disabled={disabled}
+                        checked={paymentMethod === method}
+                        onChange={() => setPaymentMethod(method)}
+                      />
+                      <span>
+                        <span className="block font-medium">{label.title}</span>
+                        {unavailable ? (
+                          <span className="block text-xs text-red-600">
+                            Temporarily unavailable. Please choose another
+                            method.
+                          </span>
+                        ) : label.description ? (
+                          <span className="block text-xs text-[color:var(--muted)]">
+                            {label.description}
+                          </span>
+                        ) : null}
+                      </span>
+                    </label>
+                  );
+                })
+              ) : (
+                <p className="text-[color:var(--muted)]">
+                  No payment methods are available right now.
+                </p>
+              )}
             </div>
             {error ? (
-              <p className="mt-3 text-sm text-red-500">{error}</p>
+              <div
+                role="alert"
+                className="mt-4 rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+              >
+                {error}
+              </div>
+            ) : null}
+            {pendingOrder ? (
+              <p className="mt-3 text-xs text-[color:var(--muted)]">
+                Order #{pendingOrder.id} is saved and waiting for payment.{" "}
+                <a
+                  href={successUrlFor(pendingOrder.id, pendingOrder.key)}
+                  className="font-semibold text-[color:var(--brand)] hover:underline"
+                >
+                  View order
+                </a>
+              </p>
             ) : null}
             <Button
               onClick={placeOrder}
               className="mt-6 w-full"
               disabled={isPlacing}
             >
-              {isPlacing ? "Placing order..." : "Place order"}
+              {isPlacing
+                ? pendingOrder
+                  ? "Processing payment..."
+                  : "Placing order..."
+                : pendingOrder
+                  ? `Pay now for order #${pendingOrder.id}`
+                  : paymentMethod === "razorpay"
+                    ? "Place order & pay"
+                    : "Place order"}
             </Button>
             {!isAuthed ? (
               <p className="mt-3 text-xs text-[color:var(--muted)]">
